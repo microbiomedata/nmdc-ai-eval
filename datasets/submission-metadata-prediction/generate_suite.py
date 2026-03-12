@@ -19,7 +19,6 @@ from pathlib import Path
 
 import yaml
 
-
 HERE = Path(__file__).parent
 DEFAULT_TSV = HERE / "eval_input_target_pairs.tsv"
 DEFAULT_OUTPUT = HERE / "sampledata-suite.yaml"
@@ -43,9 +42,7 @@ def load_rows(tsv_path: Path) -> list[dict]:
         return list(csv.DictReader(f, delimiter="\t"))
 
 
-def sample_by_category(
-    rows: list[dict], n_per_category: int, seed: int = 42
-) -> list[dict]:
+def sample_by_category(rows: list[dict], n_per_category: int, seed: int = 42) -> list[dict]:
     by_cat: dict[str, list[dict]] = defaultdict(list)
     for row in rows:
         by_cat[row["sampleData"]].append(row)
@@ -67,9 +64,7 @@ def make_suite(sampled_rows: list[dict]) -> dict:
             desc = desc[:497] + "..."
         cases.append(
             {
-                "input": PROMPT_TEMPLATE.format(
-                    study_name=row["study_name"], description=desc
-                ),
+                "input": PROMPT_TEMPLATE.format(study_name=row["study_name"], description=desc),
                 "ideal": row["sampleData"],
                 "tags": [row["sampleData"]],
                 "original_input": {
@@ -105,12 +100,8 @@ def make_suite(sampled_rows: list[dict]) -> dict:
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument(
-        "--tsv", type=Path, default=DEFAULT_TSV, help="Input TSV path"
-    )
-    parser.add_argument(
-        "-o", "--output", type=Path, default=DEFAULT_OUTPUT, help="Output YAML path"
-    )
+    parser.add_argument("--tsv", type=Path, default=DEFAULT_TSV, help="Input TSV path")
+    parser.add_argument("-o", "--output", type=Path, default=DEFAULT_OUTPUT, help="Output YAML path")
     parser.add_argument(
         "--per-category",
         type=int,

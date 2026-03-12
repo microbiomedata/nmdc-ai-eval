@@ -1,3 +1,15 @@
+# === Project-specific ===
+
+# Secrets
+.env
+.envrc
+
+# llm-runner output
+*-output/
+*.db
+
+# === Standard Python (GitHub template) ===
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
