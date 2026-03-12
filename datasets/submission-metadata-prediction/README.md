@@ -32,6 +32,24 @@ Eval dataset for the NMDC metadata suggestor AI tool. Each row pairs **submissio
 ## Files
 
 - **`eval_input_target_pairs.tsv`** — Materialized join of `nmdc_submissions` × `flattened_submission_biosamples`, filtered to `status = 'Released'`.
+- **`generate_suite.py`** — Samples N rows per `sampleData` value and generates an [llm-matrix](https://github.com/monarch-initiative/llm-matrix) suite YAML. Run `python generate_suite.py --help` for options.
+- **`sampledata-suite.yaml`** — Generated llm-matrix suite (25 cases, 5 per category). Run with `llm-runner run sampledata-suite.yaml`.
+
+## Running the eval
+
+```bash
+# Install llm-runner
+pipx install llm-runner  # or: uv tool install llm-runner
+
+# Configure an LLM API key (llm-matrix uses Simon Willison's llm package)
+llm keys set openai  # paste your OpenAI key
+
+# Run the suite
+llm-runner run datasets/submission-metadata-prediction/sampledata-suite.yaml
+
+# Regenerate suite with more samples
+python datasets/submission-metadata-prediction/generate_suite.py --per-category 10
+```
 
 ## Stats
 
