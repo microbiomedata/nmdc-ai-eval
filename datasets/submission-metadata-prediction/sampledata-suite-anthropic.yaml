@@ -30,19 +30,47 @@ matrix:
     temperature:
     - 0.0
 cases:
-- input: 'Study: Effects of warming and drought on the microbial communities of a northern peatland
-
-    Description: Northern peatlands store carbon as thick layers of peat comprised largely of decomposing Sphagnum moss biomass.
-    The rate of decomposition in these cold, anoxic environments is regulated by heterotrophic microbial networks adapted
-    to extreme conditions. The enzyme latch hypothesis posits that oxygen limitation suppresses phenol oxidases, allowing
-    phenolic compounds to accumulate and inhibit decomposition, but recent evidence suggests these plant-derived compounds
-    fuel microbial growth under an...'
-  ideal: metagenome_sequencing_non_interleaved_data
+- input: "Study: Chronic drought differentially alters the belowground microbiome of drought tolerant and drought susceptible\
+    \ genotypes of Populus trichocarpa\nDescription: Populus trichocarpa is an ecologically important tree species and economically\
+    \ important biofeedstock. Belowground, P. trichocarpa interacts with diverse microorganisms in the rhizosphere and root\
+    \ endosphere. These plant-microbial interactions can bolster a variety of plant processes, ranging from pathogen suppression\
+    \ to drought tolerance, yet we know little about the impact of chronic drought stress on P. trichocarpa\u2019s belowground\
+    \ microbiomes. To investigate the interactive effect of chronic..."
+  ideal: soil_data
   tags:
-  - metagenome_sequencing_non_interleaved_data
+  - soil_data
   original_input:
-    study_name: Effects of warming and drought on the microbial communities of a northern peatland
-    sampleData: metagenome_sequencing_non_interleaved_data
+    study_name: Chronic drought differentially alters the belowground microbiome of drought tolerant and drought susceptible
+      genotypes of Populus trichocarpa
+    sampleData: soil_data
+- input: 'Study: Soil microbial communities from watershed of Upper East River, Colorado, USA
+
+    Description: In mountainous systems with seasonal snow-cover, interactions between vegetation, microorganisms and geology
+    are key to the retention of water, nutrients and other elements. Snowpack dynamics, including snow depth and timing of
+    snowmelt, shape these interactions. The timing of snowmelt is changing, and with it plant and microbial activity that
+    control watershed exports. Using remote sensing, metagenomics and machine learning, we are building new ways to predict
+    of how plant and microbial meta...'
+  ideal: soil_data
+  tags:
+  - soil_data
+  original_input:
+    study_name: Soil microbial communities from watershed of Upper East River, Colorado, USA
+    sampleData: soil_data
+- input: 'Study: Continental-scale metagenomics: leveraging the NSF National Ecological Observatory Network to advance understanding
+    of terrestrial and aquatic microbial communities in response to land use and climate change (AY23_plt05)
+
+    Description: Microbial communities in the soil and water provide the machinery that runs terrestrial and aquatic nutrient
+    cycles and are key to maintaining the flow of energy and materials through the ecosystem. Our project aims to produce
+    freely available metagenomics data of unprecedented scope to enable novel analyses and insights into microbial communities.
+    By linking these genomic data with the wealth of measurements from NEON''s long-term ecological monitoring project, this
+    project will provide unmat...'
+  ideal: soil_data
+  tags:
+  - soil_data
+  original_input:
+    study_name: 'Continental-scale metagenomics: leveraging the NSF National Ecological Observatory Network to advance understanding
+      of terrestrial and aquatic microbial communities in response to land use and climate change (AY23_plt05)'
+    sampleData: soil_data
 - input: 'Study: Microbial regulation of soil water repellency to control soil degradation
 
     Description: We investigated the direct effect of microbial community composition, activity, and diversity on the development
@@ -50,119 +78,24 @@ cases:
     communities and quantified respiration and soil water repellency over time. Six communities that consistently produced
     either a hydrophobic (3) or hydrophilic (3) phenotype were characterized using metagenomics and metabolomics to determine
     the impact of microbial a...'
-  ideal: misc_envs_data
+  ideal: soil_data
   tags:
-  - misc_envs_data
+  - soil_data
   original_input:
     study_name: Microbial regulation of soil water repellency to control soil degradation
-    sampleData: misc_envs_data
-- input: 'Study: EcoFAB 2.0 Root Microbiome Ring Trial
-
-    Description: Leveraging microbiomes to promote soil health and plant growth requires understanding underlying molecular
-    mechanisms through reproducible experimental systems. In a global collaborative effort involving five laboratories, we
-    aimed to advance reproducibility in microbiome studies by leveraging recently developed fabricated ecosystems (EcoFAB
-    2.0). Our inter-laboratory ring trial utilized synthetic bacterial communities (SynComs) to study root microbiome recruitment
-    (analyzed by 16S amplicon s...'
-  ideal: misc_envs_data
-  tags:
-  - misc_envs_data
-  original_input:
-    study_name: EcoFAB 2.0 Root Microbiome Ring Trial
-    sampleData: misc_envs_data
-- input: 'Study: EcoFAB 2.0 Root Microbiome Ring Trial
-
-    Description: Leveraging microbiomes to promote soil health and plant growth requires understanding underlying molecular
-    mechanisms through reproducible experimental systems. In a global collaborative effort involving five laboratories, we
-    aimed to advance reproducibility in microbiome studies by leveraging recently developed fabricated ecosystems (EcoFAB
-    2.0). Our inter-laboratory ring trial utilized synthetic bacterial communities (SynComs) to study root microbiome recruitment
-    (analyzed by 16S amplicon s...'
-  ideal: misc_envs_data
-  tags:
-  - misc_envs_data
-  original_input:
-    study_name: EcoFAB 2.0 Root Microbiome Ring Trial
-    sampleData: misc_envs_data
-- input: 'Study: EcoFAB 2.0 Root Microbiome Ring Trial
-
-    Description: Leveraging microbiomes to promote soil health and plant growth requires understanding underlying molecular
-    mechanisms through reproducible experimental systems. In a global collaborative effort involving five laboratories, we
-    aimed to advance reproducibility in microbiome studies by leveraging recently developed fabricated ecosystems (EcoFAB
-    2.0). Our inter-laboratory ring trial utilized synthetic bacterial communities (SynComs) to study root microbiome recruitment
-    (analyzed by 16S amplicon s...'
-  ideal: misc_envs_data
-  tags:
-  - misc_envs_data
-  original_input:
-    study_name: EcoFAB 2.0 Root Microbiome Ring Trial
-    sampleData: misc_envs_data
-- input: 'Study: EcoFAB 2.0 Root Microbiome Ring Trial
-
-    Description: Leveraging microbiomes to promote soil health and plant growth requires understanding underlying molecular
-    mechanisms through reproducible experimental systems. In a global collaborative effort involving five laboratories, we
-    aimed to advance reproducibility in microbiome studies by leveraging recently developed fabricated ecosystems (EcoFAB
-    2.0). Our inter-laboratory ring trial utilized synthetic bacterial communities (SynComs) to study root microbiome recruitment
-    (analyzed by 16S amplicon s...'
-  ideal: misc_envs_data
-  tags:
-  - misc_envs_data
-  original_input:
-    study_name: EcoFAB 2.0 Root Microbiome Ring Trial
-    sampleData: misc_envs_data
-- input: 'Study: Impact of modulating bioenergy traits on the sorghum microbiome under drought conditions
-
-    Description: This dataset comprises 16S amplicon sequences from the rhizosphere of sorghum, sampled in 2022 from fields
-    in Davis, California. The sorghum genotype used was the commercial grain variety ''Wheatland''. Plants under well-watered
-    conditions received 100% irrigation, while drought-stressed plants received only 25% of this rate. Microbiome sampling
-    was conducted at two growth stages: boot stage (August) and soft dough stage (October). 16S rRNA gene sequencing was performed
-    on the V4 region using t...'
-  ideal: plant_associated_data
-  tags:
-  - plant_associated_data
-  original_input:
-    study_name: Impact of modulating bioenergy traits on the sorghum microbiome under drought conditions
-    sampleData: plant_associated_data
-- input: 'Study: Seasonal activities of the phyllosphere microbiome of perennial crops
-
-    Description: Understanding the interactions between plants and microorganisms can inform microbiome management to enhance
-    crop productivity and resilience to stress. Here, we apply a genome-centric approach to identify ecologically important
-    leaf microbiome members on replicated plots of field-grown switchgrass and miscanthus, and to quantify their activities
-    over two growing seasons for switchgrass. We use metagenome and metatranscriptome sequencing and curate 40 medium- and
-    high-quality metagenome-assem...'
-  ideal: plant_associated_data
-  tags:
-  - plant_associated_data
-  original_input:
-    study_name: Seasonal activities of the phyllosphere microbiome of perennial crops
-    sampleData: plant_associated_data
-- input: 'Study: Continental-scale metagenomics: leveraging the NSF National Ecological Observatory Network to advance understanding
-    of terrestrial and aquatic microbial communities in response to land use and climate change (AY23_plt05)
-
-    Description: Microbial communities in the soil and water provide the machinery that runs terrestrial and aquatic nutrient
-    cycles and are key to maintaining the flow of energy and materials through the ecosystem. Our project aims to produce
-    freely available metagenomics data of unprecedented scope to enable novel analyses and insights into microbial communities.
-    By linking these genomic data with the wealth of measurements from NEON''s long-term ecological monitoring project, this
-    project will provide unmat...'
-  ideal: soil_data
-  tags:
-  - soil_data
-  original_input:
-    study_name: 'Continental-scale metagenomics: leveraging the NSF National Ecological Observatory Network to advance understanding
-      of terrestrial and aquatic microbial communities in response to land use and climate change (AY23_plt05)'
     sampleData: soil_data
-- input: 'Study: Continental-scale metagenomics: leveraging the NSF National Ecological Observatory Network to advance understanding
-    of terrestrial and aquatic microbial communities in response to land use and climate change (AY23_plt05)
+- input: 'Study: Effects of warming and drought on the microbial communities of a northern peatland
 
-    Description: Microbial communities in the soil and water provide the machinery that runs terrestrial and aquatic nutrient
-    cycles and are key to maintaining the flow of energy and materials through the ecosystem. Our project aims to produce
-    freely available metagenomics data of unprecedented scope to enable novel analyses and insights into microbial communities.
-    By linking these genomic data with the wealth of measurements from NEON''s long-term ecological monitoring project, this
-    project will provide unmat...'
+    Description: Northern peatlands store carbon as thick layers of peat comprised largely of decomposing Sphagnum moss biomass.
+    The rate of decomposition in these cold, anoxic environments is regulated by heterotrophic microbial networks adapted
+    to extreme conditions. The enzyme latch hypothesis posits that oxygen limitation suppresses phenol oxidases, allowing
+    phenolic compounds to accumulate and inhibit decomposition, but recent evidence suggests these plant-derived compounds
+    fuel microbial growth under an...'
   ideal: soil_data
   tags:
   - soil_data
   original_input:
-    study_name: 'Continental-scale metagenomics: leveraging the NSF National Ecological Observatory Network to advance understanding
-      of terrestrial and aquatic microbial communities in response to land use and climate change (AY23_plt05)'
+    study_name: Effects of warming and drought on the microbial communities of a northern peatland
     sampleData: soil_data
 - input: 'Study: Switchgrass cropping systems affect soil carbon and nitrogen and microbial diversity and activity on marginal
     lands
@@ -179,92 +112,40 @@ cases:
     study_name: Switchgrass cropping systems affect soil carbon and nitrogen and microbial diversity and activity on marginal
       lands
     sampleData: soil_data
-- input: 'Study: Switchgrass cropping systems affect soil carbon and nitrogen and microbial diversity and activity on marginal
-    lands
+- input: 'Study: Bio-Scales: Defining plant gene function and its connection to ecosystem nitrogen and carbon cycle
 
-    Description: Understanding how the rhizosphere microbiome influences soil nitrogen (N) transformations can inform management
-    decisions that promote bioenergy crop productivity under low-N conditions. Here, we coupled amplicon sequencing with soil
-    physiochemical and enzymatic parameters to understand how rhizosphere microbial communities mediate N-transformations
-    under low- and high- N conditions. We collected rhizosphere soils from switchgrass (P. virgatum), restored prairie, and
-    undisturbed grassland acr...'
+    Description: The goal of this Bio-Scales Pilot Project study is to understand how plant traits modify the microbiome and
+    in particular how the coupled plant-soil-microbial system influences nitrogen transformation patterns and fluxes.'
   ideal: soil_data
   tags:
   - soil_data
   original_input:
-    study_name: Switchgrass cropping systems affect soil carbon and nitrogen and microbial diversity and activity on marginal
-      lands
+    study_name: 'Bio-Scales: Defining plant gene function and its connection to ecosystem nitrogen and carbon cycle'
     sampleData: soil_data
-- input: 'Study: Continental-scale metagenomics: leveraging the NSF National Ecological Observatory Network to advance understanding
-    of terrestrial and aquatic microbial communities in response to land use and climate change (AY23_plt05)
+- input: 'Study: Molecular mechanisms underlying changes in the temperature sensitive respiration response of forest soils
+    to long-term experimental warming
 
-    Description: Microbial communities in the soil and water provide the machinery that runs terrestrial and aquatic nutrient
-    cycles and are key to maintaining the flow of energy and materials through the ecosystem. Our project aims to produce
-    freely available metagenomics data of unprecedented scope to enable novel analyses and insights into microbial communities.
-    By linking these genomic data with the wealth of measurements from NEON''s long-term ecological monitoring project, this
-    project will provide unmat...'
+    Description: Global climate changes is transforming our soils. In our long-term soil warming experiment in the Barre Woods
+    tract at Harvard Forest, a 5C elevation in soil temperature has increased respiration rates and resulted in a net loss
+    of soil carbon and increase nitrogen mineralization. In order to link microbial metabolism with soil biogeochemistry,
+    we measured cellular metabolism and soil organic matter chemistry using both next generation sequencing and high-resolution
+    mass spectrometry (MS).'
   ideal: soil_data
   tags:
   - soil_data
   original_input:
-    study_name: 'Continental-scale metagenomics: leveraging the NSF National Ecological Observatory Network to advance understanding
-      of terrestrial and aquatic microbial communities in response to land use and climate change (AY23_plt05)'
+    study_name: Molecular mechanisms underlying changes in the temperature sensitive respiration response of forest soils
+      to long-term experimental warming
     sampleData: soil_data
-- input: 'Study: Seawater and ice microbial communities from Arctic Ocean
-
-    Description: The goal of this study is to enhance understanding of Arctic region with focusing on coupled ice-ocean-atmosphere-ecosystem
-    processes for modelling biogeochemical cycles, climate projections and climate change assessment under conditions of Arctic
-    change from land to ocean.'
-  ideal: water_data
+- input: "Study: The Impact of Stand Age and Fertilization on the Soil Microbiome of Miscanthus \xD7 giganteus\nDescription:\
+    \ Yield of the perennial grass Miscanthus \xD7 giganteus has shown an inconsistent and unpredictable response to nitrogen\
+    \ (N) fertilizer, yet fertilization underpins the crop\u2019s environmental and economic sustainability. The interactions\
+    \ among soil microbial communities, N availability, and Miscanthus \xD7 giganteus and management may explain changes in\
+    \ plant productivity. In this study, soil samples from different stand ages of Miscanthus \xD7 giganteus in a replicated\
+    \ chronosequence field trial were us..."
+  ideal: soil_data
   tags:
-  - water_data
+  - soil_data
   original_input:
-    study_name: Seawater and ice microbial communities from Arctic Ocean
-    sampleData: water_data
-- input: 'Study: Seawater and ice microbial communities from Arctic Ocean
-
-    Description: The goal of this study is to enhance understanding of Arctic region with focusing on coupled ice-ocean-atmosphere-ecosystem
-    processes for modelling biogeochemical cycles, climate projections and climate change assessment under conditions of Arctic
-    change from land to ocean.'
-  ideal: water_data
-  tags:
-  - water_data
-  original_input:
-    study_name: Seawater and ice microbial communities from Arctic Ocean
-    sampleData: water_data
-- input: 'Study: Seawater and ice microbial communities from Arctic Ocean
-
-    Description: The goal of this study is to enhance understanding of Arctic region with focusing on coupled ice-ocean-atmosphere-ecosystem
-    processes for modelling biogeochemical cycles, climate projections and climate change assessment under conditions of Arctic
-    change from land to ocean.'
-  ideal: water_data
-  tags:
-  - water_data
-  original_input:
-    study_name: Seawater and ice microbial communities from Arctic Ocean
-    sampleData: water_data
-- input: 'Study: Seawater and ice microbial communities from Arctic Ocean
-
-    Description: The goal of this study is to enhance understanding of Arctic region with focusing on coupled ice-ocean-atmosphere-ecosystem
-    processes for modelling biogeochemical cycles, climate projections and climate change assessment under conditions of Arctic
-    change from land to ocean.'
-  ideal: water_data
-  tags:
-  - water_data
-  original_input:
-    study_name: Seawater and ice microbial communities from Arctic Ocean
-    sampleData: water_data
-- input: 'Study: Continental-scale metagenomics: leveraging the NSF National Ecological Observatory Network to advance understanding
-    of terrestrial and aquatic microbial communities in response to land use and climate change (AY23_plt06)
-
-    Description: Microbial communities in the soil and water provide the machinery that runs terrestrial and aquatic nutrient
-    cycles and are key to maintaining the flow of energy and materials through the ecosystem. Our project aims to produce
-    freely available metagenomics data of unprecedented scope to enable novel analyses and insights into microbial communities.
-    By linking these genomic data with the wealth of measurements from NEON''s long-term ecological monitoring project, this
-    project will provide unmat...'
-  ideal: water_data
-  tags:
-  - water_data
-  original_input:
-    study_name: 'Continental-scale metagenomics: leveraging the NSF National Ecological Observatory Network to advance understanding
-      of terrestrial and aquatic microbial communities in response to land use and climate change (AY23_plt06)'
-    sampleData: water_data
+    study_name: "The Impact of Stand Age and Fertilization on the Soil Microbiome of Miscanthus \xD7 giganteus"
+    sampleData: soil_data

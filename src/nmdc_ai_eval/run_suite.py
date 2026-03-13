@@ -74,13 +74,18 @@ def _print_summary(df: "pd.DataFrame") -> None:
             click.echo(f"  {cat:<50s} {models_str}  (n={row['support']:.0f})")
         click.echo(f"  {'models:':<50s} {'  '.join(str(m) for m in model_scores.index)}")
 
-    # Show misses
+    # Show misses grouped by expected category
     misses = df[df["score"] < 1.0]
     if not misses.empty:
         click.echo(f"\n── Misses ({len(misses)}/{len(df)}) ──")
-        for _, row in misses.iterrows():
-            response = str(row.get("response_text", ""))[:60]
-            click.echo(f"  {row['model']}: expected '{row['case_ideal']}', got '{response}'")
+        for cat in sorted(misses["case_ideal"].unique()):
+            cat_misses = misses[misses["case_ideal"] == cat]
+            click.echo(f"  expected '{cat}' ({len(cat_misses)} misses):")
+            for _, row in cat_misses.iterrows():
+                response = str(row.get("response_text", ""))[:50]
+                study = str(row.get("study_name", ""))[:40] if "study_name" in row.index else ""
+                model_short = str(row["model"]).split("/")[-1]
+                click.echo(f"    {model_short:<30s} got '{response}'  [{study}]")
 
 
 @click.command()
@@ -108,13 +113,24 @@ def main(suite_path: Path, output_dir: Path | None = None) -> None:
         output_dir = suite_path.parent / (suite_path.stem + "-output")
     output_dir.mkdir(parents=True, exist_ok=True)
 
+    n_cases = len(suite.cases)
+    n_models = len(model_names)
+    n_total = n_cases * n_models
+    click.echo(f"Running {n_cases} cases × {n_models} models = {n_total} calls (~{n_total * 3}–{n_total * 5}s)")
+
     runner = LLMRunner(store_path=store_path)
     results = []
     try:
-        for r in runner.run_iter(suite):
+        for i, r in enumerate(runner.run_iter(suite), 1):
             results.append(r)
             score_str = f"{r.score:.2f}" if r.score is not None else "N/A"
-            click.echo(f"[{score_str}] {r.case.ideal} <- {r.response.text[:80]}")
+            mark = "+" if r.score and r.score >= 1.0 else "-"
+            model_short = str(r.hyperparameters.get("model", "?")).split("/")[-1][:15]
+            study = r.case.original_input.get("study_name", "")[:30] if r.case.original_input else ""
+            click.echo(
+                f"  {mark} {i:>3d}/{n_total} [{score_str}] {model_short:<15s} {study:<30s}"
+                f"  expected={r.case.ideal}  got={r.response.text[:50]}"
+            )
     except Exception as exc:  # noqa: BLE001
         click.echo(f"\nError during eval: {exc}", err=True)
         click.echo("Check model names and API keys. Run: uv run llm models list", err=True)
