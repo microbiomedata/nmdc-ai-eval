@@ -1,0 +1,45 @@
+# List all commands
+_default:
+    @just --list
+
+# Install dependencies
+setup:
+    uv sync
+    @echo ""
+    @echo "Now configure API keys:"
+    @echo "  cp .env.example .env   # then edit with your keys"
+    @echo "  uv run llm keys set openai"
+    @echo "  uv run llm keys set anthropic"
+
+# Run ruff linter and format check
+lint:
+    uv run ruff check src/ tests/ datasets/
+    uv run ruff format --check src/ tests/ datasets/
+
+# Auto-fix lint and format issues
+fix:
+    uv run ruff check --fix src/ tests/ datasets/
+    uv run ruff format src/ tests/ datasets/
+
+# Run tests
+test:
+    uv run pytest -v
+
+# Run the sampleData eval suite
+run suite_path="datasets/submission-metadata-prediction/sampledata-suite.yaml":
+    uv run python -m nmdc_ai_eval.run_suite {{ suite_path }}
+
+# Regenerate sampleData suite YAML (default 5 per category)
+generate per_category="5":
+    uv run python datasets/submission-metadata-prediction/generate_suite.py --per-category {{ per_category }}
+
+# Lint + test
+qc: lint test
+
+# Install pre-commit hooks
+pre-commit-install:
+    uv run pre-commit install
+
+# Run pre-commit on all files
+pre-commit:
+    uv run pre-commit run --all-files
