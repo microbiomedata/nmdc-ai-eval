@@ -31,6 +31,18 @@ fix:
     uv run ruff check --fix src/ tests/ datasets/
     uv run ruff format src/ tests/ datasets/
 
+# Type check
+typecheck:
+    uv run mypy src/
+
+# Check for unused/missing dependencies
+deptry:
+    uv run deptry src/
+
+# Scan dependencies for known CVEs
+audit:
+    uv run pip-audit
+
 # Run tests
 test:
     uv run pytest -v
@@ -43,8 +55,8 @@ run suite_path="datasets/submission-metadata-prediction/sampledata-suite.yaml":
 generate per_category="5":
     uv run python datasets/submission-metadata-prediction/generate_suite.py --per-category {{ per_category }}
 
-# Lint + test
-qc: lint test
+# Full QC: lint + typecheck + deptry + test
+qc: lint typecheck deptry test
 
 # Install pre-commit hooks
 pre-commit-install:

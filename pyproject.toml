@@ -28,6 +28,9 @@ dev = [
   "pytest>=8.0",
   "ruff>=0.11",
   "pre-commit>=3.3",
+  "mypy>=1.19.1",
+  "deptry>=0.24.0",
+  "pip-audit>=2.10.0",
 ]
 
 [tool.hatch.build.targets.wheel]
@@ -71,6 +74,14 @@ skip = [
   "datasets/*",
 ]
 quiet-level = 3
+
+[tool.mypy]
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+
+[tool.deptry]
+per_rule_ignores = {DEP002 = ["click", "ipython", "anthropic", "pyyaml"]}
 
 [tool.typos.files]
 extend-exclude = [

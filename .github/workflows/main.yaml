@@ -22,5 +22,11 @@ jobs:
         run: uv run ruff check src/ tests/ datasets/
       - name: Format check
         run: uv run ruff format --check src/ tests/ datasets/
+      - name: Type check
+        run: uv run mypy src/
+      - name: Dependency check
+        run: uv run deptry src/
+      - name: Security audit
+        run: uv run pip-audit
       - name: Test
         run: uv run pytest -v
