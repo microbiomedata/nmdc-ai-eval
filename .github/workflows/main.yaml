@@ -23,7 +23,7 @@ jobs:
       - name: Format check
         run: uv run ruff format --check src/ tests/ datasets/
       - name: Type check
-        run: uv run mypy src/
+        run: uv run mypy src/ tests/
       - name: Dependency check
         run: uv run deptry src/
       - name: Security audit

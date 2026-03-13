@@ -23,12 +23,14 @@ just setup
 
 ### API keys
 
+llm-matrix uses Simon Willison's [llm](https://llm.datasette.io/) package, which manages API keys in its own store (`~/.config/io.datasette.llm/keys.json`). Set keys with:
+
 ```bash
-cp .env.example .env
-# Edit .env: fill in OPENAI_API_KEY and ANTHROPIC_API_KEY
+uv run llm keys set openai       # paste your OpenAI key when prompted
+uv run llm keys set anthropic    # paste your Anthropic key when prompted
 ```
 
-The `.env` file is the single source of truth for API keys. It is loaded automatically by `run_suite.py` (via python-dotenv), which makes the keys available to both direct SDK calls and the `llm` package that llm-matrix uses under the hood.
+The `llm` key store takes priority over environment variables. Setting `OPENAI_API_KEY` in your shell or a `.env` file will **not** override a key already in the store.
 
 ## Usage
 
@@ -39,6 +41,36 @@ just run             # run the default sampleData eval suite
 just generate 10     # regenerate suite with 10 samples per category
 just fix             # auto-fix lint/format issues
 ```
+
+## QC: just commands and pre-commit hooks
+
+Every QC check can be run manually with `just` or automatically via pre-commit/pre-push hooks. Install hooks with `just pre-commit-install`.
+
+| Check | `just` command | Hook stage |
+|---|---|---|
+| ruff lint | `just lint` | pre-commit |
+| ruff format | `just lint` | pre-commit |
+| mypy | `just typecheck` | pre-commit |
+| deptry | `just deptry` | pre-commit |
+| pytest | `just test` | pre-commit |
+| codespell | — | pre-commit |
+| typos | — | pre-commit |
+| check-toml/yaml | — | pre-commit |
+| trailing whitespace | — | pre-commit |
+| uv-lock | `just lock` | pre-commit |
+| pip-audit | `just audit` | pre-push |
+
+`just qc` runs lint + typecheck + deptry + audit + test in one shot. The pre-commit hooks cover everything except pip-audit (which runs on push since it hits the network).
+
+### Test coverage
+
+Source code coverage is currently **0%** — and that's expected. The tests validate **data and suite integrity** (TSV schema, value constraints, row counts, suite-vs-data consistency), not Python source code. The only source file (`run_suite.py`) is a thin CLI wrapper around llm-matrix that requires live API calls to exercise.
+
+Coverage will become meaningful when:
+- `generate_suite.py` logic (dedup, sampling, YAML generation) is tested via imports rather than just via its output artifacts
+- Additional source modules are added (e.g. custom scorers, data loaders)
+
+`pytest-cov` is installed for when that time comes: `uv run pytest --cov=nmdc_ai_eval --cov-report=term-missing`
 
 ## Datasets
 

@@ -3,18 +3,18 @@
 from pathlib import Path
 
 import pytest
-from llm_matrix.schema import load_suite
+from llm_matrix.schema import load_suite  # type: ignore[import-untyped]
 
 DATASETS_DIR = Path(__file__).parent.parent / "datasets"
 
 
 def find_suite_yamls() -> list[Path]:
-    return sorted(DATASETS_DIR.rglob("*-suite.yaml"))
+    return sorted(DATASETS_DIR.rglob("*-suite*.yaml"))
 
 
 @pytest.fixture(params=find_suite_yamls(), ids=lambda p: p.name)
 def suite_path(request: pytest.FixtureRequest) -> Path:
-    return request.param
+    return request.param  # type: ignore[no-any-return]
 
 
 def test_suite_loads(suite_path: Path) -> None:
