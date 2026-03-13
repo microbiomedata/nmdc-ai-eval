@@ -179,13 +179,24 @@ Running an eval suite (`just run-ebs-openai`) produces:
 
 The `.db` files can be explored with DuckDB CLI or any DuckDB client. Use `just clean-outputs` to remove all eval artifacts.
 
+## Eval Controls
+
+| Parameter | Value | Rationale |
+|---|---|---|
+| Temperature | 0.0 | Deterministic — same prompt always gives same output |
+| Prompt | Identical across all models | No per-model tuning; tests raw capability |
+| Sampling | Stratified, 10 per category | Equal weight per env_broad_scale value, not proportional to source data |
+| Allowed values | Template-specific ENVO terms in prompt | From submission-schema enums; matches Chris's "static value sets" constraint |
+
+The prompt is identical for all models (OpenAI and Anthropic). The only variable across runs is the model itself. Template-specific allowed values are included in the prompt text, not injected via tool use or system-level constraints.
+
 ## Data Coverage
 
-The source TSV has 5,052 rows (318 unique with non-empty env_broad_scale after dedup on prompt-relevant columns), spanning 22 distinct values. Distribution is heavily skewed — the top 3 categories account for half the unique rows.
+The source TSV has 5,052 rows (318 unique with non-empty env_broad_scale after dedup on prompt-relevant columns), spanning 22 distinct values. Distribution is heavily skewed — the top 3 categories account for half the unique rows. The source data is soil-heavy (4,304/5,052 rows are soil_data), but **stratified sampling normalizes this**: each of the 10 included env_broad_scale categories contributes exactly 10 cases regardless of source frequency.
 
 Deduplication uses only the 9 INPUT_COLUMNS (the non-GOLD slots that appear in the prompt) plus `env_broad_scale` (the target). GOLD ecosystem columns are excluded from dedup because they are excluded from prompts.
 
-At the defaults (`--per-category 10 --min-pool 10`), the generator produces **100 cases across 10 strata** (10 each). The 12 excluded categories each have fewer than 10 unique rows — too few for meaningful per-stratum evaluation. The 10 included categories cover 283 of 318 unique rows (89% of the data).
+At the defaults (`--per-category 10 --min-pool 10`), the generator produces **100 cases across 10 strata** (10 each), evaluated across 2 models per provider = **200 scored rows per provider run**. The 12 excluded categories each have fewer than 10 unique rows — too few for meaningful per-stratum evaluation. The 10 included categories cover 283 of 318 unique rows (89% of the data).
 
 The `--min-pool` threshold exists because with fewer than ~10 observations per stratum, confidence intervals are too wide to distinguish signal from noise. For example, a model scoring 4/5 correct has a 95% CI of [28%, 99%] — that tells you nothing about per-category performance. With 10 samples, the intervals are still wide but directionally useful.
 
@@ -198,6 +209,15 @@ Not yet implemented. llm-matrix does not expose per-request timing or token coun
 1. **Wrapper timing**: time `run_suite.py` calls and join on case ID
 2. **Provider API logs**: extract from Anthropic/OpenAI usage dashboards
 3. **llm-matrix enhancement**: contribute timing to upstream
+
+## Next Slots
+
+This eval covers only `env_broad_scale`. The other triad members (`env_local_scale`, `env_medium`) are natural next targets but expected to be harder:
+- Allowed value sets are larger and more granular
+- Context dependence is stronger (env_medium depends heavily on env_broad_scale + env_local_scale)
+- The static value set approach that works for env_broad_scale may not scale — this is a hypothesis to test, not an assumption
+
+Future eval directories should be named by **slot** (e.g. `env-local-scale-prediction/`), not by ontology. The ontology (ENVO) is an implementation detail; the slot being predicted is the task.
 
 ## Known Limitations
 
