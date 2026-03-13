@@ -35,11 +35,11 @@ The `llm` key store takes priority over environment variables. Setting `OPENAI_A
 ## Usage
 
 ```bash
-just --list          # see all available commands
-just qc              # lint + test
-just run             # run the default sampleData eval suite
-just generate 10     # regenerate suite with 10 samples per category
-just fix             # auto-fix lint/format issues
+just --list                  # see all available commands
+just qc                      # lint + test
+just eval-sampledata         # end-to-end sampleData eval
+just eval-ebs                # end-to-end env_broad_scale eval (generate + run + score)
+just fix                     # auto-fix lint/format issues
 ```
 
 ## QC: just commands and pre-commit hooks
@@ -74,7 +74,8 @@ Coverage will become meaningful when:
 
 ## Datasets
 
-- [`datasets/submission-metadata-prediction/`](datasets/submission-metadata-prediction/README.md) — 5,052 submission–biosample pairs from released NMDC submissions, with an llm-matrix eval suite for predicting MIxS environmental packages.
+- [`datasets/submission-metadata-prediction/`](datasets/submission-metadata-prediction/README.md) — **sampleData prediction** (smoke test): predict the MIxS environmental package from study name + description. 1 stratum (soil_data), 9 eval cases. Limited by source data diversity — see dataset README.
+- [`datasets/ebs-prediction/`](datasets/ebs-prediction/README.md) — **env_broad_scale prediction**: predict the broad-scale environmental context (typically an ENVO biome term) from all non-GOLD metadata. Ontology-aware scoring with hierarchy, enum compliance, and CURIE-label validation. 10 strata, 100 eval cases (10 per stratum at default `--min-pool 10`).
 
 ## Access restrictions
 

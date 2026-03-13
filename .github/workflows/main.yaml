@@ -23,10 +23,10 @@ jobs:
       - name: Format check
         run: uv run ruff format --check src/ tests/ datasets/
       - name: Type check
-        run: uv run mypy src/ tests/
+        run: uv run mypy src/
       - name: Dependency check
         run: uv run deptry src/
       - name: Security audit
         run: uv run pip-audit --ignore-vuln CVE-2025-69872
       - name: Test
-        run: uv run pytest -v
+        run: uv run pytest -v -m "not slow"

@@ -16,11 +16,11 @@ requires-python = ">=3.11,<4.0"
 dynamic = ["version"]
 
 dependencies = [
-  "anthropic>=0.84.0",
-  "click<8.3", # pin: llm-matrix 0.1.3 CLI broken with click>=8.3 (typer is_flag/count conflict)
-  "ipython>=9.10.0", # transitive: llm-matrix imports IPython but doesn't declare it
+  "click<8.3",
+  "ipython>=9.10.0",
   "llm-claude-3>=0.11",
   "llm-matrix>=0.1.3",
+  "oaklib>=0.6.0",
   "pyyaml>=6.0",
 ]
 
@@ -47,9 +47,17 @@ vcs = "git"
 style = "pep440"
 fallback-version = "0.0.0"
 
+[tool.uv]
+constraint-dependencies = [
+  "anthropic>=0.84.0",    # llm-claude-3 runtime dep
+  "linkml>=1.10.0",       # linkml <1.10 references Format.JSON removed in linkml-runtime 1.10
+  "setuptools>=70.0,<81", # oaklib→eutils uses pkg_resources, removed in setuptools 82
+]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "--tb=short --durations=5"
+markers = ["slow: tests requiring network/oaklib (deselected by default)"]
 
 [tool.ruff]
 line-length = 120
@@ -67,7 +75,7 @@ select = [
 fixable = ["ALL"]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**" = ["S101"]  # assert is fine in tests
+"tests/**" = ["S101", "S603", "S607"]  # assert, subprocess in tests
 "datasets/**" = ["S311"]  # pseudo-random OK for sampling eval data
 
 [tool.codespell]
@@ -85,7 +93,7 @@ warn_return_any = true
 warn_unused_configs = true
 
 [tool.deptry]
-per_rule_ignores = {DEP002 = ["click", "ipython", "anthropic", "pyyaml", "llm-claude-3"], DEP003 = ["llm"]}
+per_rule_ignores = {DEP002 = ["ipython", "llm-claude-3", "pyyaml"], DEP003 = ["llm", "pandas"]}
 
 [tool.typos.files]
 extend-exclude = [

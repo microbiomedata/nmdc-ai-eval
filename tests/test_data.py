@@ -93,3 +93,16 @@ def test_row_count(rows: list[dict[str, str]]) -> None:
     assert len(rows) == 5052, (
         f"Expected 5052 rows, got {len(rows)}. If the TSV was intentionally regenerated, update this number."
     )
+
+
+def test_env_broad_scale_format(rows: list[dict[str, str]]) -> None:
+    """Every non-empty env_broad_scale must match 'label [CURIE]' format (after stripping underscores)."""
+    import re
+
+    pattern = re.compile(r"^_*(.+?)\s*\[(\w+:\d+)\]$")
+    bad = []
+    for i, row in enumerate(rows):
+        val = row["env_broad_scale"].strip()
+        if val and not pattern.match(val):
+            bad.append((i + 2, val))
+    assert not bad, f"env_broad_scale format violations: {bad[:10]}"

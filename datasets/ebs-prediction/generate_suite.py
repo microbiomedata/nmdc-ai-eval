@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-"""Generate llm-matrix suite YAMLs from the eval TSV.
+"""Generate llm-matrix suite YAMLs for env_broad_scale prediction.
 
-Samples N rows per sampleData value and writes per-provider suite YAMLs.
+Samples N rows per env_broad_scale value and writes per-provider suite YAMLs.
+The LLM must predict env_broad_scale from all non-GOLD metadata slots.
 Categories with fewer unique rows than --min-pool are excluded to ensure
 each stratum has enough samples for meaningful per-category evaluation.
 
@@ -22,25 +23,72 @@ from pathlib import Path
 import yaml
 
 HERE = Path(__file__).parent
-DEFAULT_TSV = HERE / "eval_input_target_pairs.tsv"
+DEFAULT_TSV = HERE.parent / "submission-metadata-prediction" / "eval_input_target_pairs.tsv"
+ENUM_DIR = HERE / "enum_data"
+
+# Template → enum file prefix (matches envo_scorer._TEMPLATE_TO_ENUM_PREFIX)
+_TEMPLATE_TO_ENUM_PREFIX: dict[str, str] = {
+    "soil_data": "soil",
+    "water_data": "water",
+    "sediment_data": "sediment",
+    "plant_associated_data": "plant_associated",
+}
 
 SYSTEM_PROMPT = textwrap.dedent("""\
-    You are an expert in environmental metadata standards (MIxS, NMDC, GOLD).
-    Given a study name and description from an NMDC submission, predict the
-    MIxS environmental package (sampleData template).
+    You are an expert in environmental ontologies (ENVO) and the MIxS metadata standard.
+    Given metadata about an NMDC biosample, predict the env_broad_scale value.
 
-    Valid values: soil_data, water_data, plant_associated_data, misc_envs_data,
-    host_associated_data, sediment_data, air_data,
-    metagenome_sequencing_non_interleaved_data
+    Your answer MUST be in the exact format: label [CURIE]
+    For example: terrestrial biome [ENVO:00000446]
 
-    Reply with ONLY the package name, nothing else.""")
+    Use only ENVO terms. Reply with ONLY the env_broad_scale value, nothing else.""")
 
-PROMPT_TEMPLATE = "Study: {study_name}\nDescription: {description}"
+PROMPT_TEMPLATE = textwrap.dedent("""\
+    Predict the env_broad_scale (broad-scale environmental context) for this biosample.
+
+    Study: {study_name}
+    Description: {description}
+    Notes: {notes}
+    Environmental package: {sampleData}
+    env_local_scale: {env_local_scale}
+    env_medium: {env_medium}
+    Geographic location: {geo_loc_name}
+    Depth: {depth}
+    Analysis type: {analysis_type}
+    {allowed_values_section}""")
+
+# Non-GOLD input columns (excludes ecosystem, ecosystem_type, etc.)
+INPUT_COLUMNS = [
+    "study_name",
+    "description",
+    "notes",
+    "sampleData",
+    "env_local_scale",
+    "env_medium",
+    "geo_loc_name",
+    "depth",
+    "analysis_type",
+]
 
 PROVIDER_MODELS: dict[str, list[str]] = {
     "openai": ["gpt-4o-mini", "gpt-4o"],
     "anthropic": ["anthropic/claude-sonnet-4-5", "anthropic/claude-haiku-4-5-20251001"],
 }
+
+
+def load_allowed_values(template: str) -> list[str] | None:
+    """Load allowed env_broad_scale values for a template as 'label [CURIE]' strings."""
+    prefix = _TEMPLATE_TO_ENUM_PREFIX.get(template)
+    if prefix is None:
+        return None
+    tsv_path = ENUM_DIR / f"{prefix}_env_broad_scale.tsv"
+    if not tsv_path.exists():
+        return None
+    values: list[str] = []
+    with open(tsv_path, newline="") as f:
+        for row in csv.DictReader(f, delimiter="\t"):
+            values.append(f"{row['label']} [{row['id']}]")
+    return sorted(values)
 
 
 def load_rows(tsv_path: Path) -> list[dict]:
@@ -49,9 +97,12 @@ def load_rows(tsv_path: Path) -> list[dict]:
 
 
 def sample_by_category(rows: list[dict], n_per_category: int, min_pool: int, seed: int = 42) -> list[dict]:
+    # Filter to rows with non-empty env_broad_scale
+    rows = [r for r in rows if r["env_broad_scale"].strip()]
+
     # Deduplicate on prompt-relevant columns + target only.
-    # Excludes GOLD ecosystem columns and env triad (not used in prompts).
-    dedup_columns = ["study_name", "description", "notes", "sampleData"]
+    # Excludes GOLD ecosystem columns (not used in prompts).
+    dedup_columns = [*INPUT_COLUMNS, "env_broad_scale"]
     seen: set[tuple[str, ...]] = set()
     unique_rows: list[dict] = []
     for row in rows:
@@ -62,7 +113,7 @@ def sample_by_category(rows: list[dict], n_per_category: int, min_pool: int, see
 
     by_cat: dict[str, list[dict]] = defaultdict(list)
     for row in unique_rows:
-        by_cat[row["sampleData"]].append(row)
+        by_cat[row["env_broad_scale"]].append(row)
 
     # Report included vs excluded categories
     included = {cat: pool for cat, pool in by_cat.items() if len(pool) >= min_pool}
@@ -84,20 +135,53 @@ def sample_by_category(rows: list[dict], n_per_category: int, min_pool: int, see
     return sampled
 
 
+def _clean_value(val: str) -> str:
+    """Strip leading underscores from values (data quirk)."""
+    return val.lstrip("_")
+
+
+def _allowed_values_section(template: str) -> str:
+    """Build the allowed values prompt section for a template."""
+    values = load_allowed_values(template)
+    if values is None:
+        return ""
+    lines = "\n".join(f"  - {v}" for v in values)
+    return f"Allowed env_broad_scale values for {template}:\n{lines}\n\nChoose from the above list."
+
+
+# Cache allowed values sections per template (same template = same section).
+_allowed_cache: dict[str, str] = {}
+
+
 def make_cases(sampled_rows: list[dict]) -> list[dict]:
     cases = []
     for row in sampled_rows:
         desc = row["description"]
         if len(desc) > 500:
             desc = desc[:497] + "..."
+
+        template = row.get("sampleData", "")
+        if template not in _allowed_cache:
+            _allowed_cache[template] = _allowed_values_section(template)
+
+        prompt_values = {}
+        for col in INPUT_COLUMNS:
+            prompt_values[col] = _clean_value(row.get(col, ""))
+
+        prompt_values["description"] = desc
+        prompt_values["allowed_values_section"] = _allowed_cache[template]
+
+        ideal = _clean_value(row["env_broad_scale"])
+
         cases.append(
             {
-                "input": PROMPT_TEMPLATE.format(study_name=row["study_name"], description=desc),
-                "ideal": row["sampleData"],
-                "tags": [row["sampleData"]],
+                "input": PROMPT_TEMPLATE.format(**prompt_values),
+                "ideal": ideal,
+                "tags": [row["sampleData"], ideal],
                 "original_input": {
                     "study_name": row["study_name"],
                     "sampleData": row["sampleData"],
+                    "env_broad_scale": row["env_broad_scale"],
                 },
             }
         )
@@ -106,15 +190,15 @@ def make_cases(sampled_rows: list[dict]) -> list[dict]:
 
 def make_suite(cases: list[dict], models: list[str], provider: str) -> dict:
     return {
-        "name": f"nmdc-sampledata-prediction-{provider}",
+        "name": f"nmdc-ebs-prediction-{provider}",
         "description": (
-            f"Predict MIxS environmental package (sampleData) from NMDC "
-            f"submission study name and description ({provider} models). "
-            f"Generated from eval_input_target_pairs.tsv."
+            f"Predict env_broad_scale from non-GOLD biosample metadata ({provider} models). "
+            f"Generated from eval_input_target_pairs.tsv. "
+            f"Post-hoc scoring with envo_scorer adds ontology-aware metrics."
         ),
-        "template": "predict_sample_type",
+        "template": "predict_ebs",
         "templates": {
-            "predict_sample_type": {
+            "predict_ebs": {
                 "system": SYSTEM_PROMPT,
                 "prompt": "{input}",
                 "metrics": ["simple_question"],
@@ -137,13 +221,13 @@ def main():
         "--per-category",
         type=int,
         default=10,
-        help="Number of samples per category (default: 10)",
+        help="Number of samples per env_broad_scale category (default: 10)",
     )
     parser.add_argument(
         "--min-pool",
         type=int,
-        default=5,
-        help="Exclude categories with fewer unique rows than this (default: 5)",
+        default=10,
+        help="Exclude categories with fewer unique rows than this (default: 10)",
     )
     parser.add_argument(
         "--provider",
@@ -161,7 +245,7 @@ def main():
     providers = list(PROVIDER_MODELS) if args.provider == "both" else [args.provider]
     for provider in providers:
         suite = make_suite(cases, PROVIDER_MODELS[provider], provider)
-        output_path = HERE / f"sampledata-suite-{provider}.yaml"
+        output_path = HERE / f"ebs-suite-{provider}.yaml"
         with open(output_path, "w") as f:
             yaml.dump(suite, f, default_flow_style=False, sort_keys=False, width=120)
         print(f"Wrote {len(cases)} cases × {len(PROVIDER_MODELS[provider])} models to {output_path}")

@@ -9,24 +9,41 @@ DATASETS_DIR = Path(__file__).parent.parent / "datasets"
 TSV_PATH = DATASETS_DIR / "submission-metadata-prediction" / "eval_input_target_pairs.tsv"
 
 
-def _load_tsv_sample_data_values() -> set[str]:
+def _load_tsv_values(column: str) -> set[str]:
     with open(TSV_PATH, newline="") as f:
-        return {row["sampleData"] for row in csv.DictReader(f, delimiter="\t")}
+        values = set()
+        for row in csv.DictReader(f, delimiter="\t"):
+            val = row[column].strip().lstrip("_")
+            if val:
+                values.add(val)
+        return values
 
 
-def _find_suites() -> list[Path]:
-    return sorted(DATASETS_DIR.rglob("*-suite*.yaml"))
+def _find_suites(pattern: str = "*-suite*.yaml") -> list[Path]:
+    return sorted(DATASETS_DIR.rglob(pattern))
 
 
-def test_suite_ideals_match_tsv_values() -> None:
-    """Every ideal answer in a suite must be a sampleData value that exists in the TSV."""
-    tsv_values = _load_tsv_sample_data_values()
-    for suite_path in _find_suites():
+def test_sampledata_suite_ideals_match_tsv() -> None:
+    """Every ideal in a sampledata suite must be a sampleData value in the TSV."""
+    tsv_values = _load_tsv_values("sampleData")
+    for suite_path in _find_suites("sampledata-suite*.yaml"):
         suite = load_suite(suite_path)
         for i, case in enumerate(suite.cases):
             if case.ideal:
                 assert case.ideal in tsv_values, (
                     f"{suite_path.name} case {i}: ideal '{case.ideal}' not found in TSV sampleData values"
+                )
+
+
+def test_envo_suite_ideals_match_tsv() -> None:
+    """Every ideal in an envo suite must be an env_broad_scale value in the TSV."""
+    tsv_values = _load_tsv_values("env_broad_scale")
+    for suite_path in _find_suites("ebs-suite*.yaml"):
+        suite = load_suite(suite_path)
+        for i, case in enumerate(suite.cases):
+            if case.ideal:
+                assert case.ideal in tsv_values, (
+                    f"{suite_path.name} case {i}: ideal '{case.ideal}' not found in TSV env_broad_scale values"
                 )
 
 
