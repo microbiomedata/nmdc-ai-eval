@@ -2,8 +2,18 @@
 _default:
     @just --list
 
+# Verify system prerequisites are installed
+check-prereqs:
+    @echo "Checking prerequisites..."
+    @uv --version
+    @just --version
+    @git --version
+    @uv run python3 --version
+    @echo ""
+    @echo "All prerequisites satisfied."
+
 # Install dependencies
-setup:
+setup: check-prereqs
     uv sync
     @echo ""
     @echo "Now configure API keys:"
