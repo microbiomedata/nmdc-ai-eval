@@ -9,8 +9,11 @@ import sys
 from pathlib import Path
 
 import click
+from dotenv import load_dotenv
 from llm_matrix import LLMRunner  # type: ignore[import-untyped]
 from llm_matrix.schema import load_suite, results_to_dataframe  # type: ignore[import-untyped]
+
+load_dotenv()  # loads .env into os.environ so llm picks up OPENAI_API_KEY/ANTHROPIC_API_KEY
 
 
 @click.command()
