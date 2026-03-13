@@ -39,9 +39,9 @@ typecheck:
 deptry:
     uv run deptry src/
 
-# Scan dependencies for known CVEs
+# Scan dependencies for known CVEs (ignores acknowledged vulns with no fix)
 audit:
-    uv run pip-audit
+    uv run pip-audit --ignore-vuln CVE-2025-69872
 
 # Run tests
 test:
@@ -55,12 +55,13 @@ run suite_path="datasets/submission-metadata-prediction/sampledata-suite.yaml":
 generate per_category="5":
     uv run python datasets/submission-metadata-prediction/generate_suite.py --per-category {{ per_category }}
 
-# Full QC: lint + typecheck + deptry + test
-qc: lint typecheck deptry test
+# Full QC: lint + typecheck + deptry + audit + test
+qc: lint typecheck deptry audit test
 
-# Install pre-commit hooks
+# Install pre-commit hooks (commit + push)
 pre-commit-install:
     uv run pre-commit install
+    uv run pre-commit install --hook-type pre-push
 
 # Run pre-commit on all files
 pre-commit:

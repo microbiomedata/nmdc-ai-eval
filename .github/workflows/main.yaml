@@ -27,6 +27,6 @@ jobs:
       - name: Dependency check
         run: uv run deptry src/
       - name: Security audit
-        run: uv run pip-audit
+        run: uv run pip-audit --ignore-vuln CVE-2025-69872
       - name: Test
         run: uv run pytest -v

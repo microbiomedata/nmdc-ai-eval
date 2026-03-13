@@ -33,3 +33,24 @@ repos:
     rev: 0.6.12
     hooks:
       - id: uv-lock
+
+  - repo: local
+    hooks:
+      - id: mypy
+        name: mypy
+        entry: uv run mypy src/
+        language: system
+        types: [python]
+        pass_filenames: false
+      - id: deptry
+        name: deptry
+        entry: uv run deptry src/
+        language: system
+        types: [python]
+        pass_filenames: false
+      - id: pip-audit
+        name: pip-audit
+        entry: uv run pip-audit --ignore-vuln CVE-2025-69872
+        language: system
+        pass_filenames: false
+        stages: [pre-push]
