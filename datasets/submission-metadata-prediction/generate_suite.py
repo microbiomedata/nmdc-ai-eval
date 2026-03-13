@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
-"""Generate an llm-matrix suite YAML from the eval TSV.
+"""Generate llm-matrix suite YAMLs from the eval TSV.
 
-Samples N rows per sampleData value and writes a suite YAML that
-llm-runner can execute directly.
+Samples N rows per sampleData value and writes per-provider suite YAMLs.
 
 Usage:
-    python generate_suite.py                         # defaults: 5 per category
-    python generate_suite.py --per-category 10       # 10 per category
-    python generate_suite.py -o my-suite.yaml        # custom output path
+    python generate_suite.py                              # both providers, 5 per category
+    python generate_suite.py --per-category 10            # 10 per category
+    python generate_suite.py --provider openai             # OpenAI only
+    python generate_suite.py --provider anthropic          # Anthropic only
 """
 
 import argparse
@@ -21,7 +21,6 @@ import yaml
 
 HERE = Path(__file__).parent
 DEFAULT_TSV = HERE / "eval_input_target_pairs.tsv"
-DEFAULT_OUTPUT = HERE / "sampledata-suite.yaml"
 
 SYSTEM_PROMPT = textwrap.dedent("""\
     You are an expert in environmental metadata standards (MIxS, NMDC, GOLD).
@@ -36,6 +35,11 @@ SYSTEM_PROMPT = textwrap.dedent("""\
 
 PROMPT_TEMPLATE = "Study: {study_name}\nDescription: {description}"
 
+PROVIDER_MODELS: dict[str, list[str]] = {
+    "openai": ["gpt-4o-mini", "gpt-4o"],
+    "anthropic": ["anthropic/claude-sonnet-4-5", "anthropic/claude-haiku-4-5-20251001"],
+}
+
 
 def load_rows(tsv_path: Path) -> list[dict]:
     with open(tsv_path, newline="") as f:
@@ -43,23 +47,33 @@ def load_rows(tsv_path: Path) -> list[dict]:
 
 
 def sample_by_category(rows: list[dict], n_per_category: int, seed: int = 42) -> list[dict]:
-    by_cat: dict[str, list[dict]] = defaultdict(list)
+    # Deduplicate: biosamples within a study often share identical metadata.
+    seen: set[tuple[str, ...]] = set()
+    unique_rows: list[dict] = []
     for row in rows:
+        key = tuple(row.values())
+        if key not in seen:
+            seen.add(key)
+            unique_rows.append(row)
+
+    by_cat: dict[str, list[dict]] = defaultdict(list)
+    for row in unique_rows:
         by_cat[row["sampleData"]].append(row)
     rng = random.Random(seed)
     sampled = []
     for cat in sorted(by_cat):
         pool = by_cat[cat]
         k = min(n_per_category, len(pool))
+        if k < n_per_category:
+            print(f"  Warning: {cat} has only {len(pool)} unique row(s), requested {n_per_category}")
         sampled.extend(rng.sample(pool, k))
     return sampled
 
 
-def make_suite(sampled_rows: list[dict]) -> dict:
+def make_cases(sampled_rows: list[dict]) -> list[dict]:
     cases = []
     for row in sampled_rows:
         desc = row["description"]
-        # Truncate very long descriptions to keep the suite readable
         if len(desc) > 500:
             desc = desc[:497] + "..."
         cases.append(
@@ -73,12 +87,16 @@ def make_suite(sampled_rows: list[dict]) -> dict:
                 },
             }
         )
+    return cases
+
+
+def make_suite(cases: list[dict], models: list[str], provider: str) -> dict:
     return {
-        "name": "nmdc-sampledata-prediction",
+        "name": f"nmdc-sampledata-prediction-{provider}",
         "description": (
-            "Predict MIxS environmental package (sampleData) from NMDC "
-            "submission study name and description. "
-            "Generated from eval_input_target_pairs.tsv."
+            f"Predict MIxS environmental package (sampleData) from NMDC "
+            f"submission study name and description ({provider} models). "
+            f"Generated from eval_input_target_pairs.tsv."
         ),
         "template": "predict_sample_type",
         "templates": {
@@ -90,7 +108,7 @@ def make_suite(sampled_rows: list[dict]) -> dict:
         },
         "matrix": {
             "hyperparameters": {
-                "model": ["gpt-4o-mini", "gpt-4o"],
+                "model": models,
                 "temperature": [0.0],
             }
         },
@@ -101,22 +119,32 @@ def make_suite(sampled_rows: list[dict]) -> dict:
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--tsv", type=Path, default=DEFAULT_TSV, help="Input TSV path")
-    parser.add_argument("-o", "--output", type=Path, default=DEFAULT_OUTPUT, help="Output YAML path")
     parser.add_argument(
         "--per-category",
         type=int,
         default=5,
         help="Number of samples per sampleData category",
     )
+    parser.add_argument(
+        "--provider",
+        choices=["openai", "anthropic", "both"],
+        default="both",
+        help="Which provider suite(s) to generate (default: both)",
+    )
     parser.add_argument("--seed", type=int, default=42, help="Random seed")
     args = parser.parse_args()
 
     rows = load_rows(args.tsv)
     sampled = sample_by_category(rows, args.per_category, seed=args.seed)
-    suite = make_suite(sampled)
-    with open(args.output, "w") as f:
-        yaml.dump(suite, f, default_flow_style=False, sort_keys=False, width=120)
-    print(f"Wrote {len(sampled)} cases to {args.output}")
+    cases = make_cases(sampled)
+
+    providers = list(PROVIDER_MODELS) if args.provider == "both" else [args.provider]
+    for provider in providers:
+        suite = make_suite(cases, PROVIDER_MODELS[provider], provider)
+        output_path = HERE / f"sampledata-suite-{provider}.yaml"
+        with open(output_path, "w") as f:
+            yaml.dump(suite, f, default_flow_style=False, sort_keys=False, width=120)
+        print(f"Wrote {len(cases)} cases × {len(PROVIDER_MODELS[provider])} models to {output_path}")
 
 
 if __name__ == "__main__":

@@ -17,9 +17,12 @@ setup: check-prereqs
     uv sync
     @echo ""
     @echo "Now configure API keys:"
-    @echo "  cp .env.example .env   # then edit with your keys"
     @echo "  uv run llm keys set openai"
     @echo "  uv run llm keys set anthropic"
+
+# Regenerate uv.lock from pyproject.toml
+lock:
+    uv lock
 
 # Run ruff linter and format check
 lint:
@@ -47,13 +50,27 @@ audit:
 test:
     uv run pytest -v
 
-# Run the sampleData eval suite
-run suite_path="datasets/submission-metadata-prediction/sampledata-suite.yaml":
+# Run a single eval suite
+run suite_path:
     uv run python -m nmdc_ai_eval.run_suite {{ suite_path }}
 
-# Regenerate sampleData suite YAML (default 5 per category)
-generate per_category="5":
-    uv run python datasets/submission-metadata-prediction/generate_suite.py --per-category {{ per_category }}
+# Run OpenAI eval suite
+run-openai:
+    just run datasets/submission-metadata-prediction/sampledata-suite-openai.yaml
+
+# Run Anthropic eval suite
+run-anthropic:
+    just run datasets/submission-metadata-prediction/sampledata-suite-anthropic.yaml
+
+# Run all eval suites
+run-all: run-openai run-anthropic
+
+# Regenerate suites then run all (full end-to-end eval)
+eval per_category="5": (generate per_category) run-all
+
+# Regenerate suite YAMLs (default 5 per category, both providers)
+generate per_category="5" provider="both":
+    uv run python datasets/submission-metadata-prediction/generate_suite.py --per-category {{ per_category }} --provider {{ provider }}
 
 # Full QC: lint + typecheck + deptry + audit + test
 qc: lint typecheck deptry audit test

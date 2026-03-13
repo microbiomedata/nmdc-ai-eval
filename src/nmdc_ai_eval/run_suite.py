@@ -1,19 +1,86 @@
 """Run an llm-matrix eval suite and write results.
 
 Usage:
-    uv run python -m nmdc_ai_eval.run_suite datasets/submission-metadata-prediction/sampledata-suite.yaml
-    uv run python -m nmdc_ai_eval.run_suite suite.yaml --output-dir results/
+    uv run python -m nmdc_ai_eval.run_suite datasets/submission-metadata-prediction/sampledata-suite-openai.yaml
+    uv run python -m nmdc_ai_eval.run_suite datasets/submission-metadata-prediction/sampledata-suite-anthropic.yaml
 """
 
 import sys
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import click
-from dotenv import load_dotenv
+import llm
 from llm_matrix import LLMRunner  # type: ignore[import-untyped]
 from llm_matrix.schema import load_suite, results_to_dataframe  # type: ignore[import-untyped]
 
-load_dotenv()  # loads .env into os.environ so llm picks up OPENAI_API_KEY/ANTHROPIC_API_KEY
+if TYPE_CHECKING:
+    import pandas as pd
+
+# Map model name prefixes to the llm key store key name needed.
+_PROVIDER_KEYS: dict[str, str] = {
+    "gpt-": "openai",
+    "o1-": "openai",
+    "o3-": "openai",
+    "anthropic/": "anthropic",
+    "claude-": "anthropic",
+}
+
+
+def _preflight(model_names: list[str]) -> list[str]:
+    """Check that all models are available and their API keys are set.
+
+    Returns a list of human-readable error strings (empty = all OK).
+    """
+    errors: list[str] = []
+    for name in model_names:
+        try:
+            llm.get_model(name)
+        except llm.UnknownModelError:
+            errors.append(f"Unknown model '{name}'. Is the right llm plugin installed? Run: uv run llm models list")
+            continue
+        for prefix, key_name in _PROVIDER_KEYS.items():
+            if name.startswith(prefix):
+                if not llm.get_key(alias=key_name):
+                    errors.append(
+                        f"No API key for '{key_name}' (needed by model '{name}'). Run: uv run llm keys set {key_name}"
+                    )
+                break
+    return errors
+
+
+def _print_summary(df: "pd.DataFrame") -> None:
+    """Print a human-readable summary: per-model scores, per-category breakdown, and misses."""
+    click.echo("\n── Model ranking ──")
+    model_scores = df.groupby("model")["score"].agg(["mean", "count", "sum"])
+    model_scores.columns = ["accuracy", "cases", "correct"]
+    model_scores["correct"] = model_scores["correct"].astype(int)
+    model_scores = model_scores.sort_values("accuracy", ascending=False)
+    for model, row in model_scores.iterrows():
+        click.echo(f"  {row['accuracy']:.0%}  {model}  ({row['correct']:.0f}/{row['cases']:.0f} correct)")
+
+    # Majority-class baseline
+    if "case_ideal" in df.columns:
+        most_common = df["case_ideal"].value_counts()
+        baseline = most_common.iloc[0] / len(df)
+        click.echo(f"\n  Majority-class baseline: {baseline:.0%} (always predict '{most_common.index[0]}')")
+
+    click.echo("\n── Per-category accuracy (by model) ──")
+    if "case_ideal" in df.columns:
+        pivot = df.pivot_table(values="score", index="case_ideal", columns="model", aggfunc="mean")
+        pivot["support"] = df.groupby("case_ideal")["score"].count() // len(df["model"].unique())
+        for cat, row in pivot.iterrows():
+            models_str = "  ".join(f"{row.get(m, float('nan')):.0%}" for m in model_scores.index)
+            click.echo(f"  {cat:<50s} {models_str}  (n={row['support']:.0f})")
+        click.echo(f"  {'models:':<50s} {'  '.join(str(m) for m in model_scores.index)}")
+
+    # Show misses
+    misses = df[df["score"] < 1.0]
+    if not misses.empty:
+        click.echo(f"\n── Misses ({len(misses)}/{len(df)}) ──")
+        for _, row in misses.iterrows():
+            response = str(row.get("response_text", ""))[:60]
+            click.echo(f"  {row['model']}: expected '{row['case_ideal']}', got '{response}'")
 
 
 @click.command()
@@ -28,6 +95,14 @@ load_dotenv()  # loads .env into os.environ so llm picks up OPENAI_API_KEY/ANTHR
 def main(suite_path: Path, output_dir: Path | None = None) -> None:
     """Run an llm-matrix eval suite and write results to TSV."""
     suite = load_suite(suite_path)
+
+    model_names: list[str] = suite.matrix.hyperparameters.get("model", [])
+    errors = _preflight(model_names)
+    if errors:
+        for err in errors:
+            click.echo(f"Error: {err}", err=True)
+        sys.exit(1)
+
     store_path = suite_path.parent / (suite_path.stem + ".db")
     if output_dir is None:
         output_dir = suite_path.parent / (suite_path.stem + "-output")
@@ -35,10 +110,15 @@ def main(suite_path: Path, output_dir: Path | None = None) -> None:
 
     runner = LLMRunner(store_path=store_path)
     results = []
-    for r in runner.run_iter(suite):
-        results.append(r)
-        score_str = f"{r.score:.2f}" if r.score is not None else "N/A"
-        click.echo(f"[{score_str}] {r.case.ideal} <- {r.response.text[:80]}")
+    try:
+        for r in runner.run_iter(suite):
+            results.append(r)
+            score_str = f"{r.score:.2f}" if r.score is not None else "N/A"
+            click.echo(f"[{score_str}] {r.case.ideal} <- {r.response.text[:80]}")
+    except Exception as exc:  # noqa: BLE001
+        click.echo(f"\nError during eval: {exc}", err=True)
+        click.echo("Check model names and API keys. Run: uv run llm models list", err=True)
+        sys.exit(1)
 
     if not results:
         click.echo("No results generated.", err=True)
@@ -48,7 +128,8 @@ def main(suite_path: Path, output_dir: Path | None = None) -> None:
     tsv_path = output_dir / "results.tsv"
     df.to_csv(tsv_path, sep="\t", index=False)
     click.echo(f"\nResults: {tsv_path} ({len(results)} rows)")
-    click.echo(str(df.describe()))
+
+    _print_summary(df)
 
 
 if __name__ == "__main__":

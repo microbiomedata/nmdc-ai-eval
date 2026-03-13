@@ -48,6 +48,11 @@ repos:
         language: system
         types: [python]
         pass_filenames: false
+      - id: pytest
+        name: pytest
+        entry: uv run pytest -q
+        language: system
+        pass_filenames: false
       - id: pip-audit
         name: pip-audit
         entry: uv run pip-audit --ignore-vuln CVE-2025-69872
