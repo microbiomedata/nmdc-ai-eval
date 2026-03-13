@@ -23,23 +23,12 @@ just setup
 
 ### API keys
 
-Two separate key stores are needed:
+```bash
+cp .env.example .env
+# Edit .env: fill in OPENAI_API_KEY and ANTHROPIC_API_KEY
+```
 
-1. **`.env` file** — used by scripts that call the OpenAI/Anthropic SDKs directly:
-   ```bash
-   cp .env.example .env
-   # Edit .env: fill in OPENAI_API_KEY and ANTHROPIC_API_KEY
-   ```
-
-2. **`llm` key store** — the [`llm`](https://llm.datasette.io/) package (used by llm-matrix under the hood) has its own encrypted key store at `~/.llm/keys.json`:
-   ```bash
-   uv run llm keys set openai       # paste your OpenAI key when prompted
-   uv run llm keys set anthropic    # paste your Anthropic key when prompted
-   ```
-
-   Verify with `uv run llm keys` (lists names, not values).
-
-**Why both?** `.env` is for direct SDK usage in project code. The `llm` key store is for the `llm` CLI/library that llm-matrix delegates to. They don't share state.
+The `.env` file is the single source of truth for API keys. It is loaded automatically by `run_suite.py` (via python-dotenv), which makes the keys available to both direct SDK calls and the `llm` package that llm-matrix uses under the hood.
 
 ## Usage
 
