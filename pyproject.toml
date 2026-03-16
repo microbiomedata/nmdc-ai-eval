@@ -19,8 +19,10 @@ dependencies = [
   "click<8.3",
   "ipython>=9.10.0",
   "llm-claude-3>=0.11",
+  "llm-gemini>=0.29",
   "llm-matrix>=0.1.3",
   "oaklib>=0.6.0",
+  "pandas>=2.0",
   "pyyaml>=6.0",
 ]
 
@@ -57,7 +59,14 @@ constraint-dependencies = [
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "--tb=short --durations=5"
-markers = ["slow: tests requiring network/oaklib (deselected by default)"]
+filterwarnings = [
+  "ignore::DeprecationWarning:sssom_schema",
+  "ignore::pandas.errors.Pandas4Warning:sssom",
+]
+markers = ["api: tests requiring LLM API calls (excluded from CI)"]
+
+[tool.coverage.run]
+omit = ["src/nmdc_ai_eval/run_suite.py"]  # API-only; untestable without live LLM calls
 
 [tool.ruff]
 line-length = 120
@@ -93,7 +102,7 @@ warn_return_any = true
 warn_unused_configs = true
 
 [tool.deptry]
-per_rule_ignores = {DEP002 = ["ipython", "llm-claude-3", "pyyaml"], DEP003 = ["llm", "pandas"]}
+per_rule_ignores = {DEP002 = ["ipython", "llm-claude-3", "llm-gemini", "pyyaml"], DEP003 = ["llm"]}
 
 [tool.typos.files]
 extend-exclude = [

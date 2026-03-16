@@ -1,6 +1,6 @@
-name: nmdc-ebs-prediction-anthropic
-description: Predict env_broad_scale from non-GOLD biosample metadata (anthropic models). Generated from eval_input_target_pairs.tsv.
-  Post-hoc scoring with envo_scorer adds ontology-aware metrics.
+name: nmdc-ebs-prediction
+description: Predict env_broad_scale from non-GOLD biosample metadata. Generated from eval_input_target_pairs.tsv. Post-hoc
+  scoring with envo_scorer adds ontology-aware metrics.
 template: predict_ebs
 templates:
   predict_ebs:
@@ -21,8 +21,11 @@ templates:
 matrix:
   hyperparameters:
     model:
+    - gpt-4o-mini
+    - gpt-4o
     - anthropic/claude-sonnet-4-5
     - anthropic/claude-haiku-4-5-20251001
+    - gemini/gemini-2.5-flash
     temperature:
     - 0.0
 cases:

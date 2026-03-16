@@ -1,16 +1,13 @@
 #!/usr/bin/env python3
-"""Generate llm-matrix suite YAMLs for env_broad_scale prediction.
+"""Generate llm-matrix suite YAML for env_broad_scale prediction.
 
-Samples N rows per env_broad_scale value and writes per-provider suite YAMLs.
-The LLM must predict env_broad_scale from all non-GOLD metadata slots.
-Categories with fewer unique rows than --min-pool are excluded to ensure
-each stratum has enough samples for meaningful per-category evaluation.
+Samples N rows per env_broad_scale value and writes a single suite YAML
+with all models from models.yaml.
 
 Usage:
     python generate_suite.py                              # defaults: 10 per category, min pool 10
     python generate_suite.py --per-category 10            # 10 per category
     python generate_suite.py --min-pool 5                 # include categories with >=5 unique rows
-    python generate_suite.py --provider openai             # OpenAI only
 """
 
 import argparse
@@ -25,6 +22,7 @@ import yaml
 HERE = Path(__file__).parent
 DEFAULT_TSV = HERE.parent / "submission-metadata-prediction" / "eval_input_target_pairs.tsv"
 ENUM_DIR = HERE / "enum_data"
+MODELS_YAML = Path(__file__).parent.parent / "models.yaml"
 
 # Template → enum file prefix (matches envo_scorer._TEMPLATE_TO_ENUM_PREFIX)
 _TEMPLATE_TO_ENUM_PREFIX: dict[str, str] = {
@@ -70,10 +68,11 @@ INPUT_COLUMNS = [
     "analysis_type",
 ]
 
-PROVIDER_MODELS: dict[str, list[str]] = {
-    "openai": ["gpt-4o-mini", "gpt-4o"],
-    "anthropic": ["anthropic/claude-sonnet-4-5", "anthropic/claude-haiku-4-5-20251001"],
-}
+
+def load_models() -> list[str]:
+    """Load model list from shared models.yaml."""
+    with open(MODELS_YAML) as f:
+        return yaml.safe_load(f)["models"]
 
 
 def load_allowed_values(template: str) -> list[str] | None:
@@ -188,13 +187,13 @@ def make_cases(sampled_rows: list[dict]) -> list[dict]:
     return cases
 
 
-def make_suite(cases: list[dict], models: list[str], provider: str) -> dict:
+def make_suite(cases: list[dict], models: list[str]) -> dict:
     return {
-        "name": f"nmdc-ebs-prediction-{provider}",
+        "name": "nmdc-ebs-prediction",
         "description": (
-            f"Predict env_broad_scale from non-GOLD biosample metadata ({provider} models). "
-            f"Generated from eval_input_target_pairs.tsv. "
-            f"Post-hoc scoring with envo_scorer adds ontology-aware metrics."
+            "Predict env_broad_scale from non-GOLD biosample metadata. "
+            "Generated from eval_input_target_pairs.tsv. "
+            "Post-hoc scoring with envo_scorer adds ontology-aware metrics."
         ),
         "template": "predict_ebs",
         "templates": {
@@ -230,25 +229,27 @@ def main():
         help="Exclude categories with fewer unique rows than this (default: 10)",
     )
     parser.add_argument(
-        "--provider",
-        choices=["openai", "anthropic", "both"],
-        default="both",
-        help="Which provider suite(s) to generate (default: both)",
+        "--output-dir",
+        type=Path,
+        default=None,
+        help="Output directory for suite YAML (default: same directory as this script)",
     )
     parser.add_argument("--seed", type=int, default=42, help="Random seed")
     args = parser.parse_args()
 
+    out_dir = args.output_dir or HERE
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    models = load_models()
     rows = load_rows(args.tsv)
     sampled = sample_by_category(rows, args.per_category, min_pool=args.min_pool, seed=args.seed)
     cases = make_cases(sampled)
 
-    providers = list(PROVIDER_MODELS) if args.provider == "both" else [args.provider]
-    for provider in providers:
-        suite = make_suite(cases, PROVIDER_MODELS[provider], provider)
-        output_path = HERE / f"ebs-suite-{provider}.yaml"
-        with open(output_path, "w") as f:
-            yaml.dump(suite, f, default_flow_style=False, sort_keys=False, width=120)
-        print(f"Wrote {len(cases)} cases × {len(PROVIDER_MODELS[provider])} models to {output_path}")
+    suite = make_suite(cases, models)
+    output_path = out_dir / "ebs-suite.yaml"
+    with open(output_path, "w") as f:
+        yaml.dump(suite, f, default_flow_style=False, sort_keys=False, width=120)
+    print(f"Wrote {len(cases)} cases × {len(models)} models to {output_path}")
 
 
 if __name__ == "__main__":

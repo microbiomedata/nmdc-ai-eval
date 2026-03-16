@@ -17,18 +17,9 @@ from llm_matrix.schema import load_suite, results_to_dataframe  # type: ignore[i
 if TYPE_CHECKING:
     import pandas as pd
 
-# Map model name prefixes to the llm key store key name needed.
-_PROVIDER_KEYS: dict[str, str] = {
-    "gpt-": "openai",
-    "o1-": "openai",
-    "o3-": "openai",
-    "anthropic/": "anthropic",
-    "claude-": "anthropic",
-}
-
 
 def _preflight(model_names: list[str]) -> list[str]:
-    """Check that all models are available and their API keys are set.
+    """Check that all models are available via llm plugins.
 
     Returns a list of human-readable error strings (empty = all OK).
     """
@@ -37,15 +28,10 @@ def _preflight(model_names: list[str]) -> list[str]:
         try:
             llm.get_model(name)
         except llm.UnknownModelError:
-            errors.append(f"Unknown model '{name}'. Is the right llm plugin installed? Run: uv run llm models list")
-            continue
-        for prefix, key_name in _PROVIDER_KEYS.items():
-            if name.startswith(prefix):
-                if not llm.get_key(alias=key_name):
-                    errors.append(
-                        f"No API key for '{key_name}' (needed by model '{name}'). Run: uv run llm keys set {key_name}"
-                    )
-                break
+            errors.append(
+                f"Unknown model '{name}'. Run `uv run llm models list` to see available models. "
+                f"You may need a plugin: llm-claude-3 (Anthropic), llm-gemini (Gemini)."
+            )
     return errors
 
 

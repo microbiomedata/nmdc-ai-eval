@@ -53,6 +53,8 @@ import time
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+import click
+
 if TYPE_CHECKING:
     import pandas as pd
     from oaklib.interfaces import OboGraphInterface  # type: ignore[import-untyped]
@@ -320,6 +322,7 @@ def score_envo_results(
     print(f"  oaklib adapter loaded in {adapter_time:.1f}s")
 
     scored_rows: list[dict[str, object]] = []
+    _enum_cache: dict[str, set[str] | None] = {}
 
     for _, row in df.iterrows():
         result: dict[str, object] = {}
@@ -358,10 +361,12 @@ def score_envo_results(
             result["relationship"] = None
             result["hop_distance"] = None
 
-        # Template enum compliance
+        # Template enum compliance (cached per template)
         template = row.get("sampleData") or _extract_template(str(row.get("case_original_input", "")))
         if template and pred_parsed:
-            enum_curies = load_enum_for_template(template, enum_dir)
+            if template not in _enum_cache:
+                _enum_cache[template] = load_enum_for_template(template, enum_dir)
+            enum_curies = _enum_cache[template]
             if enum_curies is not None:
                 result["in_template_enum"] = pred_parsed[1] in enum_curies
             else:
@@ -475,3 +480,31 @@ def print_envo_summary(df: "pd.DataFrame") -> None:
         f"\n  Score = {W_PARSE}×parse + {W_LABEL}×label_valid + {W_HIER}×hierarchy + {W_ENUM}×enum"
         f"  (descendant decay={DESCENDANT_DECAY}/hop, ancestor decay={ANCESTOR_DECAY}/hop)"
     )
+
+
+# --- CLI ---
+
+
+@click.command()
+@click.argument("results_tsv", type=click.Path(exists=True, path_type=Path))
+@click.option(
+    "--enum-dir",
+    type=click.Path(exists=True, path_type=Path),
+    default=DEFAULT_ENUM_DIR,
+    help="Directory containing template enum TSVs",
+)
+@click.option(
+    "--output-dir",
+    "-o",
+    type=click.Path(path_type=Path),
+    default=None,
+    help="Output directory (default: same as input)",
+)
+def main(results_tsv: Path, enum_dir: Path, output_dir: Path | None) -> None:
+    """Score env_broad_scale predictions with ontology-aware metrics."""
+    df = score_envo_results(results_tsv, enum_dir=enum_dir, output_dir=output_dir)
+    click.echo(f"\nScored {len(df)} rows. Output in {output_dir or results_tsv.parent}/results_envo_scored.tsv")
+
+
+if __name__ == "__main__":
+    main()

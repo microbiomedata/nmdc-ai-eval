@@ -1,6 +1,6 @@
-name: nmdc-sampledata-prediction-anthropic
-description: Predict MIxS environmental package (sampleData) from NMDC submission study name and description (anthropic models).
-  Generated from eval_input_target_pairs.tsv.
+name: nmdc-sampledata-prediction
+description: Predict MIxS environmental package (sampleData) from NMDC submission study name and description. Generated from
+  eval_input_target_pairs.tsv.
 template: predict_sample_type
 templates:
   predict_sample_type:
@@ -25,8 +25,11 @@ templates:
 matrix:
   hyperparameters:
     model:
+    - gpt-4o-mini
+    - gpt-4o
     - anthropic/claude-sonnet-4-5
     - anthropic/claude-haiku-4-5-20251001
+    - gemini/gemini-2.5-flash
     temperature:
     - 0.0
 cases:

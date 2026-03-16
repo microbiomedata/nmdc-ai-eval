@@ -39,8 +39,7 @@ Each row in the eval TSV pairs **submission-level text** (input) with **biosampl
 
 - **`eval_input_target_pairs.tsv`** — Materialized join of `nmdc_submissions` × `flattened_submission_biosamples`, filtered to `status = 'Released'`.
 - **`generate_suite.py`** — Samples N rows per `sampleData` value and generates per-provider [llm-matrix](https://github.com/monarch-initiative/llm-matrix) suite YAMLs. Run `python generate_suite.py --help` for options.
-- **`sampledata-suite-openai.yaml`** — Generated llm-matrix suite for OpenAI models (gpt-4o-mini, gpt-4o).
-- **`sampledata-suite-anthropic.yaml`** — Generated llm-matrix suite for Anthropic models (claude-3-5-sonnet-latest, claude-3-5-haiku-latest).
+- **`sampledata-suite.yaml`** — Generated llm-matrix suite with all models from `datasets/models.yaml`.
 
 ## Setup
 
@@ -49,14 +48,9 @@ See the [top-level README](../../README.md) for prerequisites and API key setup.
 ## Running the eval
 
 ```bash
-just run-sampledata-openai      # run OpenAI suite only
-just run-sampledata-anthropic   # run Anthropic suite only
-just run-sampledata-all         # run both
-
-# Regenerate suites (defaults: 10 per category, min pool 10)
-just generate-sampledata
-# Include rare categories (less reliable per-stratum scores)
-just generate-sampledata 10 1
+just run-sampledata             # run all models
+just generate-sampledata        # regenerate suite YAML (defaults: 10 per category, min pool 5)
+just generate-sampledata 10 1   # include rare categories (less reliable per-stratum scores)
 ```
 
 ## Deduplication
@@ -103,8 +97,8 @@ Running an eval suite (`just run-sampledata-openai`) produces:
 
 | File | Description |
 |---|---|
-| `sampledata-suite-{provider}.db` | DuckDB database created by llm-matrix. Caches results — **must be deleted before re-running with a regenerated suite**, otherwise llm-matrix reuses cached responses for matching cases. Use `just clean-outputs` to clear. |
-| `sampledata-suite-{provider}-output/results.tsv` | Tabular results extracted from the .db — one row per (case × model) combination. |
+| `sampledata-suite.db` | DuckDB database created by llm-matrix. Caches results — **must be deleted before re-running with a regenerated suite**, otherwise llm-matrix reuses cached responses for matching cases. Use `just clean-outputs` to clear. |
+| `sampledata-suite-output/results.tsv` | Tabular results extracted from the .db — one row per (case × model) combination. |
 
 The `.db` files can be explored with DuckDB CLI or any DuckDB client. Use `just clean-outputs` to remove all eval artifacts.
 

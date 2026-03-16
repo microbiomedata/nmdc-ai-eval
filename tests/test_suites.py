@@ -35,7 +35,8 @@ def test_suite_cases_have_ideals(suite_path: Path) -> None:
 def test_suite_templates_referenced(suite_path: Path) -> None:
     """If a suite references a template, it must be defined."""
     suite = load_suite(suite_path)
-    if suite.template and suite.templates:
+    if suite.template:
+        assert suite.templates, f"Suite references template '{suite.template}' but templates dict is missing/empty"
         assert suite.template in suite.templates, (
             f"Suite references template '{suite.template}' but it's not in templates dict"
         )

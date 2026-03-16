@@ -37,30 +37,30 @@ First run of the scorer downloads ~50MB ENVO sqlite (cached in `~/.data/oaklib/`
 ## Pipeline
 
 ```
-generate_suite.py → suite YAML → run_suite.py → results.tsv → score_envo.py → results_envo_scored.tsv
+generate_suite.py → suite YAML → run_suite.py → results.tsv → envo_scorer.py → results_envo_scored.tsv
 ```
 
 ### Quick start
 
 ```bash
-just generate-ebs               # generate suite YAMLs (both providers)
-just run-ebs-openai             # run OpenAI eval
-just score-ebs openai           # apply ontology scorer
+just generate-ebs               # generate suite YAML
+just run-ebs                    # run eval (all models)
+just score-ebs                  # apply ontology scorer
 # or end-to-end:
-just eval-ebs                   # generate + run all + score all
+just eval-ebs                   # generate + run + score
 ```
 
 ### Step by step
 
 ```bash
-# 1. Generate suites (default 10 per category, min pool 10, both providers)
+# 1. Generate suite (default 10 per category, min pool 10, all models from models.yaml)
 uv run python datasets/ebs-prediction/generate_suite.py
 
 # 2. Run eval (produces results.tsv)
-uv run python -m nmdc_ai_eval.run_suite datasets/ebs-prediction/ebs-suite-openai.yaml
+uv run python -m nmdc_ai_eval.run_suite datasets/ebs-prediction/ebs-suite.yaml
 
 # 3. Score with ontology metrics (produces results_envo_scored.tsv)
-uv run python -m nmdc_ai_eval.score_envo datasets/ebs-prediction/ebs-suite-openai-output/results.tsv
+uv run python -m nmdc_ai_eval.envo_scorer datasets/ebs-prediction/ebs-suite-output/results.tsv
 ```
 
 ## Task Design

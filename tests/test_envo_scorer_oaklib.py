@@ -1,6 +1,6 @@
-"""Integration tests for envo_scorer with oaklib (requires network on first run).
+"""Integration tests for envo_scorer with oaklib.
 
-Marked slow — run with: uv run pytest -m slow
+Downloads ENVO sqlite (~50MB) on first run, cached thereafter.
 """
 
 import pytest
@@ -11,8 +11,6 @@ from nmdc_ai_eval.envo_scorer import (
     get_envo_adapter,
     validate_curie_label,
 )
-
-pytestmark = pytest.mark.slow
 
 
 @pytest.fixture(scope="module")
