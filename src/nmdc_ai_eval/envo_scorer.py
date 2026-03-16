@@ -362,7 +362,10 @@ def score_envo_results(
             result["hop_distance"] = None
 
         # Template enum compliance (cached per template)
-        template = row.get("sampleData") or _extract_template(str(row.get("case_original_input", "")))
+        template_raw = row.get("sampleData")
+        template = str(template_raw) if pd.notna(template_raw) else None
+        if not template:
+            template = _extract_template(str(row.get("case_original_input", "")))
         if template and pred_parsed:
             if template not in _enum_cache:
                 _enum_cache[template] = load_enum_for_template(template, enum_dir)
