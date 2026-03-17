@@ -1,0 +1,4 @@
+model	case_ideal	response_text	case_original_input	sampleData
+litellm/gpt-4o	terrestrial biome [ENVO:00000446]	terrestrial biome [ENVO:00000446]	{'study_name': 'Soil study', 'sampleData': 'soil_data'}	soil_data
+litellm/gpt-4o	forest biome [ENVO:01000174]	terrestrial biome [ENVO:00000446]	{'study_name': 'Forest study', 'sampleData': 'soil_data'}	soil_data
+litellm/gpt-4o	terrestrial biome [ENVO:00000446]	not a valid response	{'study_name': 'Bad parse', 'sampleData': 'soil_data'}	soil_data

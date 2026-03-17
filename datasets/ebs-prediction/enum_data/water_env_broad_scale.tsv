@@ -1,0 +1,57 @@
+id	label
+ENVO:00002030	aquatic biome
+ENVO:01000004	concentration basin mediterranean sea biome
+ENVO:01000128	dilution basin mediterranean sea biome
+ENVO:01000045	epeiric sea biome
+ENVO:01000020	estuarine biome
+ENVO:00000873	freshwater biome
+ENVO:01000252	freshwater lake biome
+ENVO:01000253	freshwater river biome
+ENVO:03605008	freshwater stream biome
+ENVO:00000891	large freshwater lake biome
+ENVO:00000887	large river biome
+ENVO:00000889	large river delta biome
+ENVO:00000888	large river headwater biome
+ENVO:01000046	marginal sea biome
+ENVO:01000027	marine abyssal zone biome
+ENVO:01000054	marine basaltic hydrothermal vent biome
+ENVO:01000026	marine bathyal zone biome
+ENVO:01000024	marine benthic biome
+ENVO:00000447	marine biome
+ENVO:01000051	marine black smoker biome
+ENVO:01000127	marine cold seep biome
+ENVO:01000049	marine coral reef biome
+ENVO:01000028	marine hadal zone biome
+ENVO:01000030	marine hydrothermal vent biome
+ENVO:01000025	marine neritic benthic zone biome
+ENVO:01000023	marine pelagic biome
+ENVO:01000029	marine reef biome
+ENVO:01000022	marine salt marsh biome
+ENVO:01000123	marine sponge reef biome
+ENVO:01000050	marine subtidal rocky reef biome
+ENVO:01000053	marine ultramafic hydrothermal vent biome
+ENVO:01000858	marine upwelling biome
+ENVO:01000052	marine white smoker biome
+ENVO:01000047	mediterranean sea biome
+ENVO:01000042	neritic epipelagic zone biome
+ENVO:01000043	neritic mesopelagic zone biome
+ENVO:01000032	neritic pelagic zone biome
+ENVO:01000041	neritic sea surface microlayer biome
+ENVO:01000048	ocean biome
+ENVO:01000038	oceanic abyssopelagic zone biome
+ENVO:01000037	oceanic bathypelagic zone biome
+ENVO:01000040	oceanic benthopelagic zone biome
+ENVO:01000035	oceanic epipelagic zone biome
+ENVO:01000039	oceanic hadal pelagic zone biome
+ENVO:01000036	oceanic mesopelagic zone biome
+ENVO:01000033	oceanic pelagic zone biome
+ENVO:01000034	oceanic sea surface microlayer biome
+ENVO:00000892	small freshwater lake biome
+ENVO:00000890	small river biome
+ENVO:01000856	temperate marginal sea biome
+ENVO:01000860	temperate marine upwelling biome
+ENVO:01000857	temperate mediterranean sea biome
+ENVO:01001230	tropical marginal sea biome
+ENVO:01000854	tropical marine coral reef biome
+ENVO:01000859	tropical marine upwelling biome
+ENVO:00000893	xeric basin biome
