@@ -70,10 +70,10 @@ score-ebs:
     uv run python -m nmdc_ai_eval.envo_scorer datasets/ebs-prediction/ebs-suite-output/results.tsv
 
 # End-to-end sampleData eval: generate + run
-eval-sampledata: clean-outputs generate-sampledata run-sampledata
+eval-sampledata: clean-sampledata-outputs generate-sampledata run-sampledata
 
 # End-to-end EBS eval: generate + run + score
-eval-ebs: clean-outputs generate-ebs run-ebs score-ebs
+eval-ebs: clean-ebs-outputs generate-ebs run-ebs score-ebs
 
 # Full eval: all datasets
 eval-all: clean-outputs generate run-sampledata run-ebs score-ebs
@@ -88,11 +88,15 @@ clean-suites:
     rm -f datasets/submission-metadata-prediction/sampledata-suite.yaml
     rm -f datasets/ebs-prediction/ebs-suite.yaml
 
-clean-outputs:
+clean-sampledata-outputs:
     rm -rf datasets/submission-metadata-prediction/sampledata-suite-output/
-    rm -rf datasets/ebs-prediction/ebs-suite-output/
     rm -f datasets/submission-metadata-prediction/sampledata-suite.db
+
+clean-ebs-outputs:
+    rm -rf datasets/ebs-prediction/ebs-suite-output/
     rm -f datasets/ebs-prediction/ebs-suite.db
     rm -f datasets/ebs-prediction/results_envo_scored.tsv
+
+clean-outputs: clean-sampledata-outputs clean-ebs-outputs
 
 clean-all: clean-cache clean-suites clean-outputs
