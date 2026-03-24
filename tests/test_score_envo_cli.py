@@ -1,19 +1,33 @@
 """Test score_envo CLI and score_envo_results orchestrator.
 
 Uses a small fixture TSV + real oaklib (ENVO sqlite). No LLM API calls.
+Skipped automatically when the oaklib cache is unavailable (e.g. CI, broken symlink).
 """
 
 from pathlib import Path
 
+import pytest
 from click.testing import CliRunner
 
-from nmdc_ai_eval.envo_scorer import main, score_envo_results
+from nmdc_ai_eval.envo_scorer import get_envo_adapter, main, score_envo_results
 
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
 MINI_RESULTS = FIXTURES_DIR / "mini_results.tsv"
 ENUM_DIR = Path(__file__).parent.parent / "datasets" / "ebs-prediction" / "enum_data"
 
 
+def _oaklib_available() -> bool:
+    try:
+        get_envo_adapter()
+        return True
+    except (FileExistsError, OSError, Exception):
+        return False
+
+
+_skip_no_oaklib = pytest.mark.skipif(not _oaklib_available(), reason="oaklib ENVO cache unavailable")
+
+
+@_skip_no_oaklib
 class TestScoreEnvoResults:
     """Test the orchestrator function directly."""
 
@@ -58,6 +72,7 @@ class TestScoreEnvoResults:
         assert df.iloc[2]["ontology_score"] == 0.0
 
 
+@_skip_no_oaklib
 class TestScoreEnvoCli:
     """Test the Click CLI wrapper."""
 
