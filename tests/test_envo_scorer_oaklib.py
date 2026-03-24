@@ -1,7 +1,6 @@
 """Integration tests for envo_scorer with oaklib.
 
 Downloads ENVO sqlite (~50MB) on first run, cached thereafter.
-Skipped automatically when the oaklib cache is unavailable (e.g. CI, broken symlink).
 """
 
 import pytest
@@ -16,10 +15,7 @@ from nmdc_ai_eval.envo_scorer import (
 
 @pytest.fixture(scope="module")
 def adapter():  # type: ignore[no-untyped-def]
-    try:
-        return get_envo_adapter()
-    except (FileExistsError, OSError, Exception) as exc:
-        pytest.skip(f"oaklib ENVO cache unavailable: {exc}")
+    return get_envo_adapter()
 
 
 class TestValidateCurieLabel:
