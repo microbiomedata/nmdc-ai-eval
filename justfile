@@ -48,8 +48,15 @@ generate-sampledata per_category="10" min_pool="5":
 generate-ebs per_category="10" min_pool="10":
     uv run python datasets/ebs-prediction/generate_suite.py --per-category {{ per_category }} --min-pool {{ min_pool }}
 
-# Regenerate all suite YAMLs
+# Regenerate field-guidance suite YAML (requires nmdc_data_dev MongoDB)
+generate-field-guidance:
+    uv run python datasets/field-guidance/generate_suite.py
+
+# Regenerate TSV-based suite YAMLs (no external dependencies)
 generate: generate-sampledata generate-ebs
+
+# Regenerate all suite YAMLs (field-guidance requires nmdc_data_dev MongoDB)
+generate-all: generate generate-field-guidance
 
 # --- Eval Runs (require API keys) ---
 
@@ -69,14 +76,25 @@ run-ebs:
 score-ebs:
     uv run python -m nmdc_ai_eval.envo_scorer datasets/ebs-prediction/ebs-suite-output/results.tsv
 
+# Run field-guidance eval via llm-matrix (Option B: our prompt, multiple models)
+run-field-guidance:
+    just run datasets/field-guidance/field-guidance-suite.yaml
+
+# Run field-guidance eval via real suggestor pipeline (Option A: production code)
+run-field-guidance-pipeline provider="gcp" model="":
+    uv run python datasets/field-guidance/run_pipeline_eval.py --provider {{ provider }} {{ if model != "" { "--model " + model } else { "" } }}
+
 # End-to-end sampleData eval: generate + run
 eval-sampledata: clean-sampledata-outputs generate-sampledata run-sampledata
 
 # End-to-end EBS eval: generate + run + score
 eval-ebs: clean-ebs-outputs generate-ebs run-ebs score-ebs
 
+# End-to-end field-guidance eval (llm-matrix path)
+eval-field-guidance: clean-field-guidance-outputs generate-field-guidance run-field-guidance
+
 # Full eval: all datasets
-eval-all: clean-outputs generate run-sampledata run-ebs score-ebs
+eval-all: clean-outputs generate run-sampledata run-ebs score-ebs run-field-guidance
 
 # --- Cleanup ---
 
@@ -97,6 +115,11 @@ clean-ebs-outputs:
     rm -f datasets/ebs-prediction/ebs-suite.db
     rm -f datasets/ebs-prediction/results_envo_scored.tsv
 
-clean-outputs: clean-sampledata-outputs clean-ebs-outputs
+clean-field-guidance-outputs:
+    rm -rf datasets/field-guidance/field-guidance-suite-output/
+    rm -f datasets/field-guidance/field-guidance-suite.db
+    rm -f datasets/field-guidance/field-guidance-pipeline-results.yaml
+
+clean-outputs: clean-sampledata-outputs clean-ebs-outputs clean-field-guidance-outputs
 
 clean-all: clean-cache clean-suites clean-outputs
