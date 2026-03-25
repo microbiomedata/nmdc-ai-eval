@@ -69,6 +69,26 @@ ground_truth.yaml
 
 Note: the expected set is intentionally small (non-obvious, study-specific slots). Standard slots like `env_broad_scale`, `geo_loc_name`, `depth` are not listed as "expected" because any reasonable model will recommend them. The eval measures whether the model surfaces the **domain-specific** slots that require reading the abstract.
 
+## Two eval paths
+
+| | Option A: Pipeline eval | Option B: llm-matrix |
+|---|---|---|
+| **Script** | `run_pipeline_eval.py` | `generate_suite.py` + `just run-field-guidance` |
+| **What it calls** | Real `run_recommendation_pipeline()` from suggestor | llm-matrix with our YAML suite |
+| **System prompt** | Production (from suggestor) | Production (imported from suggestor) |
+| **Schema context** | Production (`SchemaContextBuilder`) | Production (imported, baked into suite YAML) |
+| **DOI/PDF content** | Yes (fetches at runtime) | No — static YAML can't make network calls ([#28](https://github.com/microbiomedata/nmdc-ai-eval/issues/28)) |
+| **Models** | GCP Gemini, PNNL GPT only | Any model in `models.yaml` (OpenAI, Anthropic, Gemini) |
+| **Providers** | `gcp`, `pnnl` (suggestor limitation) | `llm` plugins (personal API keys) |
+| **Timing** | Wall-clock `elapsed_seconds` per submission | Not yet surfaced from llm-matrix DuckDB ([#14](https://github.com/microbiomedata/nmdc-ai-eval/issues/14)) |
+| **Cost** | Not yet — needs token counting ([#14](https://github.com/microbiomedata/nmdc-ai-eval/issues/14)) | Not yet |
+| **Run command** | `just run-field-guidance-pipeline provider=gcp` | `just run-field-guidance` |
+
+### Adding models
+
+- **Option B:** Add one line to [`datasets/models.yaml`](../models.yaml) and run `just generate-field-guidance`.
+- **Option A:** Blocked on the suggestor supporting more providers. CBORG tracked in [#16](https://github.com/microbiomedata/nmdc-ai-eval/issues/16) / [suggestor-ai-tool#33](https://github.com/microbiomedata/nmdc-metadata-suggestor-ai-tool/issues/33).
+
 ## Ground truth scope: slot selection only, NOT values
 
 These submissions are ground truth for **which slots should be filled** (Task 1 / Metadata Field Guidance). They are **not** ground truth for the correctness of values in those slots. Montana and Bea filled in biosample values as examples, but the values themselves are not curated for accuracy — some contain placeholder or incorrect values (e.g. `env_broad_scale = "city [ENVO:00000856]"` in submission `d882c556` — the aerobiome/public transit study — where `city` is a valid ENVO term but not a biome). Do not use these submissions as ground truth for value prediction (Task 2 / Metadata Completion). For Task 2 eval, use the production submissions in the `ebs-prediction` and `submission-metadata-prediction` datasets.
