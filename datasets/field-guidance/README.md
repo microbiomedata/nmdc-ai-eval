@@ -68,3 +68,7 @@ ground_truth.yaml
 - **F1**: harmonic mean
 
 Note: the expected set is intentionally small (non-obvious, study-specific slots). Standard slots like `env_broad_scale`, `geo_loc_name`, `depth` are not listed as "expected" because any reasonable model will recommend them. The eval measures whether the model surfaces the **domain-specific** slots that require reading the abstract.
+
+## Ground truth scope: slot selection only, NOT values
+
+These submissions are ground truth for **which slots should be filled** (Task 1 / Metadata Field Guidance). They are **not** ground truth for the correctness of values in those slots. Montana and Bea filled in biosample values as examples, but the values themselves are not curated for accuracy — some contain placeholder or incorrect values (e.g. `env_broad_scale = "city"` in the aerobiome submission). Do not use these submissions as ground truth for value prediction (Task 2 / Metadata Completion). For Task 2 eval, use the production submissions in the `ebs-prediction` and `submission-metadata-prediction` datasets.

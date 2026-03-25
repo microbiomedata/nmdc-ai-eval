@@ -15,6 +15,13 @@
 #   - expected_slots: slots the AI should recommend, with text-based justification
 #   - curator: who made the judgment
 #
+# IMPORTANT: These submissions are ground truth for WHICH SLOTS should be filled
+# (Metadata Field Guidance / Task 1), NOT for the correctness of the VALUES in
+# those slots. The biosample values were filled by Montana/Bea as examples but
+# are not curated for value accuracy — some contain placeholder or incorrect
+# values (e.g. env_broad_scale = "city" in one submission). Do not use these
+# submissions as ground truth for value prediction (Task 2).
+#
 # The eval workflow:
 #   1. Load this file
 #   2. Fetch each submission from nmdc_data_dev.nmdc_submissions by submission_id
