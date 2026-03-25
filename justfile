@@ -52,8 +52,11 @@ generate-ebs per_category="10" min_pool="10":
 generate-field-guidance:
     uv run python datasets/field-guidance/generate_suite.py
 
-# Regenerate all suite YAMLs
-generate: generate-sampledata generate-ebs generate-field-guidance
+# Regenerate TSV-based suite YAMLs (no external dependencies)
+generate: generate-sampledata generate-ebs
+
+# Regenerate all suite YAMLs (field-guidance requires nmdc_data_dev MongoDB)
+generate-all: generate generate-field-guidance
 
 # --- Eval Runs (require API keys) ---
 

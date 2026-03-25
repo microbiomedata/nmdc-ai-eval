@@ -51,7 +51,8 @@ def test_suite_original_inputs_match_tsv() -> None:
     """If a TSV-derived suite case has original_input.study_name, it must appear in the TSV.
 
     Suites with non-TSV data sources (e.g. field-guidance, sourced from MongoDB)
-    are skipped — they have original_input.submission_id instead of a TSV row.
+    are skipped when original_input contains a submission_id field, indicating
+    the case was generated from a MongoDB document rather than the eval TSV.
     """
     with open(TSV_PATH, newline="") as f:
         tsv_study_names = {row["study_name"] for row in csv.DictReader(f, delimiter="\t")}

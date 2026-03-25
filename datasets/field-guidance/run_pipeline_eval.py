@@ -83,6 +83,16 @@ def main():
         doc = collection.find_one({"id": submission_id})
         if doc is None:
             print(f"SKIP: {submission_id} not in MongoDB")
+            results.append(
+                {
+                    "submission_id": submission_id,
+                    "study_name": entry["study_name"],
+                    "model": model_name,
+                    "provider": args.provider,
+                    "status": "skipped",
+                    "reason": "submission not found in MongoDB",
+                }
+            )
             continue
 
         # Remove MongoDB _id (not JSON-serializable)
