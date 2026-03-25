@@ -19,7 +19,8 @@
 # (Metadata Field Guidance / Task 1), NOT for the correctness of the VALUES in
 # those slots. The biosample values were filled by Montana/Bea as examples but
 # are not curated for value accuracy — some contain placeholder or incorrect
-# values (e.g. env_broad_scale = "city" in one submission). Do not use these
+# values (e.g. env_broad_scale = "city [ENVO:00000856]" in d882c556, where
+# "city" is a valid ENVO term but not a biome). Do not use these
 # submissions as ground truth for value prediction (Task 2).
 #
 # The eval workflow:
