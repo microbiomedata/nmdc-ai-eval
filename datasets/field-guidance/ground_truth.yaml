@@ -1,0 +1,140 @@
+# Ground truth for Metadata Field Guidance evaluation (Task 1).
+#
+# Source: Montana Smith and Bea Meluch's hand-curated submissions on data-dev.
+# These are expert judgments about which biosample slots SHOULD be recommended
+# based on the study description — not just which slots happen to be filled.
+#
+# Upstream issue: https://github.com/microbiomedata/issues/issues/1551
+# Data environment: https://data-dev.microbiomedata.org
+# MongoDB: mongodb://localhost:27017/nmdc_data_dev (collection: nmdc_submissions)
+#
+# Each entry lists:
+#   - submission_id: UUID on data-dev
+#   - study_name: for human readability
+#   - package: MIxS extension / environmental package
+#   - expected_slots: slots the AI should recommend, with text-based justification
+#   - curator: who made the judgment
+#
+# The eval workflow:
+#   1. Load this file
+#   2. Fetch each submission from nmdc_data_dev.nmdc_submissions by submission_id
+#   3. Pass the full submission document to run_recommendation_pipeline()
+#   4. Compare pipeline output (LLMOutput.metadata_fields[].field_name) against expected_slots
+#   5. Score: precision, recall, F1 on the slot set
+
+submissions:
+
+  - submission_id: "2a126775-302d-4a56-80a2-848f1b7a4f8e"
+    study_name: "AI Example: The Impact of Stand Age and Fertilization on the Soil Microbiome of Miscanthus × giganteus"
+    package: soil
+    curator: mslarae13
+    expected_slots:
+      - field_name: agrochem_addition
+        justification: >
+          Abstract: "unpredictable response to nitrogen (N) fertilizer, yet
+          fertilization underpins the crop's environmental and economic sustainability"
+      - field_name: tot_nitro_content
+        justification: >
+          Abstract: "interactions among soil microbial communities, N availability"
+      - field_name: other_treatment
+        justification: >
+          Abstract: "Yield of the perennial grass Miscanthus × giganteus"
+          (Montana added "host common name: corn; host taxa id: ncbitaxon:381124"
+          because it's rhizosphere and there's no place to add plant info for soil)
+
+  - submission_id: "8477eb6d-fe30-4124-b75d-d83d4a2a41c3"
+    study_name: "AI Example: Fungal, bacterial, and archaeal communities mediating C cycling and trace gas flux in peatland ecosystems subject to climate change"
+    package: soil
+    curator: mslarae13
+    expected_slots:
+      - field_name: air_temp_regm
+        justification: >
+          Abstract: "This project seeks to assess the response of northern
+          peatland ecosystems to increases in temperature"
+      - field_name: gaseous_environment
+        justification: >
+          Abstract: "This project seeks to assess the response of northern
+          peatland ecosystems to increases in temperature and exposures to
+          elevated atmospheric CO2 concentrations."
+    notes: >
+      Montana: "I filled out a couple more metadata slots I just know should be
+      there.. but there's nothing I see immediately that would allow the AI to
+      pull these out."
+
+  - submission_id: "c5a6e998-eb32-45dc-9695-f23a790ae824"
+    study_name: "AI Example: Long term crop rotations alter soil function and prairie carbon dynamics to depth in midwestern cropping systems"
+    package: soil
+    curator: mslarae13
+    expected_slots:
+      - field_name: crop_rotation
+        justification: >
+          Abstract: "how has the conversion of the tallgrass prairie biome to
+          corn-based cropping systems in the US Midwest affected"
+      - field_name: cur_land_use
+        justification: >
+          Abstract: "the tallgrass prairie biome of central North America has
+          been rapidly replaced by annual cropping systems" and "how has the
+          conversion of the tallgrass prairie biome to corn-based cropping
+          systems in the US Midwest affected"
+      - field_name: fao_class
+        justification: >
+          Because sample type is soil. Montana notes: "I don't think we should
+          inherently exclude this field, but I'm curious if the AI recommends
+          this field for ALL soil submissions (and local_class)."
+      - field_name: agrochem_addition
+        justification: >
+          Abstract: "long-term agricultural management practices". Montana notes
+          that tillage should also be recommended based on this text but chose
+          not to include it as an expected slot to avoid suggesting irrelevant
+          fields.
+
+  - submission_id: "d882c556-6673-4318-98b0-2b80ff94af65"
+    study_name: "AI Example: Spatial and Temporal Patterns of Public Transit Aerobiomes"
+    package: air
+    curator: mslarae13
+    expected_slots:
+      - field_name: ventilation_type
+        justification: >
+          Abstract: "Further, a possible correlation between geographical
+          distance and ventilation method and the genetic signatures of
+          aerobiomes is suggested."
+
+  - submission_id: "3215bef4-d8d6-470a-ab43-3f0f728a38e2"
+    study_name: "AI example: Investigating the effect of agriculture and fire on soil molecular properties"
+    package: soil
+    curator: bmeluch
+    expected_slots:
+      - field_name: tillage
+        justification: >
+          Abstract: "1) Conventional with tillage, 2) No-tillage 3) Reduced
+          input (1/3 of chemical inputs), with cover crops 4) Organic, with no
+          chemical inputs and cover crops."
+      - field_name: crop_rotation
+        justification: >
+          Same abstract passage as tillage (treatment descriptions imply rotation).
+      - field_name: agrochem_addition
+        justification: >
+          Same abstract passage — "1/3 of chemical inputs" and "no chemical inputs".
+      - field_name: fire
+        justification: >
+          Abstract: "There are also two successional plant communities,
+          5) Early successional grassland, and 6) Deciduous forest"
+          (fire is implied by successional communities context).
+
+  - submission_id: "c361c3f9-d023-4ff4-9ef3-8b308fd67d70"
+    study_name: "AI example: Umpqua National Forest Postfire"
+    package: soil
+    curator: bmeluch
+    expected_slots:
+      - field_name: fire
+        justification: >
+          Abstract: "We will compare properties in severely burned soils within
+          and outside salvage logging units, and in areas with low or no soil
+          burn severity."
+      - field_name: other_treatment
+        justification: >
+          Abstract: "The sampling sites are already being monitored for visible
+          signs of erosion"
+        notes: >
+          This slot is listed as expected by Bea but is NOT yet populated in
+          the sampleData on data-dev.
