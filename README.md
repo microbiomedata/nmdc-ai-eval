@@ -88,6 +88,24 @@ The AI Studio free tier provides 1,500 requests/day — sufficient for eval runs
 
 > **Note for CBORG and PNNL users:** These endpoints are OpenAI-compatible, so in principle you can point the OpenAI plugin at them by setting `OPENAI_API_BASE`. However, this has not been tested with llm-matrix yet and may conflict if you also need direct OpenAI access in the same eval run. File an issue if you need help with this setup.
 
+## Two eval paths
+
+This repo supports two ways to run evals, especially for the [Metadata Field Guidance](datasets/field-guidance/) dataset:
+
+**Option A — Pipeline eval** calls the real `run_recommendation_pipeline()` from [`nmdc-metadata-suggestor-ai-tool`](https://github.com/microbiomedata/nmdc-metadata-suggestor-ai-tool). This tests exactly what portal users see, including DOI fetching and PDF ingestion, but is limited to models the suggestor supports (GCP Gemini, PNNL GPT).
+
+**Option B — llm-matrix eval** uses the suggestor's system prompt and schema context but routes through [llm-matrix](https://github.com/monarch-initiative/llm-matrix) and the `llm` plugin ecosystem. This tests any model cheaply (OpenAI, Anthropic, Gemini via AI Studio) but cannot include DOI/PDF content.
+
+| | Option A: Pipeline | Option B: llm-matrix |
+|---|---|---|
+| **Models** | GCP Gemini, PNNL GPT | Any model in `models.yaml` |
+| **System prompt** | Production | Production (imported) |
+| **Schema context** | Production | Production (imported) |
+| **DOI/PDF** | Yes | No ([#28](https://github.com/microbiomedata/nmdc-ai-eval/issues/28)) |
+| **Run** | `just run-field-guidance-pipeline provider=gcp` | `just run-field-guidance` |
+
+See [`datasets/field-guidance/README.md`](datasets/field-guidance/README.md) for details.
+
 ## Usage
 
 ```bash
@@ -95,6 +113,7 @@ just --list                  # see all available commands
 just all                     # fix + check everything (no evals, no API calls)
 just eval-sampledata         # end-to-end sampleData eval
 just eval-ebs                # end-to-end env_broad_scale eval (generate + run + score)
+just eval-field-guidance     # end-to-end field guidance eval (Option B, requires MongoDB)
 ```
 
 ## QC and automation
