@@ -252,17 +252,28 @@ VERIFY_PROMPT = """\
 You previously recommended metadata fields for a scientific submission.
 Now review each recommendation against the input context below.
 
-For each recommended field, you MUST either:
-1. KEEP it — provide reason_category and an exact quote (evidence_snippet) from the input
-2. DROP it — if you cannot find a specific quote in the input that supports this field
+For each recommended field, classify it and decide whether to KEEP or DROP:
 
-reason_category must be one of:
-- "mentioned_in_text": the input text directly discusses this measurement or property
-- "experimental_design": the study design implies this variable was controlled or measured
-- "domain_standard": standard for this sample type but NOT specifically mentioned in input
+reason_category (pick one):
+- "mentioned_in_text": the input text discusses this topic, measurement, or property.
+  The text does NOT need to use the exact field name — if the abstract discusses
+  "N fertilizer" and "N availability", that justifies recommending tot_nitro_content,
+  nitrate_nitrogen, and agrochem_addition. If it mentions "crop rotation" or specific
+  crops, that justifies crop_rotation. Use the relevant passage as evidence_snippet.
+- "experimental_design": the study design implies this variable was controlled,
+  measured, or systematically varied. E.g., "replicated field trial" implies
+  experimental_factor. Use the passage describing the design as evidence_snippet.
+- "domain_standard": this field is standard for the sample type but the input text
+  does NOT discuss it even indirectly. E.g., recommending pH for a soil study when
+  pH is never mentioned or implied. No evidence_snippet needed.
 
-IMPORTANT: Drop any field where your only justification is that it's generally relevant
-to the domain or sample type. Keep only fields grounded in the actual input text.
+Rules:
+- KEEP all "mentioned_in_text" and "experimental_design" fields.
+- DROP all "domain_standard" fields — if the input doesn't discuss it, don't recommend it.
+- DROP fields where the recommendation is a tautology (e.g., "sampling requires a
+  collection device" is not evidence — it's true of every study).
+- For evidence_snippet: quote or closely paraphrase the relevant passage from the input.
+  It does NOT need to be verbatim — a faithful paraphrase is fine.
 
 Input context:
 {context}
@@ -276,7 +287,7 @@ Output ONLY valid JSON:
     {{"field_name": "...", "reason_category": "...", "evidence_snippet": "...", "reason": "..."}}
   ],
   "dropped": [
-    {{"field_name": "...", "drop_reason": "..."}}
+    {{"field_name": "...", "reason_category": "...", "drop_reason": "..."}}
   ]
 }}"""
 

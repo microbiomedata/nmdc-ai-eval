@@ -92,6 +92,14 @@ run-field-guidance-llm model:
 sweep-field-guidance:
     uv run python datasets/field-guidance/run_pipeline_eval.py --sweep
 
+# Full eval matrix: models × enrichment × verification, then synthesize
+full-eval *args="":
+    uv run python datasets/field-guidance/run_full_eval.py {{ args }}
+
+# Full eval with only cheap models (~$0.10 total)
+full-eval-cheap:
+    uv run python datasets/field-guidance/run_full_eval.py --cheap
+
 # Compare all pipeline eval results (use --latest for most recent per model)
 compare-pipeline-results *args="":
     uv run python datasets/field-guidance/compare_pipeline_results.py {{ args }}
