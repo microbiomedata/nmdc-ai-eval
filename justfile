@@ -80,12 +80,16 @@ score-ebs:
 run-field-guidance:
     just run datasets/field-guidance/field-guidance-suite.yaml
 
-# Run field-guidance eval via real suggestor pipeline (Option A: production code)
+# Run field-guidance eval via suggestor pipeline (GCP/PNNL credentials)
 run-field-guidance-pipeline provider="gcp" model="":
     uv run python datasets/field-guidance/run_pipeline_eval.py --provider {{ provider }} {{ if model != "" { "--model " + model } else { "" } }}
 
-# Run field-guidance pipeline eval across all configured providers and models
-sweep-field-guidance-pipeline:
+# Run field-guidance eval via llm library (personal API keys, same prompt+DOI+PDF)
+run-field-guidance-llm model:
+    uv run python datasets/field-guidance/run_pipeline_eval.py --backend llm --model {{ model }}
+
+# Run field-guidance eval across ALL available models and backends
+sweep-field-guidance:
     uv run python datasets/field-guidance/run_pipeline_eval.py --sweep
 
 # Compare all pipeline eval results (use --latest for most recent per model)
