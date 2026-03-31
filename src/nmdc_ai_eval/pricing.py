@@ -1,51 +1,28 @@
 """Model pricing for cost estimation.
 
-Approximate costs per 1M tokens (USD), sourced from provider pricing pages.
-PNNL AI Incubator models show zero cost (internal allocation, not billed per-token).
-
-Update this table when providers change pricing or new models are added.
+Loads pricing from datasets/pricing.yaml — edit that file to add models
+or update prices. No code changes needed.
 """
 
 from __future__ import annotations
 
-# (input_cost_per_1m_tokens, output_cost_per_1m_tokens)
-_PRICING: dict[str, tuple[float, float]] = {
-    # OpenAI — https://openai.com/pricing
-    "gpt-5.2": (2.00, 8.00),
-    "gpt-5.1": (2.00, 8.00),
-    "gpt-5": (2.00, 8.00),
-    "gpt-5-mini": (0.40, 1.60),
-    "gpt-5-nano": (0.10, 0.40),
-    "gpt-4o": (2.50, 10.00),
-    "gpt-4o-mini": (0.15, 0.60),
-    "gpt-4.1": (2.00, 8.00),
-    "gpt-4.1-mini": (0.40, 1.60),
-    "gpt-4.1-nano": (0.10, 0.40),
-    "gpt-4.5": (75.00, 150.00),
-    "o3": (2.00, 8.00),
-    "o3-mini": (1.10, 4.40),
-    "o4-mini": (1.10, 4.40),
-    # Anthropic — https://www.anthropic.com/pricing
-    "claude-opus-4-6": (15.00, 75.00),
-    "claude-opus-4-5": (15.00, 75.00),
-    "claude-opus-4-1": (15.00, 75.00),
-    "claude-opus-4-0": (15.00, 75.00),
-    "claude-sonnet-4-6": (3.00, 15.00),
-    "claude-sonnet-4-5": (3.00, 15.00),
-    "claude-sonnet-4-0": (3.00, 15.00),
-    "claude-3-7-sonnet": (3.00, 15.00),
-    "claude-haiku-4-5": (0.80, 4.00),
-    # Google AI Studio / Vertex AI — https://ai.google.dev/pricing
-    "gemini-2.5-flash": (0.15, 0.60),
-    "gemini-2.5-pro": (1.25, 10.00),
-    # PNNL AI Incubator — internal allocation, no per-token billing
-    "gpt-5-project": (0.0, 0.0),
-    "gpt-5.1-project": (0.0, 0.0),
-    "gpt-5.2-project": (0.0, 0.0),
-    "gpt-4.1-project": (0.0, 0.0),
-    "o3-project": (0.0, 0.0),
-    "o4-mini-project": (0.0, 0.0),
-}
+from pathlib import Path
+
+import yaml
+
+_PRICING_YAML = Path(__file__).parent.parent.parent / "datasets" / "pricing.yaml"
+
+
+def _load_pricing() -> dict[str, tuple[float, float]]:
+    """Load pricing table from YAML. Called once at import time."""
+    if not _PRICING_YAML.exists():
+        return {}
+    with open(_PRICING_YAML) as f:
+        raw = yaml.safe_load(f) or {}
+    return {str(k): (float(v[0]), float(v[1])) for k, v in raw.items() if isinstance(v, list) and len(v) == 2}
+
+
+_PRICING: dict[str, tuple[float, float]] = _load_pricing()
 
 
 def _normalize_model_name(model: str) -> str:

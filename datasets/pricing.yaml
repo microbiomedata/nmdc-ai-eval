@@ -1,0 +1,46 @@
+# Model pricing: approximate cost per 1M tokens (USD).
+# Sources: provider pricing pages. Update when prices change or models are added.
+#
+# The prefix-matching in pricing.py handles version suffixes automatically:
+#   "claude-opus-4-5" matches "claude-opus-4-5-20251101"
+#   "gpt-5" matches "gpt-5-2025-08-07"
+# Provider prefixes like "anthropic/" and "gemini/" are stripped before lookup.
+
+# OpenAI — https://openai.com/pricing
+gpt-5.2: [2.00, 8.00]
+gpt-5.1: [2.00, 8.00]
+gpt-5: [2.00, 8.00]
+gpt-5-mini: [0.40, 1.60]
+gpt-5-nano: [0.10, 0.40]
+gpt-4o: [2.50, 10.00]
+gpt-4o-mini: [0.15, 0.60]
+gpt-4.5: [75.00, 150.00]
+gpt-4.1: [2.00, 8.00]
+gpt-4.1-mini: [0.40, 1.60]
+gpt-4.1-nano: [0.10, 0.40]
+o3: [2.00, 8.00]
+o3-mini: [1.10, 4.40]
+o4-mini: [1.10, 4.40]
+
+# Anthropic — https://www.anthropic.com/pricing
+claude-opus-4-6: [15.00, 75.00]
+claude-opus-4-5: [15.00, 75.00]
+claude-opus-4-1: [15.00, 75.00]
+claude-opus-4-0: [15.00, 75.00]
+claude-sonnet-4-6: [3.00, 15.00]
+claude-sonnet-4-5: [3.00, 15.00]
+claude-sonnet-4-0: [3.00, 15.00]
+claude-3-7-sonnet: [3.00, 15.00]
+claude-haiku-4-5: [0.80, 4.00]
+
+# Google AI Studio / Vertex AI — https://ai.google.dev/pricing
+gemini-2.5-flash: [0.15, 0.60]
+gemini-2.5-pro: [1.25, 10.00]
+
+# PNNL AI Incubator — internal allocation, no per-token billing
+gpt-5-project: [0.0, 0.0]
+gpt-5.1-project: [0.0, 0.0]
+gpt-5.2-project: [0.0, 0.0]
+gpt-4.1-project: [0.0, 0.0]
+o3-project: [0.0, 0.0]
+o4-mini-project: [0.0, 0.0]
