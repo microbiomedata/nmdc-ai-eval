@@ -44,11 +44,16 @@ STANDARD_MODELS: list[tuple[str, str | None]] = [
 ]
 
 FULL_MODELS: list[tuple[str, str | None]] = [
+    # OpenAI: low, mid, top
     ("gpt-4o-mini", "--backend llm"),
     ("gpt-4o", "--backend llm"),
     ("gpt-5.2", "--backend llm"),
+    # Anthropic: low, top
+    ("anthropic/claude-haiku-4-5-20251001", "--backend llm"),
+    ("anthropic/claude-sonnet-4-6", "--backend llm"),
+    # Google: low, top
     ("gemini/gemini-2.5-flash", "--backend llm"),
-    ("anthropic/claude-sonnet-4-5", "--backend llm"),
+    ("gemini/gemini-2.5-pro", "--backend llm"),
 ]
 
 # GCP pipeline models (added if credentials are available)
