@@ -7,7 +7,7 @@ import pandas as pd
 import pytest
 
 from nmdc_ai_eval.envo_scorer import (
-    _add_timing_cost_stubs,
+    _add_timing_cost_columns,
     _extract_template,
     print_envo_summary,
 )
@@ -33,20 +33,36 @@ class TestExtractTemplate:
         assert _extract_template("sampleData: sediment_data, study: foo") == "sediment_data"
 
 
-class TestAddTimingCostStubs:
-    def test_adds_all_keys(self) -> None:
+class TestAddTimingCostColumns:
+    def test_adds_columns_when_source_lacks_them(self) -> None:
         result: dict[str, object] = {"existing_key": 42}
-        _add_timing_cost_stubs(result)
-        assert "response_time_s" in result
-        assert "prompt_tokens" in result
-        assert "completion_tokens" in result
+        _add_timing_cost_columns(result, source_columns=set())
+        assert "duration_ms" in result
+        assert "input_tokens" in result
+        assert "output_tokens" in result
         assert "est_cost_usd" in result
         assert result["existing_key"] == 42
 
-    def test_all_none(self) -> None:
+    def test_all_none_when_source_lacks_them(self) -> None:
         result: dict[str, object] = {}
-        _add_timing_cost_stubs(result)
+        _add_timing_cost_columns(result, source_columns=set())
         assert all(result[k] is None for k in result)
+
+    def test_skips_when_source_has_columns(self) -> None:
+        """When source TSV already has the columns, don't add stubs (data is in the original df)."""
+        result: dict[str, object] = {}
+        source = {"duration_ms", "input_tokens", "output_tokens", "est_cost_usd"}
+        _add_timing_cost_columns(result, source_columns=source)
+        assert len(result) == 0
+
+    def test_partial_source_fills_gaps(self) -> None:
+        result: dict[str, object] = {}
+        source = {"duration_ms", "input_tokens"}  # has timing but not cost
+        _add_timing_cost_columns(result, source_columns=source)
+        assert "output_tokens" in result
+        assert "est_cost_usd" in result
+        assert "duration_ms" not in result
+        assert "input_tokens" not in result
 
 
 class TestPrintEnvoSummary:

@@ -42,7 +42,7 @@ Future work
   See `validate_via_linkml()` stub below.
 - Response time and cost tracking: llm-matrix does not currently expose these in
   its results. When it does (or via wrapper timing), add response_time_s and
-  est_cost_usd columns. See `_add_timing_cost_stubs()` below.
+  est_cost_usd columns. See `_add_timing_cost_columns()` below.
 """
 
 from __future__ import annotations
@@ -283,24 +283,17 @@ def compute_ontology_score(
     return W_PARSE * 1.0 + W_LABEL * (1.0 if curie_label_valid else 0.0) + W_HIER * hier + W_ENUM * enum
 
 
-def _add_timing_cost_stubs(result: dict[str, object]) -> None:
-    """Add placeholder columns for response time and estimated cost.
+def _add_timing_cost_columns(result: dict[str, object], source_columns: set[str]) -> None:
+    """Ensure timing/cost columns exist in the scored output.
 
-    llm-matrix does not currently expose per-request timing or token counts
-    in its results schema. When it does (or when we add wrapper-level timing),
-    these columns should be populated:
-
-    - response_time_s: wall-clock seconds for the LLM API call
-    - prompt_tokens: input token count
-    - completion_tokens: output token count
-    - est_cost_usd: estimated cost based on provider pricing
-
-    For now, these are None placeholders so the output schema is stable.
+    If run_suite.py already captured these from the llm logs DB, they will
+    be in the source TSV and preserved by pd.concat — this function is a
+    no-op in that case. If the source TSV lacks them (e.g. older results),
+    this adds None placeholders so the output schema is stable.
     """
-    result["response_time_s"] = None
-    result["prompt_tokens"] = None
-    result["completion_tokens"] = None
-    result["est_cost_usd"] = None
+    for col in ("duration_ms", "input_tokens", "output_tokens", "est_cost_usd"):
+        if col not in source_columns:
+            result[col] = None
 
 
 def score_envo_results(
@@ -390,8 +383,8 @@ def score_envo_results(
             in_template_enum=enum_val,
         )
 
-        # Timing/cost stubs
-        _add_timing_cost_stubs(result)
+        # Ensure timing/cost columns exist (no-op if source TSV already has them)
+        _add_timing_cost_columns(result, set(df.columns))
 
         scored_rows.append(result)
 
