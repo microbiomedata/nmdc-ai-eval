@@ -14,7 +14,14 @@ _PRICING: dict[str, tuple[float, float]] = {
     "gpt-4o": (2.50, 10.00),
     "gpt-4o-mini": (0.15, 0.60),
     # Anthropic — https://www.anthropic.com/pricing
+    "claude-opus-4-6": (15.00, 75.00),
+    "claude-opus-4-5": (15.00, 75.00),
+    "claude-opus-4-1": (15.00, 75.00),
+    "claude-opus-4-0": (15.00, 75.00),
+    "claude-sonnet-4-6": (3.00, 15.00),
     "claude-sonnet-4-5": (3.00, 15.00),
+    "claude-sonnet-4-0": (3.00, 15.00),
+    "claude-3-7-sonnet": (3.00, 15.00),
     "claude-haiku-4-5": (0.80, 4.00),
     # Google AI Studio / Vertex AI — https://ai.google.dev/pricing
     "gemini-2.5-flash": (0.15, 0.60),
