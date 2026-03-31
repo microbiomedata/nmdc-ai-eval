@@ -133,51 +133,60 @@ Contact Olivia Hess for the endpoint URL and key.
 
 > **Budget reminder:** The `nmdc-llm` GCP project has a shared $500 total budget. Use Option B (llm-matrix with personal keys) for iterative dev and model comparisons.
 
-## Two eval paths
+## Eval approaches
 
-This repo supports two ways to run evals, especially for the [Metadata Field Guidance](datasets/field-guidance/) dataset:
+### Field Guidance eval (Task 1) — which slots to recommend
 
-**Option A — Pipeline eval** calls the real `run_recommendation_pipeline()` from [`nmdc-metadata-suggestor-ai-tool`](https://github.com/microbiomedata/nmdc-metadata-suggestor-ai-tool). This tests exactly what portal users see, including DOI fetching and PDF ingestion, but is limited to models the suggestor supports (GCP Gemini, PNNL GPT).
+The field guidance eval predicts which biosample metadata fields a submitter should fill, scored against hand-curated ground truth (6 submissions from Montana Smith and Bea Meluch).
 
-**Option B — llm-matrix eval** uses the suggestor's system prompt and schema context but routes through [llm-matrix](https://github.com/monarch-initiative/llm-matrix) and the `llm` plugin ecosystem. This tests any model cheaply (OpenAI, Anthropic, Gemini via AI Studio) but cannot include DOI/PDF content.
+Three ways to run it, all using the suggestor's production prompt and scoring with precision/recall/F1:
 
-| | Option A: Pipeline | Option B: llm-matrix |
-|---|---|---|
-| **Models** | GCP Gemini, PNNL GPT | Any model in `models.yaml` |
-| **System prompt** | Production | Production (imported) |
-| **Schema context** | Production | Production (imported) |
-| **DOI/PDF** | Yes | No ([#28](https://github.com/microbiomedata/nmdc-ai-eval/issues/28)) |
-| **Run** | `just run-field-guidance-pipeline gcp` | `just run-field-guidance` |
+| | Pipeline backend | llm backend | llm-matrix |
+|---|---|---|---|
+| **What it is** | Suggestor's `LLMClient` | `llm` library adapter | `llm-matrix` suites |
+| **Models** | GCP Gemini, PNNL GPT | Any model with an `llm` plugin | Models listed in `models.yaml` |
+| **DOI/PDF enrichment** | Yes | Yes | No ([#28](https://github.com/microbiomedata/nmdc-ai-eval/issues/28)) |
+| **Credentials** | GCP or PNNL service accounts | Personal API keys | Personal API keys |
+| **MongoDB required** | Yes | Yes | Only for regenerating suite YAML |
+| **Run** | `just run-field-guidance-pipeline` | `just run-field-guidance-llm gpt-4o` | `just run-field-guidance` |
 
-See [`datasets/field-guidance/README.md`](datasets/field-guidance/README.md) for details.
+The **pipeline** and **llm** backends produce directly comparable results — same prompt, same DOI/PDF ingestion, same scoring. The only difference is which LLM API processes the request.
 
-## Run your first eval
+**Flags:**
 
-### Option B (easiest) — llm-matrix with personal API keys
+- `--no-enrichment` — skip DOI waterfall and PDF download (context ablation: how much does publication content matter?)
+- `--verify` — re-prompt the model to cite evidence for each recommendation; drops unsupported ones (reduces tautological suggestions like "soil studies typically measure pH")
+- `--strict` — count env triad fields in precision scoring (by default they're excluded since the ground truth intentionally omits them)
+- `--sweep` — run all available models across all configured backends
 
-No MongoDB needed. Uses committed suite YAMLs and your own keys.
+**Results** are written to `datasets/field-guidance/pipeline-results/` as timestamped YAML files — one per model per run, never overwritten. Each file includes per-submission predictions, scores, reasons, token counts, and estimated cost.
+
+```bash
+# Compare results across models and runs
+just compare-pipeline-results              # all results
+just compare-pipeline-results --latest     # most recent per model
+just compare-pipeline-results --detail     # per-submission breakdown
+```
+
+### Value prediction evals (env_broad_scale, sampleData)
+
+These use llm-matrix suites with ontology-aware scoring. No MongoDB needed.
 
 ```bash
 uv run llm keys set openai       # or anthropic, or gemini (AI Studio key)
 
-# env_broad_scale: 100 cases × 5 models, ~5-10 min, ~$0.05-0.20
+# env_broad_scale: 100 cases × 5 models, ontology-scored
 just eval-ebs
-# Results: datasets/ebs-prediction/ebs-suite-output/results.tsv
-#          datasets/ebs-prediction/results_envo_scored.tsv  (ontology-scored)
 
-# sampleData smoke test: 9 cases × 5 models, ~2 min, ~$0.01
+# sampleData prediction: 9 cases × 5 models (smoke test)
 just eval-sampledata
 ```
 
-### Option A — pipeline eval with production suggestor
+Results include `input_tokens`, `output_tokens`, `duration_ms`, and `est_cost_usd` per call (captured from the llm logs DB).
 
-Requires MongoDB and GCP or PNNL credentials (see above). Tests the exact portal code path including DOI waterfall and PDF ingestion.
+### Cost estimation
 
-```bash
-just run-field-guidance-pipeline gcp
-# Results: datasets/field-guidance/field-guidance-pipeline-results.yaml
-# Per-submission: elapsed_seconds, input_tokens, output_tokens, est_cost_usd
-```
+Model pricing lives in the `pricing:` section of [`datasets/models.yaml`](datasets/models.yaml). Edit that file to add models or update prices — no code changes needed. If a model isn't in the pricing table, the eval still runs; cost just shows as unavailable.
 
 ## Usage
 
