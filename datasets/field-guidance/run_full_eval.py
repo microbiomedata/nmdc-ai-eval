@@ -113,7 +113,20 @@ def main() -> None:
         action="store_true",
         help="Skip no-enrichment variants",
     )
+    parser.add_argument(
+        "--no-clean",
+        action="store_true",
+        help="Keep existing results (default: clean pipeline-results/ first)",
+    )
     args = parser.parse_args()
+
+    # Clean previous results unless --no-clean
+    results_dir = HERE / "pipeline-results"
+    if not args.no_clean and results_dir.exists():
+        import shutil
+
+        shutil.rmtree(results_dir)
+        print("Cleaned pipeline-results/\n")
 
     # Determine model set
     if args.models:

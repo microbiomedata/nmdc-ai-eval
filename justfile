@@ -92,13 +92,14 @@ run-field-guidance-llm model:
 sweep-field-guidance:
     uv run python datasets/field-guidance/run_pipeline_eval.py --sweep
 
-# Full eval matrix: models × enrichment × verification, then synthesize
+# Full eval matrix: clean → models × enrichment × verification → compare
+# Default: standard models (~$0.50, ~20 min). Options:
+#   just full-eval --cheap    (~$0.10, ~10 min)
+#   just full-eval --full     (includes gpt-5.2, ~$2, ~40 min)
+#   just full-eval --models gpt-4o anthropic/claude-sonnet-4-5
+#   just full-eval --no-clean (keep previous results)
 full-eval *args="":
     uv run python datasets/field-guidance/run_full_eval.py {{ args }}
-
-# Full eval with only cheap models (~$0.10 total)
-full-eval-cheap:
-    uv run python datasets/field-guidance/run_full_eval.py --cheap
 
 # Compare all pipeline eval results (use --latest for most recent per model)
 compare-pipeline-results *args="":

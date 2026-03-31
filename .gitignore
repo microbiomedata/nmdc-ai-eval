@@ -8,8 +8,8 @@
 *-output/
 *.db
 
-# Pipeline eval results (timestamped, local only)
-datasets/field-guidance/pipeline-results/
+# Pipeline eval results — committed for reproducibility.
+# Individual result YAMLs are timestamped and never overwritten.
 
 # === Standard Python (GitHub template) ===
 
