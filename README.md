@@ -147,7 +147,7 @@ This repo supports two ways to run evals, especially for the [Metadata Field Gui
 | **System prompt** | Production | Production (imported) |
 | **Schema context** | Production | Production (imported) |
 | **DOI/PDF** | Yes | No ([#28](https://github.com/microbiomedata/nmdc-ai-eval/issues/28)) |
-| **Run** | `just run-field-guidance-pipeline provider=gcp` | `just run-field-guidance` |
+| **Run** | `just run-field-guidance-pipeline gcp` | `just run-field-guidance` |
 
 See [`datasets/field-guidance/README.md`](datasets/field-guidance/README.md) for details.
 
@@ -174,7 +174,7 @@ just eval-sampledata
 Requires MongoDB and GCP or PNNL credentials (see above). Tests the exact portal code path including DOI waterfall and PDF ingestion.
 
 ```bash
-just run-field-guidance-pipeline provider=gcp
+just run-field-guidance-pipeline gcp
 # Results: datasets/field-guidance/field-guidance-pipeline-results.yaml
 # Per-submission: elapsed_seconds, input_tokens, output_tokens, est_cost_usd
 ```

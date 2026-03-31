@@ -82,7 +82,7 @@ Note: the expected set is intentionally small (non-obvious, study-specific slots
 | **Providers** | `gcp`, `pnnl` (suggestor limitation) | `llm` plugins (personal API keys) |
 | **Timing** | Wall-clock `elapsed_seconds` per submission | Not yet surfaced from llm-matrix DuckDB ([#14](https://github.com/microbiomedata/nmdc-ai-eval/issues/14)) |
 | **Cost** | Not yet — needs token counting ([#14](https://github.com/microbiomedata/nmdc-ai-eval/issues/14)) | Not yet |
-| **Run command** | `just run-field-guidance-pipeline provider=gcp` | `just run-field-guidance` |
+| **Run command** | `just run-field-guidance-pipeline gcp` | `just run-field-guidance` |
 
 ### Adding models
 
