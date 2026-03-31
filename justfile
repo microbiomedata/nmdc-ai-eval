@@ -84,6 +84,10 @@ run-field-guidance:
 run-field-guidance-pipeline provider="gcp" model="":
     uv run python datasets/field-guidance/run_pipeline_eval.py --provider {{ provider }} {{ if model != "" { "--model " + model } else { "" } }}
 
+# Run field-guidance pipeline eval across all configured providers and models
+sweep-field-guidance-pipeline:
+    uv run python datasets/field-guidance/run_pipeline_eval.py --sweep
+
 # End-to-end sampleData eval: generate + run
 eval-sampledata: clean-sampledata-outputs generate-sampledata run-sampledata
 
