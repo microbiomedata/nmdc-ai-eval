@@ -31,6 +31,8 @@ prediction is Task 2 (Metadata Completion), a separate evaluation.
 """
 
 import argparse
+import json
+import re
 import time
 from pathlib import Path
 from typing import Any
@@ -220,6 +222,158 @@ class LLMLibraryAdapter:
 
 
 # ---------------------------------------------------------------------------
+# Context capture — intercepts add_message() to record what the LLM saw
+# ---------------------------------------------------------------------------
+
+
+def _wrap_for_context_capture(llm_client: Any) -> list[str]:
+    """Wrap an LLMClient's add_message() to capture input context.
+
+    Returns a mutable list that accumulates text messages as the pipeline
+    adds them. Works with both LLMClient and LLMLibraryAdapter.
+    """
+    captured: list[str] = []
+    original_add = llm_client.add_message
+
+    def capturing_add(text: str = "", pdf_files: Any = None) -> None:
+        if text:
+            captured.append(text)
+        original_add(text=text, pdf_files=pdf_files)
+
+    llm_client.add_message = capturing_add
+    return captured
+
+
+# ---------------------------------------------------------------------------
+# Verification — ask the model to cite evidence or drop recommendations
+# ---------------------------------------------------------------------------
+
+VERIFY_PROMPT = """\
+You previously recommended metadata fields for a scientific submission.
+Now review each recommendation against the input context below.
+
+For each recommended field, you MUST either:
+1. KEEP it — provide reason_category and an exact quote (evidence_snippet) from the input
+2. DROP it — if you cannot find a specific quote in the input that supports this field
+
+reason_category must be one of:
+- "mentioned_in_text": the input text directly discusses this measurement or property
+- "experimental_design": the study design implies this variable was controlled or measured
+- "domain_standard": standard for this sample type but NOT specifically mentioned in input
+
+IMPORTANT: Drop any field where your only justification is that it's generally relevant
+to the domain or sample type. Keep only fields grounded in the actual input text.
+
+Input context:
+{context}
+
+Recommendations to verify:
+{recommendations}
+
+Output ONLY valid JSON:
+{{
+  "verified": [
+    {{"field_name": "...", "reason_category": "...", "evidence_snippet": "...", "reason": "..."}}
+  ],
+  "dropped": [
+    {{"field_name": "...", "drop_reason": "..."}}
+  ]
+}}"""
+
+
+def verify_suggestions(
+    suggestions: list[dict[str, str]],
+    captured_context: list[str],
+    backend: str,
+    provider: str | None,
+    model_name: str,
+) -> dict[str, Any]:
+    """Ask the model to cite evidence for each recommendation, dropping unsupported ones.
+
+    Returns {"verified": [...], "dropped": [...], "verify_tokens": {...}, "verify_elapsed": float}.
+    """
+    import llm as llm_lib
+
+    context_text = "\n\n".join(captured_context)
+    # Truncate context if extremely long (some schema contexts are huge)
+    if len(context_text) > 50000:
+        context_text = context_text[:50000] + "\n\n[... truncated ...]"
+
+    recs_json = json.dumps(
+        [{"field_name": s["field_name"], "reason": s["reason"]} for s in suggestions],
+        indent=2,
+    )
+
+    prompt_text = VERIFY_PROMPT.format(context=context_text, recommendations=recs_json)
+
+    t0 = time.time()
+
+    # Always use llm library for verification (simple text prompt, no PDFs)
+    m = llm_lib.get_model(model_name if backend == "llm" else _resolve_llm_model_for_verify(model_name))
+    response = m.prompt(prompt_text, temperature=0.2)
+    raw = response.text()
+    elapsed = round(time.time() - t0, 2)
+
+    # Extract token usage
+    verify_tokens = {
+        "input_tokens": getattr(response, "input_tokens", None),
+        "output_tokens": getattr(response, "output_tokens", None),
+    }
+
+    # Parse JSON from response (strip markdown fences if present)
+    cleaned = re.sub(r"^```(?:json)?\s*\n?|\n?```$", "", raw.strip(), flags=re.MULTILINE).strip()
+    try:
+        parsed = json.loads(cleaned)
+    except json.JSONDecodeError:
+        return {
+            "verified": suggestions,  # Fall back to unfiltered
+            "dropped": [],
+            "verify_error": f"Failed to parse verification response: {raw[:200]}",
+            "verify_tokens": verify_tokens,
+            "verify_elapsed": elapsed,
+        }
+
+    return {
+        "verified": parsed.get("verified", []),
+        "dropped": parsed.get("dropped", []),
+        "verify_tokens": verify_tokens,
+        "verify_elapsed": elapsed,
+    }
+
+
+def _resolve_llm_model_for_verify(pipeline_model: str) -> str:
+    """Map a pipeline model name to an llm library model for verification.
+
+    When using the pipeline backend (GCP/PNNL), the model name may not be
+    recognized by llm plugins. Fall back to a cheap default.
+    """
+    import llm as llm_lib
+
+    # Try the model name directly first
+    try:
+        llm_lib.get_model(pipeline_model)
+        return pipeline_model
+    except llm_lib.UnknownModelError:
+        pass
+
+    # Map known pipeline models to llm equivalents
+    mapping: dict[str, str] = {
+        "gemini-2.5-flash": "gemini/gemini-2.5-flash",
+        "gemini-2.5-pro": "gemini/gemini-2.5-pro",
+    }
+    mapped = mapping.get(pipeline_model)
+    if mapped:
+        try:
+            llm_lib.get_model(mapped)
+            return mapped
+        except llm_lib.UnknownModelError:
+            pass
+
+    # Last resort: use gpt-4o-mini (cheap, widely available)
+    return "gpt-4o-mini"
+
+
+# ---------------------------------------------------------------------------
 # Eval runner (backend-agnostic)
 # ---------------------------------------------------------------------------
 
@@ -259,6 +413,7 @@ def run_one_model(
     collection: Any,
     exclude_from_precision: set[str],
     enrichment: bool = True,
+    verify: bool = False,
 ) -> dict[str, Any]:
     """Run the pipeline eval for a single backend/model combination."""
     from nmdc_metadata_suggestor_ai_tool.recommendation_pipeline import (
@@ -321,6 +476,9 @@ def run_one_model(
             llm_client = LLMClient(access_provider=provider, model=model)
             usage = instrument_for_tokens(llm_client)
 
+        # Capture input context for verification
+        captured_context = _wrap_for_context_capture(llm_client) if verify else []
+
         t0 = time.time()
         try:
             output = run_recommendation_pipeline(
@@ -333,12 +491,53 @@ def run_one_model(
             if backend == "llm":
                 usage = llm_client.get_token_usage()
 
-            predicted = {s.field_name for s in output.metadata_fields}
+            raw_suggestions = [{"field_name": s.field_name, "reason": s.reason} for s in output.metadata_fields]
+            predicted = {s["field_name"] for s in raw_suggestions}
             scores = score_slots(predicted, expected, exclude_from_precision)
             est_cost = estimate_cost(model_name, usage["input_tokens"], usage["output_tokens"])
 
-            print(f"  Predicted ({len(predicted)}): {sorted(predicted)}")
-            print(f"  P={scores['precision']}  R={scores['recall']}  F1={scores['f1']}")
+            print(f"  Raw ({len(predicted)}): {sorted(predicted)}")
+            print(f"  Raw scores: P={scores['precision']}  R={scores['recall']}  F1={scores['f1']}")
+
+            # Verification step: ask model to cite evidence or drop
+            verification: dict[str, Any] = {}
+            verified_suggestions: list[dict[str, str]] = raw_suggestions
+            verified_scores: dict[str, Any] = scores
+            if verify:
+                print("  Verifying...")
+                verification = verify_suggestions(
+                    suggestions=raw_suggestions,
+                    captured_context=captured_context,
+                    backend=backend,
+                    provider=provider,
+                    model_name=model_name,
+                )
+                verified_suggestions = verification.get("verified", raw_suggestions)
+                verified_predicted = {s["field_name"] for s in verified_suggestions}
+                verified_scores = score_slots(verified_predicted, expected, exclude_from_precision)
+                dropped = verification.get("dropped", [])
+
+                print(f"  Verified ({len(verified_predicted)}): {sorted(verified_predicted)}")
+                print(
+                    f"  Verified scores: P={verified_scores['precision']}"
+                    f"  R={verified_scores['recall']}  F1={verified_scores['f1']}"
+                )
+                print(f"  Dropped {len(dropped)}: {[d['field_name'] for d in dropped]}")
+                if verification.get("verify_error"):
+                    print(f"  Verify error: {verification['verify_error']}")
+
+                # Add verify cost to totals
+                v_in = (verification.get("verify_tokens") or {}).get("input_tokens")
+                v_out = (verification.get("verify_tokens") or {}).get("output_tokens")
+                v_cost = estimate_cost(model_name, v_in, v_out)
+                if v_in is not None and usage["input_tokens"] is not None:
+                    usage["input_tokens"] = (usage["input_tokens"] or 0) + v_in
+                if v_out is not None and usage["output_tokens"] is not None:
+                    usage["output_tokens"] = (usage["output_tokens"] or 0) + v_out
+                if v_cost is not None and est_cost is not None:
+                    est_cost = est_cost + v_cost
+                elapsed = round(elapsed + verification.get("verify_elapsed", 0), 2)
+
             if scores.get("excluded_correct"):
                 print(f"  Excluded from precision: {scores['excluded_correct']}")
             tokens_str = (
@@ -349,27 +548,35 @@ def run_one_model(
             cost_str = f"~${est_cost:.4f}" if est_cost is not None else "cost=unavailable"
             print(f"  Time: {elapsed}s  Tokens: {tokens_str}  Cost: {cost_str}\n")
 
-            results.append(
-                {
-                    "submission_id": submission_id,
-                    "study_name": entry["study_name"],
-                    "package": entry["package"],
-                    "model": model_name,
-                    "backend": backend,
-                    "provider": provider or "llm",
-                    "enrichment": enrichment,
-                    "elapsed_seconds": elapsed,
-                    "input_tokens": usage["input_tokens"],
-                    "output_tokens": usage["output_tokens"],
-                    "est_cost_usd": round(est_cost, 6) if est_cost is not None else None,
-                    "expected_slots": sorted(expected),
-                    "predicted_slots": sorted(predicted),
-                    "scores": scores,
-                    "all_suggestions": [
-                        {"field_name": s.field_name, "reason": s.reason} for s in output.metadata_fields
-                    ],
-                }
-            )
+            result_entry: dict[str, Any] = {
+                "submission_id": submission_id,
+                "study_name": entry["study_name"],
+                "package": entry["package"],
+                "model": model_name,
+                "backend": backend,
+                "provider": provider or "llm",
+                "enrichment": enrichment,
+                "verified": verify,
+                "elapsed_seconds": elapsed,
+                "input_tokens": usage["input_tokens"],
+                "output_tokens": usage["output_tokens"],
+                "est_cost_usd": round(est_cost, 6) if est_cost is not None else None,
+                "expected_slots": sorted(expected),
+                "predicted_slots": sorted(predicted),
+                "raw_scores": scores,
+                "all_suggestions": raw_suggestions,
+            }
+            if verify:
+                verified_predicted = {s["field_name"] for s in verified_suggestions}
+                result_entry["verified_slots"] = sorted(verified_predicted)
+                result_entry["verified_scores"] = verified_scores
+                result_entry["verified_suggestions"] = verified_suggestions
+                result_entry["dropped_suggestions"] = verification.get("dropped", [])
+                result_entry["scores"] = verified_scores  # Use verified for aggregation
+            else:
+                result_entry["scores"] = scores
+
+            results.append(result_entry)
 
         except Exception as e:
             elapsed = round(time.time() - t0, 2)
@@ -480,6 +687,11 @@ def main() -> None:
         help="Skip DOI waterfall and PDF download (context ablation)",
     )
     parser.add_argument(
+        "--verify",
+        action="store_true",
+        help="Re-prompt model to cite evidence for each recommendation, dropping unsupported ones",
+    )
+    parser.add_argument(
         "--mongo-uri",
         default="mongodb://localhost:27017/nmdc_data_dev",
         help="MongoDB URI for data-dev submissions",
@@ -498,6 +710,8 @@ def main() -> None:
         print("(use --strict to count these as false positives)")
     if not enrichment:
         print("DOI/PDF enrichment DISABLED (--no-enrichment)")
+    if args.verify:
+        print("Verification ENABLED (--verify): model will cite evidence or drop recommendations")
     print()
 
     # Determine which models to run
@@ -531,6 +745,7 @@ def main() -> None:
             collection=collection,
             exclude_from_precision=exclude,
             enrichment=enrichment,
+            verify=args.verify,
         )
         all_runs.append(run_data)
 
@@ -538,11 +753,13 @@ def main() -> None:
         model_slug = run_data["model"].replace("/", "-").replace("@", "-")
         backend_slug = f"{provider}" if provider else "llm"
         enrich_slug = "enriched" if enrichment else "no-enrichment"
-        result_path = RESULTS_DIR / f"{model_slug}_{backend_slug}_{enrich_slug}_{timestamp}.yaml"
+        verify_slug = "_verified" if args.verify else ""
+        result_path = RESULTS_DIR / f"{model_slug}_{backend_slug}_{enrich_slug}{verify_slug}_{timestamp}.yaml"
         per_model_data: dict[str, Any] = {
             "eval_name": "field-guidance-pipeline",
             "scoring": "strict" if args.strict else "env-triad-excluded",
             "enrichment": enrichment,
+            "verified": args.verify,
             "timestamp": timestamp,
             **run_data,
         }
