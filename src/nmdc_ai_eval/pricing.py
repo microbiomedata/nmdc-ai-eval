@@ -1,7 +1,7 @@
 """Model pricing for cost estimation.
 
-Loads pricing from datasets/pricing.yaml — edit that file to add models
-or update prices. No code changes needed.
+Loads pricing from the `pricing:` section of datasets/models.yaml —
+edit that file to add models or update prices. No code changes needed.
 """
 
 from __future__ import annotations
@@ -10,15 +10,16 @@ from pathlib import Path
 
 import yaml
 
-_PRICING_YAML = Path(__file__).parent.parent.parent / "datasets" / "pricing.yaml"
+_MODELS_YAML = Path(__file__).parent.parent.parent / "datasets" / "models.yaml"
 
 
 def _load_pricing() -> dict[str, tuple[float, float]]:
-    """Load pricing table from YAML. Called once at import time."""
-    if not _PRICING_YAML.exists():
+    """Load pricing table from models.yaml. Called once at import time."""
+    if not _MODELS_YAML.exists():
         return {}
-    with open(_PRICING_YAML) as f:
-        raw = yaml.safe_load(f) or {}
+    with open(_MODELS_YAML) as f:
+        data = yaml.safe_load(f) or {}
+    raw = data.get("pricing", {})
     return {str(k): (float(v[0]), float(v[1])) for k, v in raw.items() if isinstance(v, list) and len(v) == 2}
 
 
