@@ -23,6 +23,11 @@ Usage:
 
 Output: pipeline-results/{model}_{timestamp}.yaml per model, with
         elapsed_seconds, input_tokens, output_tokens, est_cost_usd.
+
+This is a Task 1 (Field Guidance) eval ONLY. It scores which slots the
+model recommends, not the values it suggests for those slots. The `value`
+field from the suggestor's response is intentionally discarded — value
+prediction is Task 2 (Metadata Completion), a separate evaluation.
 """
 
 import argparse
@@ -361,8 +366,7 @@ def run_one_model(
                     "predicted_slots": sorted(predicted),
                     "scores": scores,
                     "all_suggestions": [
-                        {"field_name": s.field_name, "reason": s.reason, "value": s.value}
-                        for s in output.metadata_fields
+                        {"field_name": s.field_name, "reason": s.reason} for s in output.metadata_fields
                     ],
                 }
             )
