@@ -39,10 +39,14 @@ def summarize_run(data: dict[str, Any]) -> dict[str, Any]:
     scored = [r for r in results if "scores" in r]
     errors = [r for r in results if "error" in r]
 
+    enrich = data.get("enrichment", True)
+    enrich_str = "yes" if enrich else "no"
+
     if not scored:
         return {
             "model": data.get("model", "?"),
             "provider": data.get("provider", "?"),
+            "enrichment": enrich_str,
             "timestamp": data.get("timestamp", "?"),
             "scoring": data.get("scoring", "?"),
             "n": 0,
@@ -61,6 +65,7 @@ def summarize_run(data: dict[str, Any]) -> dict[str, Any]:
     return {
         "model": data.get("model", "?"),
         "provider": data.get("provider", "?"),
+        "enrichment": enrich_str,
         "timestamp": data.get("timestamp", "?"),
         "scoring": data.get("scoring", "?"),
         "n": len(scored),
@@ -85,30 +90,31 @@ def print_comparison(summaries: list[dict[str, Any]]) -> None:
 
     # Header
     print(
-        f"{'Model':<28s} {'Prov':<5s} {'P':>6s} {'R':>6s} {'F1':>6s}"
+        f"{'Model':<28s} {'Prov':<5s} {'DOI':>3s}"
+        f" {'P':>6s} {'R':>6s} {'F1':>6s}"
         f" {'Cost':>8s} {'Time':>6s} {'Tokens':>12s}"
-        f" {'N':>3s} {'Err':>3s} {'Scoring':<16s} {'When':<16s}"
+        f" {'N':>3s} {'When':<16s}"
     )
-    print("-" * 120)
+    print("-" * 110)
 
     for s in summaries:
+        doi = s.get("enrichment", "yes")
         if s["n"] == 0:
             print(
-                f"{s['model']:<28s} {s['provider']:<5s}"
+                f"{s['model']:<28s} {s['provider']:<5s} {doi:>3s}"
                 f" {'—':>6s} {'—':>6s} {'—':>6s}"
                 f" {'—':>8s} {'—':>6s} {'—':>12s}"
-                f" {s['n']:>3d} {s['errors']:>3d}"
-                f" {s['scoring']:<16s} {s['timestamp']:<16s}"
+                f" {s['n']:>3d} {s['timestamp']:<16s}"
+                f"  ({s['errors']} errors)"
             )
             continue
 
         tok = f"{s['input_tokens']}+{s['output_tokens']}" if s["input_tokens"] else "—"
         print(
-            f"{s['model']:<28s} {s['provider']:<5s}"
+            f"{s['model']:<28s} {s['provider']:<5s} {doi:>3s}"
             f" {s['precision']:>6.3f} {s['recall']:>6.3f} {s['f1']:>6.3f}"
             f" ${s['total_cost']:>7.4f} {s['total_time']:>5.0f}s {tok:>12s}"
-            f" {s['n']:>3d} {s['errors']:>3d}"
-            f" {s['scoring']:<16s} {s['timestamp']:<16s}"
+            f" {s['n']:>3d} {s['timestamp']:<16s}"
         )
 
 
@@ -158,15 +164,15 @@ def main() -> None:
     summaries = [summarize_run(d) for d in all_data]
 
     if args.latest:
-        # Keep only the most recent per model
+        # Keep only the most recent per (model, provider, enrichment) combo
         latest: dict[str, dict[str, Any]] = {}
         for s in summaries:
-            key = f"{s['model']}_{s['provider']}"
+            key = f"{s['model']}_{s['provider']}_{s.get('enrichment', 'yes')}"
             if key not in latest or s["timestamp"] > latest[key]["timestamp"]:
                 latest[key] = s
         summaries = sorted(latest.values(), key=lambda s: s.get("f1", 0), reverse=True)
     else:
-        summaries.sort(key=lambda s: (s["model"], s["timestamp"]))
+        summaries.sort(key=lambda s: (s["model"], s.get("enrichment", "yes"), s["timestamp"]))
 
     print_comparison(summaries)
 

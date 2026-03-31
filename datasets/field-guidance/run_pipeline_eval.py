@@ -219,6 +219,33 @@ class LLMLibraryAdapter:
 # ---------------------------------------------------------------------------
 
 
+def _strip_dois(doc: dict[str, Any]) -> dict[str, Any]:
+    """Return a deep copy of a submission doc with all DOI fields blanked.
+
+    This prevents the suggestor pipeline from running its DOI waterfall
+    and PDF download, so the LLM sees only the study description, notes,
+    and schema context — no publication abstracts or full text.
+    """
+    import copy
+
+    stripped = copy.deepcopy(doc)
+    ms = stripped.get("metadata_submission", {})
+    sf = ms.get("studyForm", {})
+    sf.pop("dataDois", None)
+    sf.pop("publicationDois", None)
+    mf = ms.get("multiOmicsForm", {})
+    mf.pop("awardDois", None)
+    # Also strip protocol DOIs
+    omics = mf.get("nmdc:OmicsProcessing", {})
+    blocks = omics.values() if isinstance(omics, dict) else []
+    for protocol_block in blocks:
+        if isinstance(protocol_block, dict):
+            for ep in protocol_block.get("externalProtocols", []):
+                if isinstance(ep, dict):
+                    ep.pop("doi", None)
+    return stripped
+
+
 def run_one_model(
     backend: str,
     provider: str | None,
@@ -226,6 +253,7 @@ def run_one_model(
     ground_truth: list[dict[str, Any]],
     collection: Any,
     exclude_from_precision: set[str],
+    enrichment: bool = True,
 ) -> dict[str, Any]:
     """Run the pipeline eval for a single backend/model combination."""
     from nmdc_metadata_suggestor_ai_tool.recommendation_pipeline import (
@@ -245,8 +273,9 @@ def run_one_model(
         model_name = probe.model
         display_backend = f"{provider} ({model_name})"
 
+    enrich_label = "with DOI/PDF" if enrichment else "NO enrichment"
     print(f"\n{'=' * 70}")
-    print(f"Backend: {display_backend}")
+    print(f"Backend: {display_backend}  [{enrich_label}]")
     print(f"{'=' * 70}")
 
     results: list[dict[str, Any]] = []
@@ -262,6 +291,7 @@ def run_one_model(
                     "model": model_name,
                     "backend": backend,
                     "provider": provider or "llm",
+                    "enrichment": enrichment,
                     "status": "skipped",
                     "reason": "submission not found in MongoDB",
                 }
@@ -269,6 +299,8 @@ def run_one_model(
             continue
 
         doc.pop("_id", None)
+        if not enrichment:
+            doc = _strip_dois(doc)
         expected = {s["field_name"] for s in entry["expected_slots"]}
         print(f"=== {entry['study_name'][:70]} ===")
         print(f"  Expected: {sorted(expected)}")
@@ -320,6 +352,7 @@ def run_one_model(
                     "model": model_name,
                     "backend": backend,
                     "provider": provider or "llm",
+                    "enrichment": enrichment,
                     "elapsed_seconds": elapsed,
                     "input_tokens": usage["input_tokens"],
                     "output_tokens": usage["output_tokens"],
@@ -344,6 +377,7 @@ def run_one_model(
                     "model": model_name,
                     "backend": backend,
                     "provider": provider or "llm",
+                    "enrichment": enrichment,
                     "status": "error",
                     "error": str(e),
                     "elapsed_seconds": elapsed,
@@ -375,6 +409,7 @@ def run_one_model(
         "model": model_name,
         "backend": backend,
         "provider": provider or "llm",
+        "enrichment": enrichment,
         "submission_count": len(results),
         "results": results,
     }
@@ -436,6 +471,11 @@ def main() -> None:
     parser.add_argument("--model", default=None, help="Model name")
     parser.add_argument("--strict", action="store_true", help="Count env triad in precision")
     parser.add_argument(
+        "--no-enrichment",
+        action="store_true",
+        help="Skip DOI waterfall and PDF download (context ablation)",
+    )
+    parser.add_argument(
         "--mongo-uri",
         default="mongodb://localhost:27017/nmdc_data_dev",
         help="MongoDB URI for data-dev submissions",
@@ -447,10 +487,14 @@ def main() -> None:
     db = mongo_client.get_default_database()
     collection = db["nmdc_submissions"]
 
+    enrichment = not args.no_enrichment
     exclude = set() if args.strict else ENV_TRIAD
     if not args.strict:
         print(f"Excluding from precision: {sorted(exclude)}")
-        print("(use --strict to count these as false positives)\n")
+        print("(use --strict to count these as false positives)")
+    if not enrichment:
+        print("DOI/PDF enrichment DISABLED (--no-enrichment)")
+    print()
 
     # Determine which models to run
     if args.sweep:
@@ -482,16 +526,19 @@ def main() -> None:
             ground_truth=ground_truth,
             collection=collection,
             exclude_from_precision=exclude,
+            enrichment=enrichment,
         )
         all_runs.append(run_data)
 
         # Write per-model result file
         model_slug = run_data["model"].replace("/", "-").replace("@", "-")
         backend_slug = f"{provider}" if provider else "llm"
-        result_path = RESULTS_DIR / f"{model_slug}_{backend_slug}_{timestamp}.yaml"
+        enrich_slug = "enriched" if enrichment else "no-enrichment"
+        result_path = RESULTS_DIR / f"{model_slug}_{backend_slug}_{enrich_slug}_{timestamp}.yaml"
         per_model_data: dict[str, Any] = {
             "eval_name": "field-guidance-pipeline",
             "scoring": "strict" if args.strict else "env-triad-excluded",
+            "enrichment": enrichment,
             "timestamp": timestamp,
             **run_data,
         }
