@@ -11,8 +11,20 @@ from __future__ import annotations
 # (input_cost_per_1m_tokens, output_cost_per_1m_tokens)
 _PRICING: dict[str, tuple[float, float]] = {
     # OpenAI — https://openai.com/pricing
+    "gpt-5.2": (2.00, 8.00),
+    "gpt-5.1": (2.00, 8.00),
+    "gpt-5": (2.00, 8.00),
+    "gpt-5-mini": (0.40, 1.60),
+    "gpt-5-nano": (0.10, 0.40),
     "gpt-4o": (2.50, 10.00),
     "gpt-4o-mini": (0.15, 0.60),
+    "gpt-4.1": (2.00, 8.00),
+    "gpt-4.1-mini": (0.40, 1.60),
+    "gpt-4.1-nano": (0.10, 0.40),
+    "gpt-4.5": (75.00, 150.00),
+    "o3": (2.00, 8.00),
+    "o3-mini": (1.10, 4.40),
+    "o4-mini": (1.10, 4.40),
     # Anthropic — https://www.anthropic.com/pricing
     "claude-opus-4-6": (15.00, 75.00),
     "claude-opus-4-5": (15.00, 75.00),
