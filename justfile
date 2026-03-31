@@ -88,6 +88,10 @@ run-field-guidance-pipeline provider="gcp" model="":
 sweep-field-guidance-pipeline:
     uv run python datasets/field-guidance/run_pipeline_eval.py --sweep
 
+# Compare all pipeline eval results (use --latest for most recent per model)
+compare-pipeline-results *args="":
+    uv run python datasets/field-guidance/compare_pipeline_results.py {{ args }}
+
 # End-to-end sampleData eval: generate + run
 eval-sampledata: clean-sampledata-outputs generate-sampledata run-sampledata
 
@@ -122,7 +126,7 @@ clean-ebs-outputs:
 clean-field-guidance-outputs:
     rm -rf datasets/field-guidance/field-guidance-suite-output/
     rm -f datasets/field-guidance/field-guidance-suite.db
-    rm -f datasets/field-guidance/field-guidance-pipeline-results.yaml
+    rm -rf datasets/field-guidance/pipeline-results/
 
 clean-outputs: clean-sampledata-outputs clean-ebs-outputs clean-field-guidance-outputs
 

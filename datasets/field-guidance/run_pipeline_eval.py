@@ -43,7 +43,7 @@ from nmdc_ai_eval.pricing import estimate_cost
 
 HERE = Path(__file__).parent
 GROUND_TRUTH = HERE / "ground_truth.yaml"
-RESULTS_FILE = HERE / "field-guidance-pipeline-results.yaml"
+RESULTS_DIR = HERE / "pipeline-results"
 
 # Fields excluded from precision scoring by default. The ground truth
 # intentionally omits these because any reasonable model will recommend them.
@@ -345,6 +345,9 @@ def main() -> None:
     else:
         configs = [(args.provider, args.model)]
 
+    RESULTS_DIR.mkdir(exist_ok=True)
+    timestamp = time.strftime("%Y%m%d-%H%M%S")
+
     all_runs: list[dict[str, Any]] = []
     for provider, model in configs:
         run_data = run_one_model(
@@ -357,16 +360,18 @@ def main() -> None:
         )
         all_runs.append(run_data)
 
-    # Write results
-    output_data: dict[str, Any] = {
-        "eval_name": "field-guidance-pipeline",
-        "scoring": "strict" if args.strict else "env-triad-excluded",
-        "runs": all_runs,
-    }
-
-    with open(RESULTS_FILE, "w") as f:
-        yaml.dump(output_data, f, default_flow_style=False, sort_keys=False, allow_unicode=True)
-    print(f"\nResults written to {RESULTS_FILE}")
+        # Write per-model result file (never overwrites previous runs)
+        model_slug = run_data["model"].replace("/", "-").replace("@", "-")
+        result_path = RESULTS_DIR / f"{model_slug}_{timestamp}.yaml"
+        per_model_data: dict[str, Any] = {
+            "eval_name": "field-guidance-pipeline",
+            "scoring": "strict" if args.strict else "env-triad-excluded",
+            "timestamp": timestamp,
+            **run_data,
+        }
+        with open(result_path, "w") as f:
+            yaml.dump(per_model_data, f, default_flow_style=False, sort_keys=False, allow_unicode=True)
+        print(f"  Results: {result_path}")
 
     # Cross-model comparison (if multiple models)
     if len(all_runs) > 1:

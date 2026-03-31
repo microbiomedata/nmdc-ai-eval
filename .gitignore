@@ -8,6 +8,9 @@
 *-output/
 *.db
 
+# Pipeline eval results (timestamped, local only)
+datasets/field-guidance/pipeline-results/
+
 # === Standard Python (GitHub template) ===
 
 # Byte-compiled / optimized / DLL files
