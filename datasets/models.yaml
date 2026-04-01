@@ -1,9 +1,13 @@
-# Model configuration for eval suites and cost estimation.
+# Model configuration for eval suites, cost estimation, and eval tiers.
 #
 # `models:` — included in llm-matrix eval suites (Option B).
 #   Names must match `uv run llm models list`.
 #   Auth: keys in llm key store (`uv run llm keys set <provider>`) or env vars.
 #   To add a model: add it here and run `just generate`.
+#
+# `tiers:` — model selections for `just full-eval`. Each tier has cheap/mid/top
+#   models per provider. These WILL change as providers release new models —
+#   update when a provider's flagship or budget model changes.
 #
 # `pricing:` — approximate cost per 1M tokens [input_usd, output_usd].
 #   Sources: provider pricing pages. Update when prices change.
@@ -16,6 +20,44 @@ models:
   - anthropic/claude-sonnet-4-5
   - anthropic/claude-haiku-4-5-20251001
   - gemini/gemini-2.5-flash
+
+# Model tiers for full eval runs (`just full-eval --cheap|--full`).
+# Update as providers release new models. These WILL change over time.
+# Each model uses the llm backend (personal API keys) unless noted.
+# GCP pipeline models (gemini via Vertex AI) are added automatically
+# when GOOGLE_APPLICATION_CREDENTIALS is configured in .env.
+#
+# As of 2026-03-31:
+#   Provider  | Cheap                 | Mid              | Top
+#   ----------|---------------------- |------------------|------------------
+#   OpenAI    | gpt-4o-mini           | gpt-4o           | gpt-5.2
+#   Anthropic | claude-haiku-4.5      | claude-sonnet-4.6| claude-opus-4.6
+#   Google    | gemini-2.5-flash      |                  | gemini-2.5-pro
+#
+# Note: claude-opus is very expensive (~$15/$75 per 1M tokens). The full
+# tier includes sonnet as the default top-tier Anthropic model. To include
+# opus, use: just full-eval --models anthropic/claude-opus-4-6 (or add it
+# to a tier below).
+tiers:
+  cheap:
+    - gpt-4o-mini
+    - gemini/gemini-2.5-flash
+  standard:
+    - gpt-4o-mini
+    - gpt-4o
+    - gemini/gemini-2.5-flash
+    - anthropic/claude-sonnet-4-6
+  full:
+    # OpenAI: cheap, mid, top
+    - gpt-4o-mini
+    - gpt-4o
+    - gpt-5.2
+    # Anthropic: cheap, top (use --models to add opus if budget allows)
+    - anthropic/claude-haiku-4-5-20251001
+    - anthropic/claude-sonnet-4-6
+    # Google: cheap, top
+    - gemini/gemini-2.5-flash
+    - gemini/gemini-2.5-pro
 
 pricing:
   # OpenAI — https://openai.com/pricing

@@ -28,39 +28,21 @@ from pathlib import Path
 HERE = Path(__file__).parent
 EVAL_SCRIPT = HERE / "run_pipeline_eval.py"
 COMPARE_SCRIPT = HERE / "compare_pipeline_results.py"
+MODELS_YAML = HERE.parent / "models.yaml"
 
-# Model tiers — edit to change defaults
-CHEAP_MODELS: list[tuple[str, str | None]] = [
-    # (model_name, backend_args)
-    ("gpt-4o-mini", "--backend llm"),
-    ("gemini/gemini-2.5-flash", "--backend llm"),
-]
 
-STANDARD_MODELS: list[tuple[str, str | None]] = [
-    ("gpt-4o-mini", "--backend llm"),
-    ("gpt-4o", "--backend llm"),
-    ("gemini/gemini-2.5-flash", "--backend llm"),
-    ("anthropic/claude-sonnet-4-5", "--backend llm"),
-]
+def _load_tier(tier_name: str) -> list[tuple[str, str]]:
+    """Load a model tier from datasets/models.yaml.
 
-FULL_MODELS: list[tuple[str, str | None]] = [
-    # OpenAI: low, mid, top
-    ("gpt-4o-mini", "--backend llm"),
-    ("gpt-4o", "--backend llm"),
-    ("gpt-5.2", "--backend llm"),
-    # Anthropic: low, top
-    ("anthropic/claude-haiku-4-5-20251001", "--backend llm"),
-    ("anthropic/claude-sonnet-4-6", "--backend llm"),
-    # Google: low, top
-    ("gemini/gemini-2.5-flash", "--backend llm"),
-    ("gemini/gemini-2.5-pro", "--backend llm"),
-]
+    Returns list of (model_name, backend_args) tuples.
+    """
+    import yaml
 
-# GCP pipeline models (added if credentials are available)
-GCP_MODELS: list[tuple[str, str | None]] = [
-    ("gemini-2.5-flash", "--provider gcp"),
-    ("gemini-2.5-pro", "--provider gcp"),
-]
+    with open(MODELS_YAML) as f:
+        data = yaml.safe_load(f)
+    tiers = data.get("tiers", {})
+    model_names = tiers.get(tier_name, [])
+    return [(name, "--backend llm") for name in model_names]
 
 
 def _has_gcp_creds() -> bool:
@@ -136,19 +118,26 @@ def main() -> None:
         shutil.rmtree(results_dir)
         print("Cleaned pipeline-results/\n")
 
-    # Determine model set
+    # Determine model set (tiers defined in datasets/models.yaml)
     if args.models:
         models = [(m, "--backend llm") for m in args.models]
     elif args.cheap:
-        models = list(CHEAP_MODELS)
+        models = _load_tier("cheap")
     elif args.full:
-        models = list(FULL_MODELS)
+        models = _load_tier("full")
     else:
-        models = list(STANDARD_MODELS)
+        models = _load_tier("standard")
 
-    # Add GCP pipeline models if credentials are available
+    # Add GCP pipeline models if credentials are available.
+    # These are the Gemini models from the selected tier, run through the
+    # suggestor's LLMClient instead of the llm library — tests the exact
+    # production code path.
     if _has_gcp_creds() and not args.models:
-        models.extend(GCP_MODELS)
+        for name, _ in list(models):
+            if "gemini" in name.lower():
+                # Strip llm plugin prefix for the pipeline backend
+                pipeline_name = name.split("/")[-1] if "/" in name else name
+                models.append((pipeline_name, "--provider gcp"))
 
     # Build configuration matrix
     configs: list[tuple[str, str, list[str]]] = []
