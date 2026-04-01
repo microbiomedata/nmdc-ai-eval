@@ -5,6 +5,11 @@
 #   Auth: keys in llm key store (`uv run llm keys set <provider>`) or env vars.
 #   To add a model: add it here and run `just generate`.
 #
+# `gcp_models:` / `pnnl_models:` — pipeline-backend models swept by
+#   `run_pipeline_eval.py --sweep`.  The suggestor's LLMClient passes model
+#   names straight through to the SDK, so any valid Vertex AI or PNNL model
+#   name works here.  Add new models to these lists (no code change needed).
+#
 # `tiers:` — model selections for `just full-eval`. Each tier has cheap/mid/top
 #   models per provider. These WILL change as providers release new models —
 #   update when a provider's flagship or budget model changes.
@@ -20,6 +25,22 @@ models:
   - anthropic/claude-sonnet-4-6
   - anthropic/claude-haiku-4-5-20251001
   - gemini/gemini-2.5-flash
+
+# Pipeline-backend model lists.  The suggestor's LLMClient passes model names
+# straight through to the underlying SDK with no validation, so any valid
+# Vertex AI or PNNL model name works here.  Previously these were imported
+# from the suggestor's hardcoded GEMINI_MODELS / PNNL_GPT_MODELS constants.
+gcp_models:
+  - gemini-2.5-pro
+  - gemini-2.5-flash
+
+pnnl_models:
+  - gpt-5-project
+  - gpt-5.1-project
+  - gpt-5.2-project
+  - gpt-4.1-project
+  - o3-project
+  - o4-mini-project
 
 # Model tiers for full eval runs (`just full-eval --cheap|--full`).
 # Update as providers release new models. These WILL change over time.

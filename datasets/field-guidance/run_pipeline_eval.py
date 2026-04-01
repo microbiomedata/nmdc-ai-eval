@@ -541,31 +541,28 @@ def _get_sweep_configs() -> list[tuple[str, str | None, str]]:
 
     configs: list[tuple[str, str | None, str]] = []
 
-    # GCP models via pipeline backend
-    if os.environ.get("GOOGLE_APPLICATION_CREDENTIALS") or os.environ.get("VERTEX_PROJECT_ID"):
-        from nmdc_metadata_suggestor_ai_tool.llm_client import GEMINI_MODELS
+    # Read all model lists from a single config file.
+    models_yaml = HERE.parent / "models.yaml"
+    models_cfg = {}
+    if models_yaml.exists():
+        with open(models_yaml) as f:
+            models_cfg = yaml.safe_load(f) or {}
 
-        for m in GEMINI_MODELS:
+    if os.environ.get("GOOGLE_APPLICATION_CREDENTIALS") or os.environ.get("VERTEX_PROJECT_ID"):
+        for m in models_cfg.get("gcp_models", []):
             configs.append(("pipeline", "gcp", m))
 
-    # PNNL models via pipeline backend
     if os.environ.get("AI_INCUBATOR_KEY") and os.environ.get("AI_INCUBATOR_BASE_URL"):
-        from nmdc_metadata_suggestor_ai_tool.llm_client import PNNL_GPT_MODELS
-
-        for m in PNNL_GPT_MODELS:
+        for m in models_cfg.get("pnnl_models", []):
             configs.append(("pipeline", "pnnl", m))
 
     # llm library models (personal API keys)
-    models_yaml = HERE.parent / "models.yaml"
-    if models_yaml.exists():
-        with open(models_yaml) as f:
-            model_names = yaml.safe_load(f).get("models", [])
-        for name in model_names:
-            try:
-                llm_lib.get_model(name)
-                configs.append(("llm", None, name))
-            except llm_lib.UnknownModelError:
-                pass  # skip models without keys/plugins
+    for name in models_cfg.get("models", []):
+        try:
+            llm_lib.get_model(name)
+            configs.append(("llm", None, name))
+        except llm_lib.UnknownModelError:
+            pass  # skip models without keys/plugins
 
     return configs
 

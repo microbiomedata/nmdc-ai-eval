@@ -9,9 +9,6 @@ import inspect
 
 import pytest
 from nmdc_metadata_suggestor_ai_tool.llm_client import (
-    DEFAULT_GEMINI_MODEL,
-    GEMINI_MODELS,
-    PNNL_GPT_MODELS,
     LLMClient,
 )
 from nmdc_metadata_suggestor_ai_tool.models.llm_output import (
@@ -55,15 +52,10 @@ def test_metadata_field_suggestion_model() -> None:
     assert suggestion.value != ""
 
 
-def test_gemini_models_available() -> None:
-    """At least one Gemini model is configured."""
-    assert len(GEMINI_MODELS) > 0
-    assert DEFAULT_GEMINI_MODEL in GEMINI_MODELS
-
-
-def test_pnnl_models_available() -> None:
-    """PNNL model list is populated."""
-    assert len(PNNL_GPT_MODELS) > 0
+def test_llm_client_accepts_arbitrary_model() -> None:
+    """LLMClient passes model names through without validation."""
+    client = LLMClient(access_provider="gcp", model="gemini-99-ultra")
+    assert client.model == "gemini-99-ultra"
 
 
 def test_schema_context_builder_exists() -> None:
