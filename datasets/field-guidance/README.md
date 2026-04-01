@@ -80,8 +80,8 @@ Note: the expected set is intentionally small (non-obvious, study-specific slots
 | **DOI/PDF content** | Yes (fetches at runtime) | No — static YAML can't make network calls ([#28](https://github.com/microbiomedata/nmdc-ai-eval/issues/28)) |
 | **Models** | GCP Gemini, PNNL GPT only | Any model in `models.yaml` (OpenAI, Anthropic, Gemini) |
 | **Providers** | `gcp`, `pnnl` (suggestor limitation) | `llm` plugins (personal API keys) |
-| **Timing** | Wall-clock `elapsed_seconds` per submission | Not yet surfaced from llm-matrix DuckDB ([#14](https://github.com/microbiomedata/nmdc-ai-eval/issues/14)) |
-| **Cost** | Not yet — needs token counting ([#14](https://github.com/microbiomedata/nmdc-ai-eval/issues/14)) | Not yet |
+| **Timing** | Wall-clock `elapsed_seconds` per submission | `duration_ms` from llm logs DB |
+| **Cost** | `est_cost_usd` from `input_tokens`/`output_tokens` + pricing table | `est_cost_usd` from llm logs DB + pricing table |
 | **Run command** | `just run-field-guidance-pipeline gcp` | `just run-field-guidance` |
 
 ### Adding models

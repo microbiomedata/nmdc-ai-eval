@@ -44,9 +44,10 @@ def get_pricing(model: str) -> tuple[float, float] | None:
     normalized = _normalize_model_name(model)
     if normalized in _PRICING:
         return _PRICING[normalized]
-    for key, price in _PRICING.items():
+    # Fall back to prefix match, preferring the longest (most specific) key
+    for key in sorted(_PRICING, key=len, reverse=True):
         if normalized.startswith(key):
-            return price
+            return _PRICING[key]
     return None
 
 

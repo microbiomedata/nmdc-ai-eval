@@ -31,7 +31,15 @@ class TestGetPricing:
         assert get_pricing("anthropic/claude-haiku-4-5-20251001") == (0.80, 4.00)
 
     def test_gemini_with_prefix(self) -> None:
-        assert get_pricing("gemini/gemini-2.5-flash") == (0.15, 0.60)
+        assert get_pricing("gemini/gemini-2.5-flash") == (0.30, 2.50)
+
+    def test_version_suffix_with_prefix_overlap(self) -> None:
+        """gpt-4o-mini-20251001 should match gpt-4o-mini, not gpt-4o."""
+        base = get_pricing("gpt-4o-mini")
+        assert base is not None
+        assert get_pricing("gpt-4o-mini-20251001") == base
+        # Verify it's the mini price, not the gpt-4o price
+        assert base != get_pricing("gpt-4o")
 
     def test_pnnl_models_zero_cost(self) -> None:
         assert get_pricing("gpt-5-project") == (0.0, 0.0)

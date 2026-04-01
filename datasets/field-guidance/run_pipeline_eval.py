@@ -616,16 +616,19 @@ def run_one_model(
         avg_f1 = sum(r["scores"]["f1"] for r in scored) / len(scored)
         total_time = sum(r["elapsed_seconds"] for r in scored)
         total_in = sum(r["input_tokens"] or 0 for r in scored)
-        total_out = sum(r["output_tokens"] or 0 for r in scored)
-        total_cost = sum(r["est_cost_usd"] or 0.0 for r in scored)
-        tokens_known = any(r["input_tokens"] is not None for r in scored)
+        known = [r for r in scored if r["input_tokens"] is not None]
+        n_known = len(known)
 
         print(f"--- {model_name} ({backend}) ---")
         print(f"  Accuracy:  P={avg_p:.3f}  R={avg_r:.3f}  F1={avg_f1:.3f}")
         print(f"  Time:      {total_time:.1f}s total  ({total_time / len(scored):.1f}s avg)")
-        if tokens_known:
-            print(f"  Tokens:    {total_in:,} input  {total_out:,} output")
-            print(f"  Cost:      ~${total_cost:.4f} total  (~${total_cost / len(scored):.4f} avg)")
+        if n_known:
+            total_in = sum(r["input_tokens"] or 0 for r in known)
+            total_out = sum(r["output_tokens"] or 0 for r in known)
+            total_cost = sum(r["est_cost_usd"] or 0.0 for r in known)
+            known_note = f" ({n_known}/{len(scored)} submissions)" if n_known < len(scored) else ""
+            print(f"  Tokens:    {total_in:,} input  {total_out:,} output{known_note}")
+            print(f"  Cost:      ~${total_cost:.4f} total  (~${total_cost / n_known:.4f} avg{known_note})")
 
     return {
         "model": model_name,
