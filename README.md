@@ -191,11 +191,15 @@ Model pricing lives in the `pricing:` section of [`datasets/models.yaml`](datase
 ## Usage
 
 ```bash
-just --list                  # see all available commands
-just all                     # fix + check everything (no evals, no API calls)
-just eval-sampledata         # end-to-end sampleData eval
-just eval-ebs                # end-to-end env_broad_scale eval (generate + run + score)
-just eval-field-guidance     # end-to-end field guidance eval (Option B, requires MongoDB)
+just --list              # see all available commands
+just all                 # fix + check everything (no evals, no API calls)
+just verify-auth         # test all configured API credentials
+just full-eval           # field guidance: standard models × enrichment × verification
+just full-eval --full    # field guidance: all provider tiers
+just full-eval --cheap   # field guidance: budget models only
+just compare-pipeline-results --latest   # compare field guidance results
+just eval-ebs            # env_broad_scale: 100 cases × models in models.yaml
+just eval-sampledata     # sampleData: smoke test (9 cases)
 ```
 
 ## QC and automation
@@ -226,36 +230,32 @@ The git commit hook and git push hook run **identical checks**. Install both wit
 
 ### Key just targets
 
-| Target | What it does |
-|---|---|
-| `just all` | Fix + run all checks (~22s) |
-| `just fix` | Auto-fix lint/format only |
-| `just check` | Run all checks without fixing |
-| `just test` | pytest only (excludes `@api` tests) |
-| `just coverage` | pytest with coverage report |
-| `just generate` | Regenerate all suite YAMLs from `models.yaml` + source TSV |
-| `just eval-all` | Full eval: generate + run all models + score |
-
-### What has automation but is NOT in the checks
-
-| What | How to run | Why excluded |
+| Target | What it does | Costs money? |
 |---|---|---|
-| Eval suite runs (LLM calls) | `just eval-sampledata`, `just eval-ebs`, `just eval-all` | Requires API keys, costs money |
-| ENVO ontology scoring | `just score-ebs` | Requires eval output to exist |
-| Suite YAML generation | `just generate` | Changes committed YAMLs, depends on source TSV |
-| Cleanup | `just clean-outputs`, `just clean-all` | Destructive, on-demand only |
+| `just all` | Fix + run all checks (~22s) | No |
+| `just setup` | Install deps + pre-commit hooks | No |
+| `just verify-auth` | Test all API credentials (1 cheap call each) | ~$0.001 |
+| `just full-eval` | Field guidance: standard models × enrichment × verification | ~$0.50 |
+| `just full-eval --full` | Field guidance: all provider tiers | ~$3 |
+| `just full-eval --cheap` | Field guidance: budget models only | ~$0.10 |
+| `just compare-pipeline-results` | Compare field guidance results (no LLM calls) | No |
+| `just eval-ebs` | env_broad_scale: generate + run + ontology score | ~$0.10 |
+| `just eval-sampledata` | sampleData: generate + run (smoke test) | ~$0.01 |
+| `just generate` | Regenerate llm-matrix suite YAMLs | No |
+| `just clean-outputs` | Delete all eval outputs | No |
+| `just clean-all` | Delete outputs + suites + caches | No |
 
 ### Model configuration
 
-Model names are defined once in `datasets/models.yaml` and read by both suite generators. To add or change models, edit that file and run `just generate`. Model names must match what `uv run llm models list` shows — these come from native llm plugins (OpenAI built-in, llm-claude-3 for Anthropic, llm-gemini for Gemini).
+[`datasets/models.yaml`](datasets/models.yaml) is the single config file for models. It has three sections:
 
-**Adding a model is three steps:**
+- **`models:`** — which models go in llm-matrix suites (`just eval-ebs`, `just eval-sampledata`). Edit and run `just generate`.
+- **`tiers:`** — which models run at each cost level in `just full-eval` (cheap/standard/full). Update when providers release new flagship or budget models.
+- **`pricing:`** — cost per 1M tokens for cost estimation. Update when prices change.
 
-1. Find the exact name: `uv run llm models list | grep <model>`
-2. Add the name to `datasets/models.yaml`
-3. Run `just generate` to regenerate suite YAMLs
+Model names must match `uv run llm models list`. `just test` verifies every model in `models:` is recognized by an installed llm plugin.
 
-**`just test` verifies that every model in `models.yaml` is recognized by an installed llm plugin.** If you add a model name that doesn't match any plugin, the test suite will fail with a clear message telling you which model is unrecognized and which plugin you may need.
+To add a model for field guidance eval only (not llm-matrix suites), add it to the appropriate tier in `tiers:` and optionally to `pricing:`. No code changes needed.
 
 ### Test coverage
 

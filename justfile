@@ -76,46 +76,28 @@ run-ebs:
 score-ebs:
     uv run python -m nmdc_ai_eval.envo_scorer datasets/ebs-prediction/ebs-suite-output/results.tsv
 
-# Run field-guidance eval via llm-matrix (Option B: our prompt, multiple models)
+# Run field-guidance eval via llm-matrix (no DOI/PDF, uses models.yaml list)
 run-field-guidance:
     just run datasets/field-guidance/field-guidance-suite.yaml
 
-# Run field-guidance eval via suggestor pipeline (GCP/PNNL credentials)
-run-field-guidance-pipeline provider="gcp" model="":
-    uv run python datasets/field-guidance/run_pipeline_eval.py --provider {{ provider }} {{ if model != "" { "--model " + model } else { "" } }}
-
-# Run field-guidance eval via llm library (personal API keys, same prompt+DOI+PDF)
-run-field-guidance-llm model:
-    uv run python datasets/field-guidance/run_pipeline_eval.py --backend llm --model {{ model }}
-
-# Run field-guidance eval across ALL available models and backends
-sweep-field-guidance:
-    uv run python datasets/field-guidance/run_pipeline_eval.py --sweep
-
-# Full eval matrix: clean → models × enrichment × verification → compare
-# Default: standard models (~$0.50, ~20 min). Options:
+# Field guidance eval: models × enrichment × verification → summary
+# Default: standard tier. Options:
 #   just full-eval --cheap    (~$0.10, ~10 min)
-#   just full-eval --full     (includes gpt-5.2, ~$2, ~40 min)
-#   just full-eval --models gpt-4o anthropic/claude-sonnet-4-5
+#   just full-eval --full     (all tiers, ~$3, ~45 min)
+#   just full-eval --models gpt-4o anthropic/claude-sonnet-4-6
 #   just full-eval --no-clean (keep previous results)
+#   just full-eval --no-verify (skip verification variants)
+# For a single model: just full-eval --models gpt-4o --no-verify --no-enrichment-ablation
 full-eval *args="":
     uv run python datasets/field-guidance/run_full_eval.py {{ args }}
 
-# Compare all pipeline eval results (use --latest for most recent per model)
+# Compare all field-guidance eval results
 compare-pipeline-results *args="":
     uv run python datasets/field-guidance/compare_pipeline_results.py {{ args }}
 
-# End-to-end sampleData eval: generate + run
+# End-to-end value prediction evals (llm-matrix, no DOI/PDF)
 eval-sampledata: clean-sampledata-outputs generate-sampledata run-sampledata
-
-# End-to-end EBS eval: generate + run + score
 eval-ebs: clean-ebs-outputs generate-ebs run-ebs score-ebs
-
-# End-to-end field-guidance eval (llm-matrix path)
-eval-field-guidance: clean-field-guidance-outputs generate-field-guidance run-field-guidance
-
-# Full eval: all datasets
-eval-all: clean-outputs generate run-sampledata run-ebs score-ebs run-field-guidance
 
 # --- Cleanup ---
 
