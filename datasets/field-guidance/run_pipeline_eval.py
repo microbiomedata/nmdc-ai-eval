@@ -650,6 +650,9 @@ def _get_sweep_configs() -> list[tuple[str, str | None, str]]:
     import os
 
     import llm as llm_lib
+    from dotenv import load_dotenv
+
+    load_dotenv()  # .env may have GCP/PNNL creds not exported in the shell
 
     configs: list[tuple[str, str | None, str]] = []
 

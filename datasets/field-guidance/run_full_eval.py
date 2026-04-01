@@ -64,6 +64,9 @@ GCP_MODELS: list[tuple[str, str | None]] = [
 
 
 def _has_gcp_creds() -> bool:
+    from dotenv import load_dotenv
+
+    load_dotenv()  # .env may have GCP creds that aren't exported in the shell
     return bool(os.environ.get("GOOGLE_APPLICATION_CREDENTIALS") or os.environ.get("VERTEX_PROJECT_ID"))
 
 
