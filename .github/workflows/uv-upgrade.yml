@@ -1,0 +1,35 @@
+name: Weekly dependency upgrade
+
+on:
+  schedule:
+    - cron: '0 7 * * 1'  # Monday 7am UTC
+  workflow_dispatch:
+
+jobs:
+  upgrade:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Upgrade all dependencies
+        run: uv lock --upgrade
+
+      - name: Open PR if lockfile changed
+        uses: peter-evans/create-pull-request@v7
+        with:
+          commit-message: "chore: uv lock --upgrade"
+          branch: chore/uv-upgrade
+          delete-branch: true
+          title: "chore: weekly dependency upgrade"
+          body: |
+            Automated weekly `uv lock --upgrade`.
+
+            Check the Security tab after merging — Dependabot alerts for packages
+            bumped here will auto-close once the new versions land on main.
+          labels: dependencies
