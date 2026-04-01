@@ -21,7 +21,7 @@ RESULTS_DIR = HERE / "pipeline-results"
 
 
 def load_all_results() -> list[dict[str, Any]]:
-    """Load all result YAML files, sorted by timestamp."""
+    """Load all result YAML files, sorted by filename (which embeds timestamp)."""
     if not RESULTS_DIR.exists():
         return []
     results = []
@@ -112,7 +112,9 @@ def print_comparison(summaries: list[dict[str, Any]]) -> None:
             )
             continue
 
-        tok = f"{s['input_tokens']}+{s['output_tokens']}" if s["input_tokens"] is not None else "—"
+        in_tok = str(s["input_tokens"]) if s["input_tokens"] is not None else "—"
+        out_tok = str(s["output_tokens"]) if s["output_tokens"] is not None else "—"
+        tok = "—" if in_tok == "—" and out_tok == "—" else f"{in_tok}+{out_tok}"
         cost_str = f"${s['total_cost']:>7.4f}" if s["total_cost"] is not None else f"{'—':>8s}"
         print(
             f"{s['model']:<28s} {s['provider']:<5s} {doi:>3s}"
@@ -128,9 +130,12 @@ def print_per_submission(summaries: list[dict[str, Any]], all_data: list[dict[st
     by_submission: dict[str, list[tuple[str, dict[str, Any]]]] = defaultdict(list)
     for data in all_data:
         model = data.get("model", "?")
+        enrich = "DOI" if data.get("enrichment", True) else "no-DOI"
+        verified = "+ver" if data.get("verified", False) else ""
+        label = f"{model} [{enrich}{verified}]"
         for r in data.get("results", []):
             if "scores" in r:
-                by_submission[r["submission_id"]].append((model, r))
+                by_submission[r["submission_id"]].append((label, r))
 
     if not by_submission:
         return
