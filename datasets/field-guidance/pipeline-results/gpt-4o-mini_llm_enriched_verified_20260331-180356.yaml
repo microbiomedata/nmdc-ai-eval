@@ -1,0 +1,500 @@
+eval_name: field-guidance-pipeline
+scoring: env-triad-excluded
+enrichment: true
+verified: true
+timestamp: 20260331-180356
+model: gpt-4o-mini
+backend: llm
+provider: llm
+submission_count: 6
+results:
+- submission_id: 2a126775-302d-4a56-80a2-848f1b7a4f8e
+  study_name: 'AI Example: The Impact of Stand Age and Fertilization on the Soil Microbiome
+    of Miscanthus × giganteus'
+  package: soil
+  model: gpt-4o-mini
+  backend: llm
+  provider: llm
+  enrichment: true
+  verified: true
+  elapsed_seconds: 26.8
+  input_tokens: 22122
+  output_tokens: 428
+  est_cost_usd: 0.003575
+  expected_slots:
+  - agrochem_addition
+  - other_treatment
+  - tot_nitro_content
+  predicted_slots:
+  - env_broad_scale
+  - env_local_scale
+  - env_medium
+  raw_scores:
+    precision: 0.0
+    recall: 0.0
+    f1: 0.0
+    true_positives: []
+    false_positives: []
+    false_negatives:
+    - agrochem_addition
+    - other_treatment
+    - tot_nitro_content
+    excluded_correct:
+    - env_broad_scale
+    - env_local_scale
+    - env_medium
+  all_suggestions:
+  - field_name: env_broad_scale
+    reason: The study focuses on the agricultural context of Miscanthus × giganteus,
+      which fits within the cropland biome.
+  - field_name: env_local_scale
+    reason: The research involves soil samples collected from a replicated field trial,
+      indicating a specific agricultural field environment.
+  - field_name: env_medium
+    reason: The study examines soil samples, which are the primary environmental material
+      being analyzed.
+  verified_slots:
+  - env_broad_scale
+  - env_local_scale
+  - env_medium
+  verified_scores: &id001
+    precision: 0.0
+    recall: 0.0
+    f1: 0.0
+    true_positives: []
+    false_positives: []
+    false_negatives:
+    - agrochem_addition
+    - other_treatment
+    - tot_nitro_content
+    excluded_correct:
+    - env_broad_scale
+    - env_local_scale
+    - env_medium
+  verified_suggestions:
+  - field_name: env_broad_scale
+    reason_category: mentioned_in_text
+    evidence_snippet: The study focuses on the agricultural context of Miscanthus
+      × giganteus, which fits within the cropland biome.
+    reason: The study focuses on the agricultural context of Miscanthus × giganteus,
+      which fits within the cropland biome.
+  - field_name: env_local_scale
+    reason_category: experimental_design
+    evidence_snippet: soil samples from different stand ages of Miscanthus × giganteus
+      in a replicated chronosequence field trial
+    reason: The research involves soil samples collected from a replicated field trial,
+      indicating a specific agricultural field environment.
+  - field_name: env_medium
+    reason_category: mentioned_in_text
+    evidence_snippet: The interactions among soil microbial communities, N availability,
+      and Miscanthus × giganteus and management may explain changes in plant productivity.
+    reason: The study examines soil samples, which are the primary environmental material
+      being analyzed.
+  dropped_suggestions: []
+  scores: *id001
+- submission_id: 8477eb6d-fe30-4124-b75d-d83d4a2a41c3
+  study_name: 'AI Example: Fungal, bacterial, and archaeal communities mediating C
+    cycling and trace gas flux in peatland ecosystems subject to climate change'
+  package: soil
+  model: gpt-4o-mini
+  backend: llm
+  provider: llm
+  enrichment: true
+  verified: true
+  elapsed_seconds: 18.25
+  input_tokens: 21688
+  output_tokens: 416
+  est_cost_usd: 0.003503
+  expected_slots:
+  - air_temp_regm
+  - gaseous_environment
+  predicted_slots:
+  - env_broad_scale
+  - env_local_scale
+  - env_medium
+  raw_scores:
+    precision: 0.0
+    recall: 0.0
+    f1: 0.0
+    true_positives: []
+    false_positives: []
+    false_negatives:
+    - air_temp_regm
+    - gaseous_environment
+    excluded_correct:
+    - env_broad_scale
+    - env_local_scale
+    - env_medium
+  all_suggestions:
+  - field_name: env_broad_scale
+    reason: The study focuses on northern peatland ecosystems, which aligns with the
+      broad environmental context of a terrestrial biome.
+  - field_name: env_local_scale
+    reason: The specific study area involves peatlands, which are a significant local
+      environmental feature relevant to the research.
+  - field_name: env_medium
+    reason: The research involves soil and ecological interactions, which are critical
+      environmental materials in the context of the study.
+  verified_slots:
+  - env_broad_scale
+  - env_local_scale
+  - env_medium
+  verified_scores: &id002
+    precision: 0.0
+    recall: 0.0
+    f1: 0.0
+    true_positives: []
+    false_positives: []
+    false_negatives:
+    - air_temp_regm
+    - gaseous_environment
+    excluded_correct:
+    - env_broad_scale
+    - env_local_scale
+    - env_medium
+  verified_suggestions:
+  - field_name: env_broad_scale
+    reason_category: mentioned_in_text
+    evidence_snippet: the primary component of the Terrestrial Ecosystem Science Focus
+      Area of ORNL's Climate Change Program, focused on terrestrial ecosystems
+    reason: The study focuses on northern peatland ecosystems, which aligns with the
+      broad environmental context of a terrestrial biome.
+  - field_name: env_local_scale
+    reason_category: mentioned_in_text
+    evidence_snippet: assess the response of northern peatland ecosystems
+    reason: The specific study area involves peatlands, which are a significant local
+      environmental feature relevant to the research.
+  - field_name: env_medium
+    reason_category: mentioned_in_text
+    evidence_snippet: focused on terrestrial ecosystems and the mechanisms that underlie
+      their responses to climatic change
+    reason: The research involves soil and ecological interactions, which are critical
+      environmental materials in the context of the study.
+  dropped_suggestions: []
+  scores: *id002
+- submission_id: c5a6e998-eb32-45dc-9695-f23a790ae824
+  study_name: 'AI Example: Long term crop rotations alter soil function and prairie
+    carbon dynamics to depth in midwestern cropping systems'
+  package: soil
+  model: gpt-4o-mini
+  backend: llm
+  provider: llm
+  enrichment: true
+  verified: true
+  elapsed_seconds: 22.97
+  input_tokens: 23062
+  output_tokens: 398
+  est_cost_usd: 0.003698
+  expected_slots:
+  - agrochem_addition
+  - crop_rotation
+  - cur_land_use
+  - fao_class
+  predicted_slots:
+  - env_broad_scale
+  - env_local_scale
+  - env_medium
+  raw_scores:
+    precision: 0.0
+    recall: 0.0
+    f1: 0.0
+    true_positives: []
+    false_positives: []
+    false_negatives:
+    - agrochem_addition
+    - crop_rotation
+    - cur_land_use
+    - fao_class
+    excluded_correct:
+    - env_broad_scale
+    - env_local_scale
+    - env_medium
+  all_suggestions:
+  - field_name: env_broad_scale
+    reason: The study focuses on the tallgrass prairie biome of central North America,
+      which fits the broad scale environmental context.
+  - field_name: env_local_scale
+    reason: The sampling is conducted in specific agricultural fields, which represents
+      a more localized environmental context.
+  - field_name: env_medium
+    reason: The research involves soil samples, which are the immediate environmental
+      materials surrounding the study.
+  verified_slots:
+  - env_broad_scale
+  - env_local_scale
+  - env_medium
+  verified_scores: &id003
+    precision: 0.0
+    recall: 0.0
+    f1: 0.0
+    true_positives: []
+    false_positives: []
+    false_negatives:
+    - agrochem_addition
+    - crop_rotation
+    - cur_land_use
+    - fao_class
+    excluded_correct:
+    - env_broad_scale
+    - env_local_scale
+    - env_medium
+  verified_suggestions:
+  - field_name: env_broad_scale
+    reason_category: mentioned_in_text
+    evidence_snippet: the tallgrass prairie biome of central North America
+    reason: The study focuses on the tallgrass prairie biome of central North America,
+      which fits the broad scale environmental context.
+  - field_name: env_local_scale
+    reason_category: mentioned_in_text
+    evidence_snippet: sample soils from long-term (year 149 in 2025) treatments at
+      the Morrow Plots
+    reason: The sampling is conducted in specific agricultural fields, which represents
+      a more localized environmental context.
+  - field_name: env_medium
+    reason_category: mentioned_in_text
+    evidence_snippet: sample soils from long-term treatments
+    reason: The research involves soil samples, which are the immediate environmental
+      materials surrounding the study.
+  dropped_suggestions: []
+  scores: *id003
+- submission_id: d882c556-6673-4318-98b0-2b80ff94af65
+  study_name: 'AI Example: Spatial and Temporal Patterns of Public Transit Aerobiomes'
+  package: air
+  model: gpt-4o-mini
+  backend: llm
+  provider: llm
+  enrichment: true
+  verified: true
+  elapsed_seconds: 12.16
+  input_tokens: 8827
+  output_tokens: 392
+  est_cost_usd: 0.001559
+  expected_slots:
+  - ventilation_type
+  predicted_slots:
+  - env_broad_scale
+  - env_local_scale
+  - env_medium
+  raw_scores:
+    precision: 0.0
+    recall: 0.0
+    f1: 0.0
+    true_positives: []
+    false_positives: []
+    false_negatives:
+    - ventilation_type
+    excluded_correct:
+    - env_broad_scale
+    - env_local_scale
+    - env_medium
+  all_suggestions:
+  - field_name: env_broad_scale
+    reason: The study examines aerobiomes in public transit systems across multiple
+      global cities, indicating a broad environmental context.
+  - field_name: env_local_scale
+    reason: The focus on public transit systems suggests a specific local environmental
+      context within urban areas.
+  - field_name: env_medium
+    reason: The samples collected are air samples, which require specification of
+      the environmental medium.
+  verified_slots:
+  - env_broad_scale
+  - env_local_scale
+  - env_medium
+  verified_scores: &id004
+    precision: 0.0
+    recall: 0.0
+    f1: 0.0
+    true_positives: []
+    false_positives: []
+    false_negatives:
+    - ventilation_type
+    excluded_correct:
+    - env_broad_scale
+    - env_local_scale
+    - env_medium
+  verified_suggestions:
+  - field_name: env_broad_scale
+    reason_category: mentioned_in_text
+    evidence_snippet: Air samples taken over a three-year period (2017-2019) from
+      six global cities were subjected to shotgun metagenomic sequencing.
+    reason: The study examines aerobiomes in public transit systems across multiple
+      global cities, indicating a broad environmental context.
+  - field_name: env_local_scale
+    reason_category: mentioned_in_text
+    evidence_snippet: demonstrating specific bacterial and fungal signatures.
+    reason: The focus on public transit systems suggests a specific local environmental
+      context within urban areas.
+  - field_name: env_medium
+    reason_category: mentioned_in_text
+    evidence_snippet: Air samples taken over a three-year period...
+    reason: The samples collected are air samples, which require specification of
+      the environmental medium.
+  dropped_suggestions: []
+  scores: *id004
+- submission_id: 3215bef4-d8d6-470a-ab43-3f0f728a38e2
+  study_name: 'AI example: Investigating the effect of agriculture and fire on soil
+    molecular properties'
+  package: soil
+  model: gpt-4o-mini
+  backend: llm
+  provider: llm
+  enrichment: true
+  verified: true
+  elapsed_seconds: 21.86
+  input_tokens: 22492
+  output_tokens: 394
+  est_cost_usd: 0.00361
+  expected_slots:
+  - agrochem_addition
+  - crop_rotation
+  - fire
+  - tillage
+  predicted_slots:
+  - env_broad_scale
+  - env_local_scale
+  - env_medium
+  raw_scores:
+    precision: 0.0
+    recall: 0.0
+    f1: 0.0
+    true_positives: []
+    false_positives: []
+    false_negatives:
+    - agrochem_addition
+    - crop_rotation
+    - fire
+    - tillage
+    excluded_correct:
+    - env_broad_scale
+    - env_local_scale
+    - env_medium
+  all_suggestions:
+  - field_name: env_broad_scale
+    reason: The study focuses on agricultural land use, which falls under the cropland
+      biome.
+  - field_name: env_local_scale
+    reason: The sampling is conducted on specific treatments within an agricultural
+      field at the KBS LTER site.
+  - field_name: env_medium
+    reason: The environmental material being sampled is soil, specifically related
+      to agricultural practices.
+  verified_slots:
+  - env_broad_scale
+  - env_local_scale
+  - env_medium
+  verified_scores: &id005
+    precision: 0.0
+    recall: 0.0
+    f1: 0.0
+    true_positives: []
+    false_positives: []
+    false_negatives:
+    - agrochem_addition
+    - crop_rotation
+    - fire
+    - tillage
+    excluded_correct:
+    - env_broad_scale
+    - env_local_scale
+    - env_medium
+  verified_suggestions:
+  - field_name: env_broad_scale
+    reason_category: mentioned_in_text
+    evidence_snippet: the agricultural land use gradient at KBS Long Term Ecological
+      Research (LTER) site
+    reason: The study focuses on agricultural land use, which falls under the cropland
+      biome.
+  - field_name: env_local_scale
+    reason_category: mentioned_in_text
+    evidence_snippet: specific treatments in KBSs Main Cropping Systems Experiment
+    reason: The sampling is conducted on specific treatments within an agricultural
+      field at the KBS LTER site.
+  - field_name: env_medium
+    reason_category: mentioned_in_text
+    evidence_snippet: to sample the agricultural land use gradient... to understand
+      how agricultural management affects soil molecular properties
+    reason: The environmental material being sampled is soil, specifically related
+      to agricultural practices.
+  dropped_suggestions: []
+  scores: *id005
+- submission_id: c361c3f9-d023-4ff4-9ef3-8b308fd67d70
+  study_name: 'AI example: Umpqua National Forest Postfire'
+  package: soil
+  model: gpt-4o-mini
+  backend: llm
+  provider: llm
+  enrichment: true
+  verified: true
+  elapsed_seconds: 18.68
+  input_tokens: 22070
+  output_tokens: 450
+  est_cost_usd: 0.003581
+  expected_slots:
+  - fire
+  - other_treatment
+  predicted_slots:
+  - env_broad_scale
+  - env_local_scale
+  - env_medium
+  raw_scores:
+    precision: 0.0
+    recall: 0.0
+    f1: 0.0
+    true_positives: []
+    false_positives: []
+    false_negatives:
+    - fire
+    - other_treatment
+    excluded_correct:
+    - env_broad_scale
+    - env_local_scale
+    - env_medium
+  all_suggestions:
+  - field_name: env_broad_scale
+    reason: The sampling is conducted in the Umpqua National Forest, which falls under
+      the broad category of temperate coniferous forest biome.
+  - field_name: env_local_scale
+    reason: The specific sampling sites are within the Umpqua National Forest, focusing
+      on burned and unburned soil areas.
+  - field_name: env_medium
+    reason: The study focuses on soil properties, which are the immediate environmental
+      materials surrounding the samples.
+  verified_slots:
+  - env_broad_scale
+  - env_local_scale
+  - env_medium
+  verified_scores: &id006
+    precision: 0.0
+    recall: 0.0
+    f1: 0.0
+    true_positives: []
+    false_positives: []
+    false_negatives:
+    - fire
+    - other_treatment
+    excluded_correct:
+    - env_broad_scale
+    - env_local_scale
+    - env_medium
+  verified_suggestions:
+  - field_name: env_broad_scale
+    reason_category: mentioned_in_text
+    evidence_snippet: The sampling is conducted in the Umpqua National Forest, which
+      falls under the broad category of temperate coniferous forest biome.
+    reason: The sampling is conducted in the Umpqua National Forest, which falls under
+      the broad category of temperate coniferous forest biome.
+  - field_name: env_local_scale
+    reason_category: mentioned_in_text
+    evidence_snippet: The specific sampling sites are within the Umpqua National Forest,
+      focusing on burned and unburned soil areas.
+    reason: The specific sampling sites are within the Umpqua National Forest, focusing
+      on burned and unburned soil areas.
+  - field_name: env_medium
+    reason_category: mentioned_in_text
+    evidence_snippet: The study focuses on soil properties, which are the immediate
+      environmental materials surrounding the samples.
+    reason: The study focuses on soil properties, which are the immediate environmental
+      materials surrounding the samples.
+  dropped_suggestions: []
+  scores: *id006
