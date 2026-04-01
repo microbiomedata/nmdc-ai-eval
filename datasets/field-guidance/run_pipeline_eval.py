@@ -40,7 +40,9 @@ from typing import Any
 import yaml
 from pymongo import MongoClient
 
+from nmdc_ai_eval.llm_adapter import LLMLibraryAdapter
 from nmdc_ai_eval.pricing import estimate_cost
+from nmdc_ai_eval.scoring import score_sets
 
 HERE = Path(__file__).parent
 GROUND_TRUTH = HERE / "ground_truth.yaml"
@@ -54,38 +56,6 @@ def load_ground_truth() -> list[dict[str, Any]]:
     with open(GROUND_TRUTH) as f:
         data = yaml.safe_load(f)
         return list(data["submissions"])  # type: ignore[index]
-
-
-def score_slots(
-    predicted: set[str],
-    expected: set[str],
-    exclude_from_precision: set[str] | None = None,
-) -> dict[str, Any]:
-    """Precision, recall, F1 on slot name sets."""
-    if not predicted and not expected:
-        return {"precision": 1.0, "recall": 1.0, "f1": 1.0}
-    if not expected:
-        return {"precision": 0.0, "recall": 0.0, "f1": 0.0}
-
-    precision_set = predicted - (exclude_from_precision or set())
-    excluded_correct = predicted & (exclude_from_precision or set())
-
-    tp = len(precision_set & expected)
-    fp = len(precision_set - expected)
-
-    precision = tp / (tp + fp) if (tp + fp) > 0 else 0.0
-    recall = tp / len(expected) if expected else 0.0
-    f1 = 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0.0
-
-    return {
-        "precision": round(precision, 4),
-        "recall": round(recall, 4),
-        "f1": round(f1, 4),
-        "true_positives": sorted(precision_set & expected),
-        "false_positives": sorted(precision_set - expected),
-        "false_negatives": sorted(expected - predicted),
-        "excluded_correct": sorted(excluded_correct),
-    }
 
 
 # ---------------------------------------------------------------------------
@@ -132,93 +102,6 @@ def instrument_for_tokens(llm_client: Any) -> dict[str, int | None]:
         llm_client.client.responses.create = patched_pnnl
 
     return usage
-
-
-# ---------------------------------------------------------------------------
-# Backend: llm library (any model via personal API keys)
-# ---------------------------------------------------------------------------
-
-
-class LLMLibraryAdapter:
-    """Adapter that makes the llm library look like the suggestor's LLMClient.
-
-    The suggestor's run_recommendation_pipeline() calls add_message(),
-    add_schema_context(), and generate() on whatever object it receives.
-    This adapter implements those methods, collecting the messages, then
-    routes through the llm library's plugin ecosystem when generate() is called.
-
-    This means the SAME prompt construction (DOI waterfall, PDF download,
-    schema context) is used regardless of backend — only the LLM call differs.
-    """
-
-    def __init__(self, model_name: str) -> None:
-        self.model = model_name
-        self.access_provider = "llm"
-        self.messages: list[str] = []
-        self._pdf_paths: list[str] = []
-        self._last_response: Any = None  # llm.Response for token extraction
-
-    def add_message(self, text: str, pdf_files: list[str] | None = None) -> None:
-        if text:
-            self.messages.append(text)
-        if pdf_files:
-            self._pdf_paths.extend(pdf_files)
-
-    def add_schema_context(self, schema: str) -> None:
-        self.add_message(
-            text="Utilize the following schema context to inform your metadata field recommendations:\n" + schema,
-        )
-
-    def add_schema_and_slot_examples(self) -> None:
-        raise NotImplementedError
-
-    def generate(
-        self,
-        *,
-        model: str | None = None,
-        max_tokens: int | None = None,
-        gemini_temperature: float = 0.4,
-    ) -> str:
-        import llm as llm_lib
-        from nmdc_metadata_suggestor_ai_tool.system_prompt import system_prompt
-
-        m = llm_lib.get_model(self.model)
-        full_prompt = "\n\n".join(self.messages)
-
-        # Build PDF attachments
-        attachments: list[Any] = []
-        for pdf_path in self._pdf_paths:
-            try:
-                attachments.append(llm_lib.Attachment(path=pdf_path, type="application/pdf"))
-            except Exception:  # noqa: S110
-                pass  # Skip PDFs that can't be attached (model may not support them)
-
-        response = m.prompt(
-            full_prompt,
-            system=system_prompt,
-            attachments=attachments if attachments else None,
-            temperature=gemini_temperature,
-        )
-        self._last_response = response
-        return response.text()
-
-    def get_token_usage(self) -> dict[str, int | None]:
-        """Extract token usage from the last llm.Response."""
-        if self._last_response is None:
-            return {"input_tokens": None, "output_tokens": None}
-        return {
-            "input_tokens": getattr(self._last_response, "input_tokens", None),
-            "output_tokens": getattr(self._last_response, "output_tokens", None),
-        }
-
-    def get_duration_ms(self) -> int | None:
-        """Extract duration from the last llm.Response."""
-        if self._last_response is None:
-            return None
-        try:
-            return self._last_response.duration_ms()
-        except Exception:
-            return None
 
 
 # ---------------------------------------------------------------------------
@@ -479,7 +362,9 @@ def run_one_model(
         # Create fresh client per submission
         usage: dict[str, int | None]
         if backend == "llm":
-            llm_client: Any = LLMLibraryAdapter(model_name=model_name)
+            from nmdc_metadata_suggestor_ai_tool.system_prompt import system_prompt
+
+            llm_client: Any = LLMLibraryAdapter(model_name=model_name, system_prompt=system_prompt)
             usage = {"input_tokens": None, "output_tokens": None}
         else:
             from nmdc_metadata_suggestor_ai_tool.llm_client import LLMClient
@@ -504,7 +389,7 @@ def run_one_model(
 
             raw_suggestions = [{"field_name": s.field_name, "reason": s.reason} for s in output.metadata_fields]
             predicted = {s["field_name"] for s in raw_suggestions}
-            scores = score_slots(predicted, expected, exclude_from_precision)
+            scores = score_sets(predicted, expected, exclude_from_precision)
             est_cost = estimate_cost(model_name, usage["input_tokens"], usage["output_tokens"])
 
             print(f"  Raw ({len(predicted)}): {sorted(predicted)}")
@@ -525,7 +410,7 @@ def run_one_model(
                 )
                 verified_suggestions = verification.get("verified", raw_suggestions)
                 verified_predicted = {s["field_name"] for s in verified_suggestions}
-                verified_scores = score_slots(verified_predicted, expected, exclude_from_precision)
+                verified_scores = score_sets(verified_predicted, expected, exclude_from_precision)
                 dropped = verification.get("dropped", [])
 
                 print(f"  Verified ({len(verified_predicted)}): {sorted(verified_predicted)}")
