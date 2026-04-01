@@ -45,3 +45,15 @@ class TestScoreSets:
         result = score_sets({"a", "x"}, {"a", "b"}, exclude_from_precision={"x"})
         assert result["recall"] == 0.5  # b is missing
         assert result["precision"] == 1.0  # only a in precision set, and it's a TP
+
+    def test_excluded_item_in_expected_still_counted_for_recall(self) -> None:
+        """If an excluded item is also in expected, recall should still count it."""
+        result = score_sets({"a", "x"}, {"a", "x"}, exclude_from_precision={"x"})
+        assert result["recall"] == 1.0  # both a and x are predicted and expected
+        assert result["precision"] == 1.0  # only a in precision set, it's a TP
+        assert result["true_positives"] == ["a", "x"]
+
+    def test_early_returns_have_all_keys(self) -> None:
+        for result in [score_sets(set(), set()), score_sets({"a"}, set())]:
+            for key in ["true_positives", "false_positives", "false_negatives", "excluded_correct"]:
+                assert key in result, f"Missing key: {key}"

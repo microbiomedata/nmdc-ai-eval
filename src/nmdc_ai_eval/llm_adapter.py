@@ -61,15 +61,23 @@ class LLMLibraryAdapter:
         model: str | None = None,
         max_tokens: int | None = None,
         gemini_temperature: float = 0.4,
+        **_kwargs: Any,
     ) -> str:
         """Send all accumulated messages to the model and return the response text.
+
+        Args:
+            model: override the model set at construction time
+            max_tokens: passed to the llm prompt as max_tokens option
+            gemini_temperature: temperature for generation (default 0.4)
+            **_kwargs: accept and ignore extra kwargs for interface compatibility
 
         PDF files are sent as llm.Attachment objects. Models that don't support
         attachments will ignore them gracefully.
         """
         import llm as llm_lib
 
-        m = llm_lib.get_model(self.model)
+        effective_model = model or self.model
+        m = llm_lib.get_model(effective_model)
         full_prompt = "\n\n".join(self.messages)
 
         attachments: list[Any] = []
@@ -79,12 +87,15 @@ class LLMLibraryAdapter:
             except Exception:  # noqa: S110
                 pass  # Skip PDFs that can't be attached
 
-        response = m.prompt(
-            full_prompt,
-            system=self.system_prompt,
-            attachments=attachments if attachments else None,
-            temperature=gemini_temperature,
-        )
+        prompt_kwargs: dict[str, Any] = {
+            "system": self.system_prompt,
+            "temperature": gemini_temperature,
+        }
+        if attachments:
+            prompt_kwargs["attachments"] = attachments
+        if max_tokens is not None:
+            prompt_kwargs["max_tokens"] = max_tokens
+        response = m.prompt(full_prompt, **prompt_kwargs)
         self._last_response = response
         return response.text()
 

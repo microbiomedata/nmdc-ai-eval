@@ -69,7 +69,10 @@ filterwarnings = [
 markers = ["api: tests requiring LLM API calls (excluded from CI)"]
 
 [tool.coverage.run]
-omit = ["src/nmdc_ai_eval/run_suite.py"]  # API-only; untestable without live LLM calls
+omit = [
+  "src/nmdc_ai_eval/run_suite.py",    # API-only; untestable without live LLM calls
+  "src/nmdc_ai_eval/llm_adapter.py",  # generate()/get_token_usage() require live LLM calls
+]
 
 [tool.ruff]
 line-length = 120

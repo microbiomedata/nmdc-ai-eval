@@ -26,26 +26,35 @@ def score_sets(
     Returns dict with precision, recall, f1, true_positives, false_positives,
     false_negatives, and excluded_correct.
     """
+    empty: dict[str, Any] = {
+        "true_positives": [],
+        "false_positives": [],
+        "false_negatives": [],
+        "excluded_correct": [],
+    }
     if not predicted and not expected:
-        return {"precision": 1.0, "recall": 1.0, "f1": 1.0}
+        return {"precision": 1.0, "recall": 1.0, "f1": 1.0, **empty}
     if not expected:
-        return {"precision": 0.0, "recall": 0.0, "f1": 0.0}
+        return {"precision": 0.0, "recall": 0.0, "f1": 0.0, **empty}
 
-    precision_set = predicted - (exclude_from_precision or set())
-    excluded_correct = predicted & (exclude_from_precision or set())
+    exclude = exclude_from_precision or set()
+    precision_set = predicted - exclude
+    excluded_correct = predicted & exclude
 
-    tp = len(precision_set & expected)
+    # Precision uses the filtered set; recall uses the full predicted set
+    tp_precision = len(precision_set & expected)
+    tp_recall = len(predicted & expected)
     fp = len(precision_set - expected)
 
-    precision = tp / (tp + fp) if (tp + fp) > 0 else 0.0
-    recall = tp / len(expected) if expected else 0.0
+    precision = tp_precision / (tp_precision + fp) if (tp_precision + fp) > 0 else 0.0
+    recall = tp_recall / len(expected) if expected else 0.0
     f1 = 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0.0
 
     return {
         "precision": round(precision, 4),
         "recall": round(recall, 4),
         "f1": round(f1, 4),
-        "true_positives": sorted(precision_set & expected),
+        "true_positives": sorted(predicted & expected),
         "false_positives": sorted(precision_set - expected),
         "false_negatives": sorted(expected - predicted),
         "excluded_correct": sorted(excluded_correct),
