@@ -81,13 +81,6 @@ run-field-guidance:
     just run datasets/field-guidance/field-guidance-suite.yaml
 
 # Field guidance eval: models × enrichment × verification → summary
-# Default: standard tier. Options:
-#   just full-eval --cheap    (~$0.10, ~10 min)
-#   just full-eval --full     (all tiers, ~$3, ~45 min)
-#   just full-eval --models gpt-4o anthropic/claude-sonnet-4-6
-#   just full-eval --no-clean (keep previous results)
-#   just full-eval --no-verify (skip verification variants)
-# For a single model: just full-eval --models gpt-4o --no-verify --no-enrichment-ablation
 full-eval *args="":
     uv run python datasets/field-guidance/run_full_eval.py {{ args }}
 

@@ -23,7 +23,7 @@ just setup
 
 ### MongoDB setup (required for field-guidance pipeline eval)
 
-The pipeline eval path (Option A) fetches full submission documents from a local MongoDB instance. You need the `nmdc_data_dev` database with the `nmdc_submissions` collection.
+The field guidance eval (`just full-eval`) fetches full submission documents from a local MongoDB instance. You need the `nmdc_data_dev` database with the `nmdc_submissions` collection.
 
 **Load submissions:**
 
@@ -39,7 +39,7 @@ mongosh nmdc_data_dev --eval "db.nmdc_submissions.countDocuments()"
 # Expected: 400+
 ```
 
-If you don't have `external-metadata-awareness` cloned, ask Mark Miller for a MongoDB dump or a data-dev connection. The llm-matrix path (Option B) does **not** require MongoDB — it uses committed suite YAMLs.
+If you don't have `external-metadata-awareness` cloned, ask Mark Miller for a MongoDB dump or a data-dev connection. The value prediction evals (`just eval-ebs`, `just eval-sampledata`) do **not** require MongoDB — they use committed suite YAMLs.
 
 ### API keys and access providers
 
@@ -108,7 +108,7 @@ The AI Studio free tier provides 1,500 requests/day — sufficient for eval runs
 
 > **Note for CBORG and PNNL users:** These endpoints are OpenAI-compatible, so in principle you can point the OpenAI plugin at them by setting `OPENAI_API_BASE`. However, this has not been tested with llm-matrix yet and may conflict if you also need direct OpenAI access in the same eval run. File an issue if you need help with this setup.
 
-### Pipeline eval credentials (GCP or PNNL, Option A only)
+### Pipeline eval credentials (GCP or PNNL)
 
 The pipeline eval calls `run_recommendation_pipeline()` from `nmdc-metadata-suggestor-ai-tool`. This is separate from the `llm` key store and requires one of:
 
@@ -131,7 +131,7 @@ export AI_INCUBATOR_BASE_URL=https://...
 
 Contact Olivia Hess for the endpoint URL and key.
 
-> **Budget reminder:** The `nmdc-llm` GCP project has a shared $500 total budget. Use Option B (llm-matrix with personal keys) for iterative dev and model comparisons.
+> **Budget reminder:** The `nmdc-llm` GCP project has a shared $500 total budget. Use personal API keys (`just full-eval`) for iterative dev and model comparisons.
 
 ## Eval approaches
 
@@ -272,7 +272,7 @@ The minimum coverage threshold is **90%** (enforced via `--cov-fail-under` in pr
 
 - [`datasets/submission-metadata-prediction/`](datasets/submission-metadata-prediction/README.md) — **sampleData prediction** (smoke test): predict the MIxS environmental package from study name + description. 1 stratum (soil_data), 9 eval cases. Limited by source data diversity — see dataset README.
 - [`datasets/ebs-prediction/`](datasets/ebs-prediction/README.md) — **env_broad_scale prediction**: predict the broad-scale environmental context (typically an ENVO biome term) from all non-GOLD metadata. Ontology-aware scoring with hierarchy, enum compliance, and CURIE-label validation. 10 strata, 100 eval cases (10 per stratum at default `--min-pool 10`).
-- [`datasets/field-guidance/`](datasets/field-guidance/README.md) — **Metadata Field Guidance** (Task 1): predict which biosample slots a submitter should fill, given submission-level metadata only (study description, DOIs, MIxS extension). Ground truth: 6 hand-curated submissions from Montana Smith and Bea Meluch. Scored with precision/recall/F1 on slot name sets. Supports both eval paths; Option A uses the full suggestor pipeline including DOI/PDF enrichment.
+- [`datasets/field-guidance/`](datasets/field-guidance/README.md) — **Metadata Field Guidance** (Task 1): predict which biosample slots a submitter should fill, given submission-level metadata only (study description, DOIs, MIxS extension). Ground truth: 6 hand-curated submissions from Montana Smith and Bea Meluch. Scored with precision/recall/F1 on slot name sets. Run via `just full-eval` with DOI/PDF enrichment and evidence verification.
 
 ## Access restrictions
 

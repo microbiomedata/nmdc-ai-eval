@@ -69,25 +69,30 @@ ground_truth.yaml
 
 Note: the expected set is intentionally small (non-obvious, study-specific slots). Standard slots like `env_broad_scale`, `geo_loc_name`, `depth` are not listed as "expected" because any reasonable model will recommend them. The eval measures whether the model surfaces the **domain-specific** slots that require reading the abstract.
 
-## Two eval paths
+## Running the eval
 
-| | Option A: Pipeline eval | Option B: llm-matrix |
-|---|---|---|
-| **Script** | `run_pipeline_eval.py` | `generate_suite.py` + `just run-field-guidance` |
-| **What it calls** | Real `run_recommendation_pipeline()` from suggestor | llm-matrix with our YAML suite |
-| **System prompt** | Production (from suggestor) | Production (imported from suggestor) |
-| **Schema context** | Production (`SchemaContextBuilder`) | Production (imported, baked into suite YAML) |
-| **DOI/PDF content** | Yes (fetches at runtime) | No — static YAML can't make network calls ([#28](https://github.com/microbiomedata/nmdc-ai-eval/issues/28)) |
-| **Models** | GCP Gemini, PNNL GPT only | Any model in `models.yaml` (OpenAI, Anthropic, Gemini) |
-| **Providers** | `gcp`, `pnnl` (suggestor limitation) | `llm` plugins (personal API keys) |
-| **Timing** | Wall-clock `elapsed_seconds` per submission | `duration_ms` from llm logs DB |
-| **Cost** | `est_cost_usd` from `input_tokens`/`output_tokens` + pricing table | `est_cost_usd` from llm logs DB + pricing table |
-| **Run command** | `just run-field-guidance-pipeline gcp` | `just run-field-guidance` |
+```bash
+just full-eval           # standard tier models × enrichment × verification
+just full-eval --full    # all provider tiers (cheap/mid/top)
+just full-eval --cheap   # budget models only
+```
+
+All models receive the same production prompt with DOI/PDF enrichment. Each model is tested in 4 variants: with/without enrichment × with/without evidence verification. Results go to `pipeline-results/` as timestamped YAMLs + a `summary.tsv`.
+
+```bash
+just compare-pipeline-results --latest   # comparison table
+```
+
+**Flags** (passed via `just full-eval --no-verify` etc.):
+- `--no-enrichment` — skip DOI waterfall and PDF download
+- `--verify` — re-prompt model to cite evidence, drop unsupported recommendations
+- `--no-verify` — skip verification variants (faster, cheaper)
+- `--strict` — count env triad fields in precision scoring
+- `--models gpt-4o anthropic/claude-sonnet-4-6` — run specific models only
 
 ### Adding models
 
-- **Option B:** Add one line to [`datasets/models.yaml`](../models.yaml) and run `just generate-field-guidance`.
-- **Option A:** Blocked on the suggestor supporting more providers. CBORG tracked in [#16](https://github.com/microbiomedata/nmdc-ai-eval/issues/16) / [suggestor-ai-tool#33](https://github.com/microbiomedata/nmdc-metadata-suggestor-ai-tool/issues/33).
+Edit the `tiers:` section of [`datasets/models.yaml`](../models.yaml). No code changes needed.
 
 ## Ground truth scope: slot selection only, NOT values
 
