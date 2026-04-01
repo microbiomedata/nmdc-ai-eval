@@ -187,8 +187,9 @@ def main() -> None:
     print(f"FULL EVAL COMPLETE: {successes} succeeded, {failures} failed")
     print(f"{'═' * 70}\n")
 
+    summary_tsv = HERE / "pipeline-results" / "summary.tsv"
     subprocess.run(  # noqa: S603
-        [sys.executable, str(COMPARE_SCRIPT), "--latest"],
+        [sys.executable, str(COMPARE_SCRIPT), "--latest", "--save-tsv", str(summary_tsv)],
         cwd=str(HERE.parent.parent),
     )
 

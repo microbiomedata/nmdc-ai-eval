@@ -153,11 +153,47 @@ def print_per_submission(summaries: list[dict[str, Any]], all_data: list[dict[st
             )
 
 
+def save_summary_tsv(summaries: list[dict[str, Any]], output_path: Path) -> None:
+    """Write the comparison table as a TSV file."""
+    cols = [
+        "model",
+        "provider",
+        "enrichment",
+        "n",
+        "errors",
+        "precision",
+        "recall",
+        "f1",
+        "total_cost",
+        "total_time",
+        "input_tokens",
+        "output_tokens",
+        "scoring",
+        "timestamp",
+        "file",
+    ]
+    with open(output_path, "w", encoding="utf-8") as f:
+        f.write("\t".join(cols) + "\n")
+        for s in summaries:
+            row = []
+            for c in cols:
+                v = s.get(c)
+                if v is None:
+                    row.append("")
+                elif isinstance(v, float):
+                    row.append(f"{v:.6f}")
+                else:
+                    row.append(str(v))
+            f.write("\t".join(row) + "\n")
+    print(f"Summary saved to {output_path}")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Compare pipeline eval results")
     parser.add_argument("--latest", action="store_true", help="Show only the most recent run per model")
     parser.add_argument("--model", help="Filter by model name (substring match)")
     parser.add_argument("--detail", action="store_true", help="Show per-submission breakdown")
+    parser.add_argument("--save-tsv", type=Path, help="Write comparison table to a TSV file")
     args = parser.parse_args()
 
     all_data = load_all_results()
@@ -179,6 +215,9 @@ def main() -> None:
         summaries.sort(key=lambda s: (s["model"], s.get("enrichment", "yes"), s["timestamp"]))
 
     print_comparison(summaries)
+
+    if args.save_tsv:
+        save_summary_tsv(summaries, args.save_tsv)
 
     if args.detail:
         # Filter all_data to match what's in summaries

@@ -1,0 +1,15 @@
+model	provider	enrichment	n	errors	precision	recall	f1	total_cost	total_time	input_tokens	output_tokens	scoring	timestamp	file
+gpt-4o	llm	yes	6	0	0.375000	0.638883	0.447217	0.370390	90.380000	121604	6638	env-triad-excluded	20260331-180858	gpt-4o_llm_enriched_verified_20260331-180858.yaml
+gemini/gemini-2.5-pro	llm	yes	6	0	0.285283	0.819450	0.407217	0.573208	311.660000	138407	40020	env-triad-excluded	20260331-190423	gemini-gemini-2.5-pro_llm_enriched_verified_20260331-190423.yaml
+gpt-4o	llm	no	6	0	0.313633	0.583333	0.392067	0.366667	106.250000	121563	6276	env-triad-excluded	20260331-181113	gpt-4o_llm_no-enrichment_verified_20260331-181113.yaml
+gemini/gemini-2.5-pro	llm	no	6	0	0.267700	0.819450	0.385300	0.577207	315.680000	138245	40440	env-triad-excluded	20260331-191144	gemini-gemini-2.5-pro_llm_no-enrichment_verified_20260331-191144.yaml
+gpt-5.2	llm	yes	6	0	0.273883	0.736117	0.382583	0.395592	201.620000	126312	17871	env-triad-excluded	20260331-181448	gpt-5.2_llm_enriched_verified_20260331-181448.yaml
+gpt-5.2	llm	no	6	0	0.212917	0.736117	0.328833	0.400364	210.940000	126550	18408	env-triad-excluded	20260331-181946	gpt-5.2_llm_no-enrichment_verified_20260331-181946.yaml
+anthropic/claude-sonnet-4-6	llm	no	5	1	0.162720	0.900000	0.271240	0.681393	296.350000	119766	21473	env-triad-excluded	20260331-184340	anthropic-claude-sonnet-4-6_llm_no-enrichment_verified_20260331-184340.yaml
+anthropic/claude-haiku-4-5-20251001	llm	no	6	0	0.154283	0.680550	0.246200	0.181200	129.590000	142771	16746	env-triad-excluded	20260331-182741	anthropic-claude-haiku-4-5-20251001_llm_no-enrichment_verified_20260331-182741.yaml
+anthropic/claude-sonnet-4-6	llm	yes	6	0	0.150167	0.861117	0.244650	0.854262	396.480000	146949	27561	env-triad-excluded	20260331-183251	anthropic-claude-sonnet-4-6_llm_enriched_verified_20260331-183251.yaml
+anthropic/claude-haiku-4-5-20251001	llm	yes	6	0	0.150000	0.680550	0.236450	0.180438	126.770000	142607	16588	env-triad-excluded	20260331-182433	anthropic-claude-haiku-4-5-20251001_llm_enriched_verified_20260331-182433.yaml
+gemini/gemini-2.5-flash	llm	yes	6	0	0.126233	0.777783	0.215367	0.060411	262.970000	141497	65310	env-triad-excluded	20260331-185119	gemini-gemini-2.5-flash_llm_enriched_verified_20260331-185119.yaml
+gemini/gemini-2.5-flash	llm	no	6	0	0.116683	0.736117	0.196367	0.056869	250.770000	141123	59501	env-triad-excluded	20260331-185749	gemini-gemini-2.5-flash_llm_no-enrichment_verified_20260331-185749.yaml
+gpt-4o-mini	llm	yes	6	0	0.000000	0.000000	0.000000	0.019526	120.720000	120261	2478	env-triad-excluded	20260331-180356	gpt-4o-mini_llm_enriched_verified_20260331-180356.yaml
+gpt-4o-mini	llm	no	6	0	0.000000	0.000000	0.000000	0.019575	83.750000	120289	2553	env-triad-excluded	20260331-180641	gpt-4o-mini_llm_no-enrichment_verified_20260331-180641.yaml
