@@ -21,6 +21,26 @@ cd nmdc-ai-eval
 just setup
 ```
 
+### MongoDB setup (required for field-guidance pipeline eval)
+
+The field guidance eval (`just full-eval`) fetches full submission documents from a local MongoDB instance. You need the `nmdc_data_dev` database with the `nmdc_submissions` collection.
+
+**Load submissions:**
+
+```bash
+cd ~/gitrepos/external-metadata-awareness   # or wherever you have it cloned
+make -f Makefiles/nmdc_metadata.Makefile nmdc-submissions-to-mongo-dev
+```
+
+**Verify:**
+
+```bash
+mongosh nmdc_data_dev --eval "db.nmdc_submissions.countDocuments()"
+# Expected: 400+
+```
+
+If you don't have `external-metadata-awareness` cloned, ask Mark Miller for a MongoDB dump or a data-dev connection. The value prediction evals (`just eval-ebs`, `just eval-sampledata`) do **not** require MongoDB — they use committed suite YAMLs.
+
 ### API keys and access providers
 
 Models are called via native [llm](https://llm.datasette.io/) plugins — one per provider:
@@ -88,32 +108,98 @@ The AI Studio free tier provides 1,500 requests/day — sufficient for eval runs
 
 > **Note for CBORG and PNNL users:** These endpoints are OpenAI-compatible, so in principle you can point the OpenAI plugin at them by setting `OPENAI_API_BASE`. However, this has not been tested with llm-matrix yet and may conflict if you also need direct OpenAI access in the same eval run. File an issue if you need help with this setup.
 
-## Two eval paths
+### Pipeline eval credentials (GCP or PNNL)
 
-This repo supports two ways to run evals, especially for the [Metadata Field Guidance](datasets/field-guidance/) dataset:
+The pipeline eval calls `run_recommendation_pipeline()` from `nmdc-metadata-suggestor-ai-tool`. This is separate from the `llm` key store and requires one of:
 
-**Option A — Pipeline eval** calls the real `run_recommendation_pipeline()` from [`nmdc-metadata-suggestor-ai-tool`](https://github.com/microbiomedata/nmdc-metadata-suggestor-ai-tool). This tests exactly what portal users see, including DOI fetching and PDF ingestion, but is limited to models the suggestor supports (GCP Gemini, PNNL GPT).
+**GCP Vertex AI (team default):**
 
-**Option B — llm-matrix eval** uses the suggestor's system prompt and schema context but routes through [llm-matrix](https://github.com/monarch-initiative/llm-matrix) and the `llm` plugin ecosystem. This tests any model cheaply (OpenAI, Anthropic, Gemini via AI Studio) but cannot include DOI/PDF content.
+```bash
+export GOOGLE_APPLICATION_CREDENTIALS=/path/to/nmdc-llm-service-account.json
+export VERTEX_PROJECT_ID=nmdc-llm
+# Optional (defaults to us-east5): export CLOUD_ML_REGION=us-east5
+```
 
-| | Option A: Pipeline | Option B: llm-matrix |
-|---|---|---|
-| **Models** | GCP Gemini, PNNL GPT | Any model in `models.yaml` |
-| **System prompt** | Production | Production (imported) |
-| **Schema context** | Production | Production (imported) |
-| **DOI/PDF** | Yes | No ([#28](https://github.com/microbiomedata/nmdc-ai-eval/issues/28)) |
-| **Run** | `just run-field-guidance-pipeline provider=gcp` | `just run-field-guidance` |
+Contact Sierra Moxon for the `nmdc-llm` service account JSON (snappass).
 
-See [`datasets/field-guidance/README.md`](datasets/field-guidance/README.md) for details.
+**PNNL AI Incubator:**
+
+```bash
+export AI_INCUBATOR_KEY=your-key
+export AI_INCUBATOR_BASE_URL=https://...
+```
+
+Contact Olivia Hess for the endpoint URL and key.
+
+> **Budget reminder:** The `nmdc-llm` GCP project has a shared $500 total budget. Use personal API keys (`just full-eval`) for iterative dev and model comparisons.
+
+## Eval approaches
+
+### Field Guidance eval (Task 1) — which slots to recommend
+
+The field guidance eval predicts which biosample metadata fields a submitter should fill, scored against hand-curated ground truth (6 submissions from Montana Smith and Bea Meluch).
+
+Three ways to run it, all using the suggestor's production prompt and scoring with precision/recall/F1:
+
+| | Pipeline backend | llm backend | llm-matrix |
+|---|---|---|---|
+| **What it is** | Suggestor's `LLMClient` | `llm` library adapter | `llm-matrix` suites |
+| **Models** | GCP Gemini, PNNL GPT | Any model with an `llm` plugin | Models listed in `models.yaml` |
+| **DOI/PDF enrichment** | Yes | Yes | No ([#28](https://github.com/microbiomedata/nmdc-ai-eval/issues/28)) |
+| **Credentials** | GCP or PNNL service accounts | Personal API keys | Personal API keys |
+| **MongoDB required** | Yes | Yes | Only for regenerating suite YAML |
+| **Run** | `just run-field-guidance-pipeline` | `just run-field-guidance-llm gpt-4o` | `just run-field-guidance` |
+
+The **pipeline** and **llm** backends produce directly comparable results — same prompt, same DOI/PDF ingestion, same scoring. The only difference is which LLM API processes the request.
+
+**Flags:**
+
+- `--no-enrichment` — skip DOI waterfall and PDF download (context ablation: how much does publication content matter?)
+- `--verify` — re-prompt the model to cite evidence for each recommendation; drops unsupported ones (reduces tautological suggestions like "soil studies typically measure pH")
+- `--strict` — count env triad fields in precision scoring (by default they're excluded since the ground truth intentionally omits them)
+- `--sweep` — run all available models across all configured backends
+
+**Results** are written to `datasets/field-guidance/pipeline-results/` as timestamped YAML files — one per model per run, never overwritten. Each file includes per-submission predictions, scores, reasons, token counts, and estimated cost.
+
+```bash
+# Compare results across models and runs
+just compare-pipeline-results              # all results
+just compare-pipeline-results --latest     # most recent per model
+just compare-pipeline-results --detail     # per-submission breakdown
+```
+
+### Value prediction evals (env_broad_scale, sampleData)
+
+These use llm-matrix suites with ontology-aware scoring. No MongoDB needed.
+
+```bash
+uv run llm keys set openai       # or anthropic, or gemini (AI Studio key)
+
+# env_broad_scale: 100 cases × 5 models, ontology-scored
+just eval-ebs
+
+# sampleData prediction: 9 cases × 5 models (smoke test)
+just eval-sampledata
+```
+
+Results include `input_tokens`, `output_tokens`, `duration_ms`, and `est_cost_usd` per call (captured from the llm logs DB).
+
+### Cost estimation
+
+Model pricing lives in the `pricing:` section of [`datasets/models.yaml`](datasets/models.yaml). Edit that file to add models or update prices — no code changes needed. If a model isn't in the pricing table, the eval still runs; cost just shows as unavailable.
 
 ## Usage
 
 ```bash
-just --list                  # see all available commands
-just all                     # fix + check everything (no evals, no API calls)
-just eval-sampledata         # end-to-end sampleData eval
-just eval-ebs                # end-to-end env_broad_scale eval (generate + run + score)
-just eval-field-guidance     # end-to-end field guidance eval (Option B, requires MongoDB)
+just --list              # see all available commands
+just all                 # fix + check everything (no evals, no API calls)
+just verify-auth         # test all configured API credentials
+just full-eval           # field guidance: standard models × enrichment × verification
+just full-eval --full    # field guidance: all provider tiers
+just full-eval --cheap   # field guidance: budget models only
+just compare-pipeline-results --latest   # compare field guidance results
+just eval-ebs            # env_broad_scale: 100 cases × models in models.yaml
+just eval-sampledata     # sampleData: smoke test (9 cases)
 ```
 
 ## QC and automation
@@ -144,36 +230,32 @@ The git commit hook and git push hook run **identical checks**. Install both wit
 
 ### Key just targets
 
-| Target | What it does |
-|---|---|
-| `just all` | Fix + run all checks (~22s) |
-| `just fix` | Auto-fix lint/format only |
-| `just check` | Run all checks without fixing |
-| `just test` | pytest only (excludes `@api` tests) |
-| `just coverage` | pytest with coverage report |
-| `just generate` | Regenerate all suite YAMLs from `models.yaml` + source TSV |
-| `just eval-all` | Full eval: generate + run all models + score |
-
-### What has automation but is NOT in the checks
-
-| What | How to run | Why excluded |
+| Target | What it does | Costs money? |
 |---|---|---|
-| Eval suite runs (LLM calls) | `just eval-sampledata`, `just eval-ebs`, `just eval-all` | Requires API keys, costs money |
-| ENVO ontology scoring | `just score-ebs` | Requires eval output to exist |
-| Suite YAML generation | `just generate` | Changes committed YAMLs, depends on source TSV |
-| Cleanup | `just clean-outputs`, `just clean-all` | Destructive, on-demand only |
+| `just all` | Fix + run all checks (~22s) | No |
+| `just setup` | Install deps + pre-commit hooks | No |
+| `just verify-auth` | Test all API credentials (1 cheap call each) | ~$0.001 |
+| `just full-eval` | Field guidance: standard models × enrichment × verification | ~$0.50 |
+| `just full-eval --full` | Field guidance: all provider tiers | ~$3 |
+| `just full-eval --cheap` | Field guidance: budget models only | ~$0.10 |
+| `just compare-pipeline-results` | Compare field guidance results (no LLM calls) | No |
+| `just eval-ebs` | env_broad_scale: generate + run + ontology score | ~$0.10 |
+| `just eval-sampledata` | sampleData: generate + run (smoke test) | ~$0.01 |
+| `just generate` | Regenerate llm-matrix suite YAMLs | No |
+| `just clean-outputs` | Delete all eval outputs | No |
+| `just clean-all` | Delete outputs + suites + caches | No |
 
 ### Model configuration
 
-Model names are defined once in `datasets/models.yaml` and read by both suite generators. To add or change models, edit that file and run `just generate`. Model names must match what `uv run llm models list` shows — these come from native llm plugins (OpenAI built-in, llm-claude-3 for Anthropic, llm-gemini for Gemini).
+[`datasets/models.yaml`](datasets/models.yaml) is the single config file for models. It has three sections:
 
-**Adding a model is three steps:**
+- **`models:`** — which models go in llm-matrix suites (`just eval-ebs`, `just eval-sampledata`). Edit and run `just generate`.
+- **`tiers:`** — which models run at each cost level in `just full-eval` (cheap/standard/full). Update when providers release new flagship or budget models.
+- **`pricing:`** — cost per 1M tokens for cost estimation. Update when prices change.
 
-1. Find the exact name: `uv run llm models list | grep <model>`
-2. Add the name to `datasets/models.yaml`
-3. Run `just generate` to regenerate suite YAMLs
+Model names must match `uv run llm models list`. `just test` verifies every model in `models:` is recognized by an installed llm plugin.
 
-**`just test` verifies that every model in `models.yaml` is recognized by an installed llm plugin.** If you add a model name that doesn't match any plugin, the test suite will fail with a clear message telling you which model is unrecognized and which plugin you may need.
+To add a model for field guidance eval only (not llm-matrix suites), add it to the appropriate tier in `tiers:` and optionally to `pricing:`. No code changes needed.
 
 ### Test coverage
 
@@ -190,6 +272,7 @@ The minimum coverage threshold is **90%** (enforced via `--cov-fail-under` in pr
 
 - [`datasets/submission-metadata-prediction/`](datasets/submission-metadata-prediction/README.md) — **sampleData prediction** (smoke test): predict the MIxS environmental package from study name + description. 1 stratum (soil_data), 9 eval cases. Limited by source data diversity — see dataset README.
 - [`datasets/ebs-prediction/`](datasets/ebs-prediction/README.md) — **env_broad_scale prediction**: predict the broad-scale environmental context (typically an ENVO biome term) from all non-GOLD metadata. Ontology-aware scoring with hierarchy, enum compliance, and CURIE-label validation. 10 strata, 100 eval cases (10 per stratum at default `--min-pool 10`).
+- [`datasets/field-guidance/`](datasets/field-guidance/README.md) — **Metadata Field Guidance** (Task 1): predict which biosample slots a submitter should fill, given submission-level metadata only (study description, DOIs, MIxS extension). Ground truth: 6 hand-curated submissions from Montana Smith and Bea Meluch. Scored with precision/recall/F1 on slot name sets. Run via `just full-eval` with DOI/PDF enrichment and evidence verification.
 
 ## Access restrictions
 

@@ -8,6 +8,9 @@
 *-output/
 *.db
 
+# Pipeline eval results — committed for reproducibility.
+# Individual result YAMLs are timestamped and never overwritten.
+
 # === Standard Python (GitHub template) ===
 
 # Byte-compiled / optimized / DLL files

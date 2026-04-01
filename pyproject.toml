@@ -38,6 +38,7 @@ dev = [
   "pandas-stubs>=3.0.0.260204",
   "nmdc-metadata-suggestor-ai-tool>=1.1",
   "pymongo>=4.16.0",
+  "types-pyyaml>=6.0.12.20250915",
 ]
 
 [tool.hatch.build.targets.wheel]

@@ -2,7 +2,7 @@ name: Weekly dependency upgrade
 
 on:
   schedule:
-    - cron: '\''0 7 * * 1'\''  # Monday 7am UTC
+    - cron: '0 7 * * 1'  # Monday 7am UTC
   workflow_dispatch:
 
 jobs:

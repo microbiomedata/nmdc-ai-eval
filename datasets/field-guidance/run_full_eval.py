@@ -1,0 +1,196 @@
+#!/usr/bin/env python3
+"""Run a full evaluation matrix: multiple models × enrichment × verification.
+
+Runs run_pipeline_eval.py across all combinations and then synthesizes
+results via compare_pipeline_results.py.
+
+Usage:
+    python run_full_eval.py                    # default model set
+    python run_full_eval.py --models gpt-4o gpt-5.2
+    python run_full_eval.py --cheap            # only low-cost models
+    python run_full_eval.py --no-verify        # skip verification variants
+
+Each model is run in up to 4 configurations:
+    1. with enrichment, no verification
+    2. with enrichment, with verification
+    3. without enrichment, no verification
+    4. without enrichment, with verification
+
+Results accumulate in pipeline-results/ and a comparison table is printed
+at the end.
+"""
+
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+HERE = Path(__file__).parent
+EVAL_SCRIPT = HERE / "run_pipeline_eval.py"
+COMPARE_SCRIPT = HERE / "compare_pipeline_results.py"
+MODELS_YAML = HERE.parent / "models.yaml"
+
+
+def _load_tier(tier_name: str) -> list[tuple[str, str]]:
+    """Load a model tier from datasets/models.yaml.
+
+    Returns list of (model_name, backend_args) tuples.
+    """
+    import yaml
+
+    with open(MODELS_YAML) as f:
+        data = yaml.safe_load(f)
+    tiers = data.get("tiers", {})
+    model_names = tiers.get(tier_name, [])
+    return [(name, "--backend llm") for name in model_names]
+
+
+def _has_gcp_creds() -> bool:
+    from dotenv import load_dotenv
+
+    load_dotenv()  # .env may have GCP creds that aren't exported in the shell
+    return bool(os.environ.get("GOOGLE_APPLICATION_CREDENTIALS") or os.environ.get("VERTEX_PROJECT_ID"))
+
+
+def _run_eval(model: str, backend_args: str, flags: list[str]) -> bool:
+    """Run a single eval configuration. Returns True on success."""
+    cmd = [
+        sys.executable,
+        str(EVAL_SCRIPT),
+        *backend_args.split(),
+        "--model",
+        model,
+        *flags,
+    ]
+    label = f"{model} [{' '.join(flags) if flags else 'baseline'}]"
+    print(f"\n{'─' * 70}")
+    print(f"Running: {label}")
+    print(f"{'─' * 70}")
+
+    result = subprocess.run(cmd, cwd=str(HERE.parent.parent))  # noqa: S603
+    if result.returncode != 0:
+        print(f"  FAILED (exit {result.returncode})")
+        return False
+    return True
+
+
+def main() -> None:
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Run full eval matrix")
+    parser.add_argument(
+        "--models",
+        nargs="+",
+        help="Specific model names to run (uses llm backend)",
+    )
+    parser.add_argument(
+        "--cheap",
+        action="store_true",
+        help="Only run cheap models (gpt-4o-mini, gemini-2.5-flash)",
+    )
+    parser.add_argument(
+        "--full",
+        action="store_true",
+        help="Include expensive models (gpt-5.2)",
+    )
+    parser.add_argument(
+        "--no-verify",
+        action="store_true",
+        help="Skip verification variants",
+    )
+    parser.add_argument(
+        "--no-enrichment-ablation",
+        action="store_true",
+        help="Skip no-enrichment variants",
+    )
+    parser.add_argument(
+        "--no-clean",
+        action="store_true",
+        help="Keep existing results (default: clean pipeline-results/ first)",
+    )
+    args = parser.parse_args()
+
+    # Clean previous results unless --no-clean
+    results_dir = HERE / "pipeline-results"
+    if not args.no_clean and results_dir.exists():
+        import shutil
+
+        shutil.rmtree(results_dir)
+        print("Cleaned pipeline-results/\n")
+
+    # Determine model set (tiers defined in datasets/models.yaml)
+    if args.models:
+        models = [(m, "--backend llm") for m in args.models]
+    elif args.cheap:
+        models = _load_tier("cheap")
+    elif args.full:
+        models = _load_tier("full")
+    else:
+        models = _load_tier("standard")
+
+    # Add GCP pipeline models if credentials are available.
+    # These are the Gemini models from the selected tier, run through the
+    # suggestor's LLMClient instead of the llm library — tests the exact
+    # production code path.
+    if _has_gcp_creds() and not args.models:
+        for name, _ in list(models):
+            if "gemini" in name.lower():
+                # Strip llm plugin prefix for the pipeline backend
+                pipeline_name = name.split("/")[-1] if "/" in name else name
+                models.append((pipeline_name, "--provider gcp"))
+
+    # Build configuration matrix
+    configs: list[tuple[str, str, list[str]]] = []
+    for model, backend_args in models:
+        # Baseline: enrichment on, no verification
+        configs.append((model, backend_args, []))
+
+        # With verification
+        if not args.no_verify:
+            configs.append((model, backend_args, ["--verify"]))
+
+        # Without enrichment
+        if not args.no_enrichment_ablation:
+            configs.append((model, backend_args, ["--no-enrichment"]))
+
+            # Without enrichment + with verification
+            if not args.no_verify:
+                configs.append((model, backend_args, ["--no-enrichment", "--verify"]))
+
+    print(f"Full eval matrix: {len(configs)} runs across {len(models)} models")
+    print(f"Models: {[m for m, _ in models]}")
+    print(
+        f"Variants: enriched, {'enriched+verified, ' if not args.no_verify else ''}"
+        f"no-enrichment{', no-enrichment+verified' if not args.no_verify else ''}"
+    )
+    print()
+
+    successes = 0
+    failures = 0
+    for model, backend_args, flags in configs:
+        ok = _run_eval(model, backend_args, flags)
+        if ok:
+            successes += 1
+        else:
+            failures += 1
+
+    # Synthesize results
+    print(f"\n{'═' * 70}")
+    print(f"FULL EVAL COMPLETE: {successes} succeeded, {failures} failed")
+    print(f"{'═' * 70}\n")
+
+    summary_tsv = HERE / "pipeline-results" / "summary.tsv"
+    subprocess.run(  # noqa: S603
+        [sys.executable, str(COMPARE_SCRIPT), "--latest", "--save-tsv", str(summary_tsv)],
+        cwd=str(HERE.parent.parent),
+    )
+
+    print("\nDetailed per-submission breakdown:")
+    subprocess.run(  # noqa: S603
+        [sys.executable, str(COMPARE_SCRIPT), "--latest", "--detail"],
+        cwd=str(HERE.parent.parent),
+    )
+
+
+if __name__ == "__main__":
+    main()

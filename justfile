@@ -76,25 +76,21 @@ run-ebs:
 score-ebs:
     uv run python -m nmdc_ai_eval.envo_scorer datasets/ebs-prediction/ebs-suite-output/results.tsv
 
-# Run field-guidance eval via llm-matrix (Option B: our prompt, multiple models)
+# Run field-guidance eval via llm-matrix (no DOI/PDF, uses models.yaml list)
 run-field-guidance:
     just run datasets/field-guidance/field-guidance-suite.yaml
 
-# Run field-guidance eval via real suggestor pipeline (Option A: production code)
-run-field-guidance-pipeline provider="gcp" model="":
-    uv run python datasets/field-guidance/run_pipeline_eval.py --provider {{ provider }} {{ if model != "" { "--model " + model } else { "" } }}
+# Field guidance eval: models × enrichment × verification → summary
+full-eval *args="":
+    uv run python datasets/field-guidance/run_full_eval.py {{ args }}
 
-# End-to-end sampleData eval: generate + run
+# Compare all field-guidance eval results
+compare-pipeline-results *args="":
+    uv run python datasets/field-guidance/compare_pipeline_results.py {{ args }}
+
+# End-to-end value prediction evals (llm-matrix, no DOI/PDF)
 eval-sampledata: clean-sampledata-outputs generate-sampledata run-sampledata
-
-# End-to-end EBS eval: generate + run + score
 eval-ebs: clean-ebs-outputs generate-ebs run-ebs score-ebs
-
-# End-to-end field-guidance eval (llm-matrix path)
-eval-field-guidance: clean-field-guidance-outputs generate-field-guidance run-field-guidance
-
-# Full eval: all datasets
-eval-all: clean-outputs generate run-sampledata run-ebs score-ebs run-field-guidance
 
 # --- Cleanup ---
 
@@ -118,7 +114,7 @@ clean-ebs-outputs:
 clean-field-guidance-outputs:
     rm -rf datasets/field-guidance/field-guidance-suite-output/
     rm -f datasets/field-guidance/field-guidance-suite.db
-    rm -f datasets/field-guidance/field-guidance-pipeline-results.yaml
+    rm -rf datasets/field-guidance/pipeline-results/
 
 clean-outputs: clean-sampledata-outputs clean-ebs-outputs clean-field-guidance-outputs
 

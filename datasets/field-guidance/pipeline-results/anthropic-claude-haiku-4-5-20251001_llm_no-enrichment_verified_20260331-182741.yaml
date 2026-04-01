@@ -1,0 +1,1624 @@
+eval_name: field-guidance-pipeline
+scoring: env-triad-excluded
+enrichment: false
+verified: true
+timestamp: 20260331-182741
+model: anthropic/claude-haiku-4-5-20251001
+backend: llm
+provider: llm
+submission_count: 6
+results:
+- submission_id: 2a126775-302d-4a56-80a2-848f1b7a4f8e
+  study_name: 'AI Example: The Impact of Stand Age and Fertilization on the Soil Microbiome
+    of Miscanthus × giganteus'
+  package: soil
+  model: anthropic/claude-haiku-4-5-20251001
+  backend: llm
+  provider: llm
+  enrichment: false
+  verified: true
+  elapsed_seconds: 15.83
+  input_tokens: 25950
+  output_tokens: 1857
+  est_cost_usd: 0.028188
+  expected_slots:
+  - agrochem_addition
+  - other_treatment
+  - tot_nitro_content
+  predicted_slots:
+  - agrochem_addition
+  - cur_vegetation
+  - env_broad_scale
+  - env_local_scale
+  - env_medium
+  - experimental_factor
+  - experimental_factor_other
+  - link_addit_analys
+  - micro_biomass_meth
+  - samp_collec_method
+  - samp_mat_process
+  raw_scores:
+    precision: 0.125
+    recall: 0.3333
+    f1: 0.1818
+    true_positives:
+    - agrochem_addition
+    false_positives:
+    - cur_vegetation
+    - experimental_factor
+    - experimental_factor_other
+    - link_addit_analys
+    - micro_biomass_meth
+    - samp_collec_method
+    - samp_mat_process
+    false_negatives:
+    - other_treatment
+    - tot_nitro_content
+    excluded_correct:
+    - env_broad_scale
+    - env_local_scale
+    - env_medium
+  all_suggestions:
+  - field_name: env_broad_scale
+    reason: The study involves soil samples from an agricultural field trial with
+      Miscanthus × giganteus, which is a cropland biome environment.
+  - field_name: env_local_scale
+    reason: The samples were collected from an agricultural field, specifically from
+      a replicated chronosequence field trial of perennial grass cultivation.
+  - field_name: env_medium
+    reason: The study focuses on soil microbial communities, so the environmental
+      medium is soil from the agricultural field.
+  - field_name: cur_vegetation
+    reason: The study explicitly focuses on Miscanthus × giganteus as the vegetation
+      present at the sampling sites.
+  - field_name: agrochem_addition
+    reason: The study investigates the effects of nitrogen fertilizer rates on microbial
+      communities, indicating fertilizer was applied as a treatment.
+  - field_name: experimental_factor
+    reason: The study examines stand age and nitrogen fertilizer rates as experimental
+      factors affecting microbial community structure.
+  - field_name: experimental_factor_other
+    reason: Stand age of Miscanthus × giganteus is a key experimental variable that
+      affects microbial community composition.
+  - field_name: micro_biomass_meth
+    reason: The study analyzes microbial community structure and diversity, requiring
+      documentation of methods used for microbial analysis.
+  - field_name: samp_collec_method
+    reason: Documentation of how soil samples were collected from the field trial
+      is essential for reproducibility.
+  - field_name: samp_mat_process
+    reason: Any processing applied to soil samples after collection (e.g., for DNA
+      extraction and microbial analysis) should be documented.
+  - field_name: link_addit_analys
+    reason: The study involves microbial community analysis including bacterial α
+      diversity and taxonomic composition (Proteobacteria, Acidobacteria), which may
+      have associated analytical data.
+  verified_slots:
+  - agrochem_addition
+  - cur_vegetation
+  - env_broad_scale
+  - env_local_scale
+  - env_medium
+  - experimental_factor
+  - experimental_factor_other
+  - link_addit_analys
+  - samp_collec_method
+  - samp_mat_process
+  verified_scores: &id001
+    precision: 0.1429
+    recall: 0.3333
+    f1: 0.2
+    true_positives:
+    - agrochem_addition
+    false_positives:
+    - cur_vegetation
+    - experimental_factor
+    - experimental_factor_other
+    - link_addit_analys
+    - samp_collec_method
+    - samp_mat_process
+    false_negatives:
+    - other_treatment
+    - tot_nitro_content
+    excluded_correct:
+    - env_broad_scale
+    - env_local_scale
+    - env_medium
+  verified_suggestions:
+  - field_name: env_broad_scale
+    reason_category: mentioned_in_text
+    evidence_snippet: soil samples from different stand ages of Miscanthus × giganteus
+      in a replicated chronosequence field trial
+    reason: The study explicitly describes a field trial of Miscanthus × giganteus,
+      which is a perennial grass crop grown in an agricultural/cropland setting.
+  - field_name: env_local_scale
+    reason_category: mentioned_in_text
+    evidence_snippet: soil samples from different stand ages of Miscanthus × giganteus
+      in a replicated chronosequence field trial
+    reason: The samples were collected from an agricultural field trial, which is
+      a specific local environmental context.
+  - field_name: env_medium
+    reason_category: mentioned_in_text
+    evidence_snippet: soil samples from different stand ages of Miscanthus × giganteus...
+      to investigate the effects of stand age and N fertilizer rates on microbial
+      community structure
+    reason: The study explicitly focuses on soil as the environmental medium being
+      sampled and analyzed for microbial communities.
+  - field_name: cur_vegetation
+    reason_category: mentioned_in_text
+    evidence_snippet: Yield of the perennial grass Miscanthus × giganteus... soil
+      samples from different stand ages of Miscanthus × giganteus
+    reason: The study explicitly identifies Miscanthus × giganteus as the vegetation
+      present at the sampling sites.
+  - field_name: agrochem_addition
+    reason_category: mentioned_in_text
+    evidence_snippet: The amount of N fertilizer applied also affected the microbial
+      community structure... fertilization underpins the crop's environmental and
+      economic sustainability
+    reason: The study investigates nitrogen fertilizer rates as a treatment variable
+      affecting microbial communities, indicating fertilizer was applied.
+  - field_name: experimental_factor
+    reason_category: experimental_design
+    evidence_snippet: replicated chronosequence field trial... to investigate the
+      effects of stand age and N fertilizer rates on microbial community structure
+    reason: The study design explicitly manipulates stand age and nitrogen fertilizer
+      rates as systematic experimental variables.
+  - field_name: experimental_factor_other
+    reason_category: experimental_design
+    evidence_snippet: stand age and N fertilizer rates on microbial community structure...
+      variation in observed microbial communities generally decreases with older stand
+      ages
+    reason: Stand age is a key experimental variable systematically varied in the
+      chronosequence design that affects microbial community composition.
+  - field_name: samp_collec_method
+    reason_category: experimental_design
+    evidence_snippet: soil samples from different stand ages of Miscanthus × giganteus
+      in a replicated chronosequence field trial were used to investigate
+    reason: The study design involves collection of soil samples from a field trial;
+      documentation of collection methods is necessary for reproducibility.
+  - field_name: samp_mat_process
+    reason_category: mentioned_in_text
+    evidence_snippet: microbial community structure... bacterial α diversity... relative
+      abundance of Proteobacteria and Acidobacteria
+    reason: The study analyzes microbial community composition and diversity, implying
+      samples underwent processing (e.g., DNA extraction, sequencing) that should
+      be documented.
+  - field_name: link_addit_analys
+    reason_category: mentioned_in_text
+    evidence_snippet: microbial community structures are significantly different...
+      relative abundance of Proteobacteria (Alphaproteobacteria and Gammaproteobacteria)
+      and Acidobacteria (subgroup Gp1)... bacterial α diversity
+    reason: The study includes detailed microbial taxonomic and diversity analyses
+      that may have associated analytical data or supplementary results.
+  dropped_suggestions:
+  - field_name: micro_biomass_meth
+    reason_category: domain_standard
+    drop_reason: While the study analyzes microbial communities, it does not explicitly
+      discuss microbial biomass measurement methods. The text focuses on community
+      structure and diversity, not biomass quantification. This is a domain standard
+      field not discussed in the input.
+  scores: *id001
+- submission_id: 8477eb6d-fe30-4124-b75d-d83d4a2a41c3
+  study_name: 'AI Example: Fungal, bacterial, and archaeal communities mediating C
+    cycling and trace gas flux in peatland ecosystems subject to climate change'
+  package: soil
+  model: anthropic/claude-haiku-4-5-20251001
+  backend: llm
+  provider: llm
+  enrichment: false
+  verified: true
+  elapsed_seconds: 20.64
+  input_tokens: 25786
+  output_tokens: 3357
+  est_cost_usd: 0.034057
+  expected_slots:
+  - air_temp_regm
+  - gaseous_environment
+  predicted_slots:
+  - air_temp_regm
+  - cur_land_use
+  - cur_vegetation
+  - drainage_class
+  - env_broad_scale
+  - env_local_scale
+  - env_medium
+  - experimental_factor
+  - experimental_factor_other
+  - gaseous_environment
+  - micro_biomass_meth
+  - microbial_biomass
+  - microbial_biomass_c
+  - oxy_stat_samp
+  - ph
+  - samp_collec_method
+  - samp_mat_process
+  - soil_type
+  - tot_org_carb
+  - water_content
+  raw_scores:
+    precision: 0.1176
+    recall: 1.0
+    f1: 0.2105
+    true_positives:
+    - air_temp_regm
+    - gaseous_environment
+    false_positives:
+    - cur_land_use
+    - cur_vegetation
+    - drainage_class
+    - experimental_factor
+    - experimental_factor_other
+    - micro_biomass_meth
+    - microbial_biomass
+    - microbial_biomass_c
+    - oxy_stat_samp
+    - ph
+    - samp_collec_method
+    - samp_mat_process
+    - soil_type
+    - tot_org_carb
+    - water_content
+    false_negatives: []
+    excluded_correct:
+    - env_broad_scale
+    - env_local_scale
+    - env_medium
+  all_suggestions:
+  - field_name: env_broad_scale
+    reason: The study focuses on northern peatland ecosystems, which are classified
+      as peatland biomes within terrestrial environments.
+  - field_name: env_local_scale
+    reason: The SPRUCE experiment is conducted in a specific peatland ecosystem with
+      distinct local environmental characteristics.
+  - field_name: env_medium
+    reason: Soil samples from peatland ecosystems are the primary medium being studied
+      for microbial communities and carbon cycling.
+  - field_name: air_temp_regm
+    reason: The study explicitly examines responses to increases in temperature as
+      a primary experimental treatment in the SPRUCE experiment.
+  - field_name: gaseous_environment
+    reason: The study investigates exposure to elevated atmospheric CO2 concentrations
+      as a key experimental factor affecting peatland ecosystems.
+  - field_name: experimental_factor
+    reason: Temperature increase and elevated CO2 are the primary experimental factors
+      being manipulated in this climate change study.
+  - field_name: experimental_factor_other
+    reason: Additional details about the climate change treatments and their specific
+      parameters should be documented.
+  - field_name: cur_vegetation
+    reason: Understanding the vegetation composition of the peatland ecosystem is
+      relevant for interpreting microbial community responses.
+  - field_name: cur_land_use
+    reason: The current land use as a natural peatland ecosystem under experimental
+      manipulation is relevant context.
+  - field_name: drainage_class
+    reason: Peatland ecosystems have specific drainage characteristics that influence
+      microbial communities and carbon cycling.
+  - field_name: oxy_stat_samp
+    reason: Peatland soils are typically anaerobic or have anaerobic zones, which
+      is critical for understanding microbial communities mediating carbon cycling.
+  - field_name: soil_type
+    reason: Peatland soils are histosols, which are organic-rich soils relevant to
+      the study of carbon cycling.
+  - field_name: tot_org_carb
+    reason: Total organic carbon content is fundamental to understanding carbon cycling
+      in peatland ecosystems.
+  - field_name: microbial_biomass_c
+    reason: Microbial biomass carbon is directly relevant to understanding microbial
+      communities mediating carbon cycling.
+  - field_name: microbial_biomass
+    reason: Total microbial biomass is essential for assessing microbial community
+      responses to climate change treatments.
+  - field_name: micro_biomass_meth
+    reason: Documentation of methods used to determine microbial biomass is necessary
+      for data interpretation and reproducibility.
+  - field_name: ph
+    reason: Soil pH influences microbial community composition and function in peatland
+      ecosystems.
+  - field_name: water_content
+    reason: Water content is critical in peatland ecosystems and affects microbial
+      activity and trace gas flux.
+  - field_name: samp_collec_method
+    reason: The method used to collect soil samples from the peatland ecosystem should
+      be documented.
+  - field_name: samp_mat_process
+    reason: Any processing applied to soil samples after collection should be documented.
+  verified_slots:
+  - air_temp_regm
+  - cur_land_use
+  - cur_vegetation
+  - drainage_class
+  - env_broad_scale
+  - env_local_scale
+  - env_medium
+  - experimental_factor
+  - experimental_factor_other
+  - gaseous_environment
+  - micro_biomass_meth
+  - microbial_biomass
+  - microbial_biomass_c
+  - oxy_stat_samp
+  - ph
+  - samp_collec_method
+  - samp_mat_process
+  - soil_type
+  - tot_org_carb
+  - water_content
+  verified_scores: &id002
+    precision: 0.1176
+    recall: 1.0
+    f1: 0.2105
+    true_positives:
+    - air_temp_regm
+    - gaseous_environment
+    false_positives:
+    - cur_land_use
+    - cur_vegetation
+    - drainage_class
+    - experimental_factor
+    - experimental_factor_other
+    - micro_biomass_meth
+    - microbial_biomass
+    - microbial_biomass_c
+    - oxy_stat_samp
+    - ph
+    - samp_collec_method
+    - samp_mat_process
+    - soil_type
+    - tot_org_carb
+    - water_content
+    false_negatives: []
+    excluded_correct:
+    - env_broad_scale
+    - env_local_scale
+    - env_medium
+  verified_suggestions:
+  - field_name: env_broad_scale
+    reason_category: mentioned_in_text
+    evidence_snippet: This study is part of the Spruce and Peatland Responses Under
+      Changing Environments (SPRUCE) experiment... focused on terrestrial ecosystems...
+      assess the response of northern peatland ecosystems
+    reason: The input explicitly identifies the study location as northern peatland
+      ecosystems, which corresponds to peatland biome classification.
+  - field_name: env_local_scale
+    reason_category: mentioned_in_text
+    evidence_snippet: This project seeks to assess the response of northern peatland
+      ecosystems to increases in temperature and exposures to elevated atmospheric
+      CO2 concentrations.
+    reason: The study is conducted in a specific peatland ecosystem with distinct
+      local environmental characteristics relevant to the SPRUCE experiment.
+  - field_name: env_medium
+    reason_category: mentioned_in_text
+    evidence_snippet: 'Study name: AI Example: Fungal, bacterial, and archaeal communities
+      mediating C cycling and trace gas flux in peatland ecosystems'
+    reason: The study examines microbial communities in peatland soil, making soil
+      the primary environmental medium being studied.
+  - field_name: air_temp_regm
+    reason_category: mentioned_in_text
+    evidence_snippet: This project seeks to assess the response of northern peatland
+      ecosystems to increases in temperature
+    reason: Temperature increase is explicitly identified as a primary experimental
+      treatment in the SPRUCE experiment.
+  - field_name: gaseous_environment
+    reason_category: mentioned_in_text
+    evidence_snippet: This project seeks to assess the response of northern peatland
+      ecosystems to increases in temperature and exposures to elevated atmospheric
+      CO2 concentrations.
+    reason: Elevated atmospheric CO2 concentrations are explicitly identified as a
+      key experimental factor.
+  - field_name: experimental_factor
+    reason_category: experimental_design
+    evidence_snippet: This project seeks to assess the response of northern peatland
+      ecosystems to increases in temperature and exposures to elevated atmospheric
+      CO2 concentrations.
+    reason: Temperature increase and elevated CO2 are the primary experimental factors
+      being systematically manipulated in this climate change study.
+  - field_name: experimental_factor_other
+    reason_category: experimental_design
+    evidence_snippet: This study is part of the Spruce and Peatland Responses Under
+      Changing Environments (SPRUCE) experiment, which is the primary component of
+      the Terrestrial Ecosystem Science Focus Area
+    reason: The SPRUCE experiment involves multiple climate change treatments that
+      may require additional documentation beyond standard fields.
+  - field_name: cur_vegetation
+    reason_category: domain_standard
+    evidence_snippet: null
+    reason: While vegetation composition could influence microbial communities, the
+      input text does not discuss or mention vegetation characteristics of the peatland
+      ecosystem.
+  - field_name: cur_land_use
+    reason_category: domain_standard
+    evidence_snippet: null
+    reason: Although peatland is a natural ecosystem, the input does not explicitly
+      discuss current land use classification or management status.
+  - field_name: drainage_class
+    reason_category: domain_standard
+    evidence_snippet: null
+    reason: While peatlands have specific drainage characteristics, the input text
+      does not discuss or specify drainage class.
+  - field_name: oxy_stat_samp
+    reason_category: domain_standard
+    evidence_snippet: null
+    reason: Although peatland soils are typically anaerobic, the input text does not
+      explicitly discuss or measure oxygenation status of samples.
+  - field_name: soil_type
+    reason_category: domain_standard
+    evidence_snippet: null
+    reason: While peatland soils are histosols, the input text does not explicitly
+      mention soil type classification or characterization.
+  - field_name: tot_org_carb
+    reason_category: mentioned_in_text
+    evidence_snippet: 'Study name: AI Example: Fungal, bacterial, and archaeal communities
+      mediating C cycling and trace gas flux in peatland ecosystems'
+    reason: The study explicitly focuses on carbon cycling in peatland ecosystems,
+      making total organic carbon a relevant measurement.
+  - field_name: microbial_biomass_c
+    reason_category: mentioned_in_text
+    evidence_snippet: 'Study name: AI Example: Fungal, bacterial, and archaeal communities
+      mediating C cycling and trace gas flux in peatland ecosystems'
+    reason: Microbial biomass carbon is directly relevant to understanding microbial
+      communities mediating carbon cycling.
+  - field_name: microbial_biomass
+    reason_category: mentioned_in_text
+    evidence_snippet: 'Study name: AI Example: Fungal, bacterial, and archaeal communities
+      mediating C cycling and trace gas flux in peatland ecosystems'
+    reason: Total microbial biomass is essential for assessing microbial community
+      responses to climate change treatments.
+  - field_name: micro_biomass_meth
+    reason_category: experimental_design
+    evidence_snippet: 'Study name: AI Example: Fungal, bacterial, and archaeal communities
+      mediating C cycling and trace gas flux in peatland ecosystems'
+    reason: Documentation of methods used to determine microbial biomass is necessary
+      for reproducibility of microbial community assessments.
+  - field_name: ph
+    reason_category: domain_standard
+    evidence_snippet: null
+    reason: While pH influences microbial communities, the input text does not discuss
+      or measure pH in the peatland samples.
+  - field_name: water_content
+    reason_category: domain_standard
+    evidence_snippet: null
+    reason: Although water content is critical in peatlands, the input text does not
+      explicitly discuss measurement or documentation of water content.
+  - field_name: samp_collec_method
+    reason_category: domain_standard
+    evidence_snippet: null
+    reason: While sample collection methods are important, the input text does not
+      describe or specify the sampling methodology used.
+  - field_name: samp_mat_process
+    reason_category: domain_standard
+    evidence_snippet: null
+    reason: Although sample processing is relevant, the input text does not describe
+      any processing applied to samples after collection.
+  dropped_suggestions:
+  - field_name: cur_vegetation
+    reason_category: domain_standard
+    drop_reason: Input does not discuss vegetation composition or characteristics
+      of the peatland ecosystem.
+  - field_name: cur_land_use
+    reason_category: domain_standard
+    drop_reason: Input does not explicitly discuss current land use classification
+      or management status.
+  - field_name: drainage_class
+    reason_category: domain_standard
+    drop_reason: Input does not specify or discuss drainage class characteristics.
+  - field_name: oxy_stat_samp
+    reason_category: domain_standard
+    drop_reason: Input does not explicitly discuss or measure oxygenation status of
+      samples.
+  - field_name: soil_type
+    reason_category: domain_standard
+    drop_reason: Input does not explicitly mention soil type classification or characterization.
+  - field_name: ph
+    reason_category: domain_standard
+    drop_reason: Input does not discuss or measure pH in peatland samples.
+  - field_name: water_content
+    reason_category: domain_standard
+    drop_reason: Input does not explicitly discuss measurement or documentation of
+      water content.
+  - field_name: samp_collec_method
+    reason_category: domain_standard
+    drop_reason: Input does not describe or specify the sampling methodology used.
+  - field_name: samp_mat_process
+    reason_category: domain_standard
+    drop_reason: Input does not describe any processing applied to samples after collection.
+  scores: *id002
+- submission_id: c5a6e998-eb32-45dc-9695-f23a790ae824
+  study_name: 'AI Example: Long term crop rotations alter soil function and prairie
+    carbon dynamics to depth in midwestern cropping systems'
+  package: soil
+  model: anthropic/claude-haiku-4-5-20251001
+  backend: llm
+  provider: llm
+  enrichment: false
+  verified: true
+  elapsed_seconds: 29.64
+  input_tokens: 27608
+  output_tokens: 3913
+  est_cost_usd: 0.037738
+  expected_slots:
+  - agrochem_addition
+  - crop_rotation
+  - cur_land_use
+  - fao_class
+  predicted_slots:
+  - agrochem_addition
+  - carb_nitro_ratio
+  - crop_rotation
+  - cur_land_use
+  - env_broad_scale
+  - env_local_scale
+  - env_medium
+  - experimental_factor
+  - isotope_exposure
+  - link_addit_analys
+  - micro_biomass_meth
+  - microbial_biomass_c
+  - microbial_biomass_n
+  - org_matter
+  - previous_land_use
+  - samp_collec_device
+  - samp_mat_process
+  - sieving
+  - size_frac_up
+  - soil_horizon
+  - tot_nitro_content
+  - tot_org_carb
+  - tot_phosp
+  raw_scores:
+    precision: 0.15
+    recall: 0.75
+    f1: 0.25
+    true_positives:
+    - agrochem_addition
+    - crop_rotation
+    - cur_land_use
+    false_positives:
+    - carb_nitro_ratio
+    - experimental_factor
+    - isotope_exposure
+    - link_addit_analys
+    - micro_biomass_meth
+    - microbial_biomass_c
+    - microbial_biomass_n
+    - org_matter
+    - previous_land_use
+    - samp_collec_device
+    - samp_mat_process
+    - sieving
+    - size_frac_up
+    - soil_horizon
+    - tot_nitro_content
+    - tot_org_carb
+    - tot_phosp
+    false_negatives:
+    - fao_class
+    excluded_correct:
+    - env_broad_scale
+    - env_local_scale
+    - env_medium
+  all_suggestions:
+  - field_name: env_broad_scale
+    reason: The study focuses on the tallgrass prairie biome of central North America
+      and its conversion to cropland, making this the primary broad-scale environmental
+      system.
+  - field_name: env_local_scale
+    reason: Samples are collected from agricultural fields at the Morrow Plots, which
+      represents the local-scale environment of the study site.
+  - field_name: env_medium
+    reason: The study involves soil sampling and analysis of soil properties, organic
+      matter, and microbial communities in agricultural soil.
+  - field_name: cur_land_use
+    reason: The current land use is corn-based cropping systems in the US Midwest,
+      which is central to understanding the study's research questions.
+  - field_name: previous_land_use
+    reason: The study explicitly examines the conversion from tallgrass prairie to
+      agriculture, making previous land use critical metadata.
+  - field_name: crop_rotation
+    reason: The study involves long-term agricultural treatments at the Morrow Plots
+      spanning 149 years, including different crop rotation schemes.
+  - field_name: samp_collec_device
+    reason: The study specifies collection of soil columns (8 cm x 60 cm) as the primary
+      sampling method.
+  - field_name: samp_mat_process
+    reason: Samples undergo multiple processing steps including sectioning, sieving,
+      flash freezing, and staining for various analytical techniques.
+  - field_name: sieving
+    reason: The study explicitly mentions sieving samples into <1 cm aggregates for
+      analysis.
+  - field_name: size_frac_up
+    reason: Samples are sieved to obtain aggregates smaller than 1 cm, establishing
+      an upper size fraction limit.
+  - field_name: tot_org_carb
+    reason: Total organic carbon is a key measurement in the study to characterize
+      soil organic matter content and changes over time.
+  - field_name: tot_nitro_content
+    reason: Total nitrogen content is explicitly mentioned as a measurement to characterize
+      soil nutrient status and organic matter.
+  - field_name: tot_phosp
+    reason: Total phosphorus is explicitly mentioned as a measurement to evaluate
+      nutrient storage and provisioning in soils.
+  - field_name: org_matter
+    reason: Soil organic matter content and form are core research questions in this
+      study.
+  - field_name: carb_nitro_ratio
+    reason: Understanding carbon to nitrogen ratios is relevant for characterizing
+      soil organic matter quality and microbial nutrient cycling.
+  - field_name: microbial_biomass_c
+    reason: The study includes measurement of microbial community composition and
+      function, which relates to microbial biomass carbon.
+  - field_name: microbial_biomass_n
+    reason: The study evaluates microbial communities and their role in nutrient cycling,
+      relevant to microbial biomass nitrogen.
+  - field_name: micro_biomass_meth
+    reason: The study employs metagenomics, metabolomics, proteomics, and lipidomics
+      to characterize microbial communities and function.
+  - field_name: isotope_exposure
+    reason: The study uses δ13C isotope analysis and 14C dating to distinguish prairie-derived
+      (C3) versus corn-derived (C4) organic matter.
+  - field_name: experimental_factor
+    reason: The study examines long-term agricultural management practices and crop
+      rotation treatments as experimental factors.
+  - field_name: agrochem_addition
+    reason: The study involves long-term agricultural treatments at the Morrow Plots
+      which likely include fertilizer and pesticide applications typical of corn-based
+      cropping systems.
+  - field_name: soil_horizon
+    reason: The study specifically examines soil hydrobiogeochemical functioning at
+      depths beyond the typical 15 cm plow layer, indicating analysis of multiple
+      horizons.
+  - field_name: link_addit_analys
+    reason: The study involves advanced imaging and analysis at multiple facilities
+      (EMSL, APS) and will generate neural network models for particulate organic
+      matter distribution.
+  verified_slots:
+  - crop_rotation
+  - cur_land_use
+  - env_broad_scale
+  - env_local_scale
+  - env_medium
+  - experimental_factor
+  - isotope_exposure
+  - link_addit_analys
+  - micro_biomass_meth
+  - microbial_biomass_c
+  - org_matter
+  - previous_land_use
+  - samp_collec_device
+  - samp_mat_process
+  - sieving
+  - size_frac_up
+  - soil_horizon
+  - tot_nitro_content
+  - tot_org_carb
+  - tot_phosp
+  verified_scores: &id003
+    precision: 0.1176
+    recall: 0.5
+    f1: 0.1905
+    true_positives:
+    - crop_rotation
+    - cur_land_use
+    false_positives:
+    - experimental_factor
+    - isotope_exposure
+    - link_addit_analys
+    - micro_biomass_meth
+    - microbial_biomass_c
+    - org_matter
+    - previous_land_use
+    - samp_collec_device
+    - samp_mat_process
+    - sieving
+    - size_frac_up
+    - soil_horizon
+    - tot_nitro_content
+    - tot_org_carb
+    - tot_phosp
+    false_negatives:
+    - agrochem_addition
+    - fao_class
+    excluded_correct:
+    - env_broad_scale
+    - env_local_scale
+    - env_medium
+  verified_suggestions:
+  - field_name: env_broad_scale
+    reason_category: mentioned_in_text
+    evidence_snippet: the tallgrass prairie biome of central North America has been
+      rapidly replaced by annual cropping systems, transforming the region into one
+      of the world's most productive grain areas
+    reason: The study explicitly discusses the tallgrass prairie biome as the primary
+      broad-scale environmental system.
+  - field_name: env_local_scale
+    reason_category: mentioned_in_text
+    evidence_snippet: we will sample soils from long-term treatments at the Morrow
+      Plots (University of Illinois Urbana-Champaign), established in 1876
+    reason: The Morrow Plots agricultural field is explicitly identified as the sampling
+      location.
+  - field_name: env_medium
+    reason_category: mentioned_in_text
+    evidence_snippet: soil organic matter (SOM) that accumulated from millenia of
+      prairie growth...soil hydrobiogeochemical functioning...soil organic matter
+      content, form, source
+    reason: The study focuses on soil as the environmental medium being sampled and
+      analyzed.
+  - field_name: cur_land_use
+    reason_category: mentioned_in_text
+    evidence_snippet: conversion of the tallgrass prairie biome to corn-based cropping
+      systems in the US Midwest
+    reason: Current land use as corn-based cropping is central to the research questions.
+  - field_name: previous_land_use
+    reason_category: mentioned_in_text
+    evidence_snippet: Over the past 150 years, the tallgrass prairie biome of central
+      North America has been rapidly replaced by annual cropping systems...established
+      in 1876 when tallgrass prairies were in the final stage of conversion to agriculture
+    reason: The study explicitly examines the conversion from tallgrass prairie to
+      agriculture as a core research focus.
+  - field_name: crop_rotation
+    reason_category: mentioned_in_text
+    evidence_snippet: long-term agricultural management practices (spanning 149 years
+      at the proposed 2025 sampling) at the Morrow Plots
+    reason: The study involves long-term treatments at the Morrow Plots which include
+      different crop rotation schemes as part of agricultural management practices.
+  - field_name: samp_collec_device
+    reason_category: mentioned_in_text
+    evidence_snippet: Duplicate soil columns (8 cm x 60 cm) will be collected from
+      each treatment replicate
+    reason: The study specifies soil columns as the primary sampling device.
+  - field_name: samp_mat_process
+    reason_category: mentioned_in_text
+    evidence_snippet: The columns will be broken up and <1 cm aggregates will be stained
+      with Os and imaged...a second core will be collected from each treatment replicate,
+      sectioned, sieved, and flash frozen
+    reason: Multiple processing steps are described including sectioning, sieving,
+      staining, and flash freezing.
+  - field_name: sieving
+    reason_category: mentioned_in_text
+    evidence_snippet: a second core will be collected from each treatment replicate,
+      sectioned, sieved, and flash frozen
+    reason: The study explicitly mentions sieving as a sample processing step.
+  - field_name: size_frac_up
+    reason_category: mentioned_in_text
+    evidence_snippet: The columns will be broken up and <1 cm aggregates will be stained
+      with Os and imaged
+    reason: Samples are processed to obtain aggregates smaller than 1 cm, establishing
+      an upper size fraction limit.
+  - field_name: tot_org_carb
+    reason_category: mentioned_in_text
+    evidence_snippet: total carbon (C), nitrogen (N) and phosphorus (P)...to characterize
+      SOM and related biogeochemical functions
+    reason: Total organic carbon is explicitly mentioned as a key measurement for
+      characterizing soil organic matter.
+  - field_name: tot_nitro_content
+    reason_category: mentioned_in_text
+    evidence_snippet: total carbon (C), nitrogen (N) and phosphorus (P), extractable
+      N and P, and activities of oxidative and hydrolytic enzymes
+    reason: Total nitrogen content is explicitly mentioned as a measurement to characterize
+      soil nutrient status.
+  - field_name: tot_phosp
+    reason_category: mentioned_in_text
+    evidence_snippet: total carbon (C), nitrogen (N) and phosphorus (P)...to characterize
+      SOM and related biogeochemical functions (e.g., nutrient storage and provisioning)
+    reason: Total phosphorus is explicitly mentioned as a measurement to evaluate
+      nutrient storage and provisioning.
+  - field_name: org_matter
+    reason_category: mentioned_in_text
+    evidence_snippet: soil organic matter content, form, source (i.e., prairie vs
+      crop) and age are core research questions
+    reason: Soil organic matter content and form are explicitly identified as core
+      research questions.
+  - field_name: microbial_biomass_c
+    reason_category: mentioned_in_text
+    evidence_snippet: 'Microbial community composition and function will be evaluated
+      using a concerted suite of measurements at EMSL and JGI: metagenomics, metabolomics,
+      proteomics, and lipidomics'
+    reason: The study includes comprehensive measurement of microbial communities
+      and their function, which relates to microbial biomass carbon.
+  - field_name: micro_biomass_meth
+    reason_category: mentioned_in_text
+    evidence_snippet: 'Microbial community composition and function will be evaluated
+      using a concerted suite of measurements at EMSL and JGI: metagenomics, metabolomics,
+      proteomics, and lipidomics'
+    reason: The study employs multiple advanced methods to characterize microbial
+      communities and function.
+  - field_name: isotope_exposure
+    reason_category: mentioned_in_text
+    evidence_snippet: to quantify the SOM derived from tallgrass prairie (largely
+      C3) versus corn (C4), we will measure δ13C of bulk soil, POM, and mineral associated
+      organic carbon (MAOM) fractions, and employ 14C dating
+    reason: The study uses isotope analysis (δ13C and 14C) to distinguish prairie-derived
+      versus corn-derived organic matter.
+  - field_name: experimental_factor
+    reason_category: experimental_design
+    evidence_snippet: long-term (year 149 in 2025) treatments at the Morrow Plots...Duplicate
+      soil columns (8 cm x 60 cm) will be collected from each treatment replicate
+    reason: The study design involves long-term agricultural management treatments
+      as experimental factors with replicated sampling.
+  - field_name: soil_horizon
+    reason_category: mentioned_in_text
+    evidence_snippet: soil hydrobiogeochemical functioning, including at depths beyond
+      the typical sampling depth of 15 cm...above and below the typical plow layer
+      (15 cm) at macro and microscales
+    reason: The study explicitly examines multiple soil depths and horizons, including
+      analysis beyond the typical plow layer.
+  - field_name: link_addit_analys
+    reason_category: mentioned_in_text
+    evidence_snippet: X-ray computed tomography at EMSL will be used to visualize
+      soil structure...X-ray microcomputed tomography at APS...scanning electron microscopy
+      energy dispersive x-ray spectroscopy (SEM-EDS) at EMSL...neural networks to
+      evaluate particulate organic matter (POM) distribution
+    reason: The study involves advanced imaging and analysis at multiple facilities
+      and will generate neural network models for analysis.
+  dropped_suggestions:
+  - field_name: carb_nitro_ratio
+    reason_category: domain_standard
+    drop_reason: While carbon and nitrogen are measured separately, the text does
+      not discuss or imply calculation of C:N ratios as a specific analytical outcome.
+      This is a derived metric not mentioned in the study design.
+  - field_name: microbial_biomass_n
+    reason_category: domain_standard
+    drop_reason: The study measures microbial community composition and function through
+      metagenomics, metabolomics, proteomics, and lipidomics, but does not specifically
+      mention microbial biomass nitrogen as a measured parameter.
+  - field_name: agrochem_addition
+    reason_category: domain_standard
+    drop_reason: While the study involves long-term agricultural treatments, the text
+      does not provide specific information about fertilizer or pesticide applications,
+      timing, or amounts. This is assumed but not discussed.
+  scores: *id003
+- submission_id: d882c556-6673-4318-98b0-2b80ff94af65
+  study_name: 'AI Example: Spatial and Temporal Patterns of Public Transit Aerobiomes'
+  package: air
+  model: anthropic/claude-haiku-4-5-20251001
+  backend: llm
+  provider: llm
+  enrichment: false
+  verified: true
+  elapsed_seconds: 16.56
+  input_tokens: 10618
+  output_tokens: 1879
+  est_cost_usd: 0.01601
+  expected_slots:
+  - ventilation_type
+  predicted_slots:
+  - env_broad_scale
+  - env_local_scale
+  - env_medium
+  - experimental_factor
+  - humidity
+  - oxy_stat_samp
+  - samp_collec_device
+  - samp_collec_method
+  - samp_mat_process
+  - temp
+  - ventilation_rate
+  - ventilation_type
+  raw_scores:
+    precision: 0.1111
+    recall: 1.0
+    f1: 0.2
+    true_positives:
+    - ventilation_type
+    false_positives:
+    - experimental_factor
+    - humidity
+    - oxy_stat_samp
+    - samp_collec_device
+    - samp_collec_method
+    - samp_mat_process
+    - temp
+    - ventilation_rate
+    false_negatives: []
+    excluded_correct:
+    - env_broad_scale
+    - env_local_scale
+    - env_medium
+  all_suggestions:
+  - field_name: env_broad_scale
+    reason: Study examines aerobiomes in public transit systems across six global
+      cities, requiring specification of the broad environmental system (urban/anthropogenic
+      environment).
+  - field_name: env_local_scale
+    reason: Samples were collected from public transit systems (buses, trains, etc.),
+      which is a specific local environmental context that should be documented.
+  - field_name: env_medium
+    reason: The study explicitly focuses on air samples and aerobiomes, making air
+      the primary environmental medium being sampled.
+  - field_name: samp_collec_method
+    reason: The abstract describes air sampling methodology over a three-year period
+      from public transit systems, requiring documentation of the collection method
+      used.
+  - field_name: samp_collec_device
+    reason: Air sampling requires specification of the device used to collect aerosol
+      samples from the transit environment.
+  - field_name: samp_mat_process
+    reason: The abstract emphasizes the importance of bioinformatics analysis pipeline
+      including trimming, exogenous contamination removal, and classification, which
+      represents critical sample processing steps.
+  - field_name: ventilation_type
+    reason: The study suggests a possible correlation between ventilation method and
+      aerobiome genetic signatures, indicating ventilation type is a relevant environmental
+      variable.
+  - field_name: ventilation_rate
+    reason: Ventilation characteristics are identified as potentially influencing
+      aerobiome community structure in public transit systems.
+  - field_name: temp
+    reason: Temperature is a standard environmental parameter that influences microbial
+      community composition and should be recorded at time of sampling.
+  - field_name: humidity
+    reason: Humidity is an important environmental factor affecting aerobiome diversity
+      and microbial survival in air samples.
+  - field_name: experimental_factor
+    reason: The study examines spatial (six cities) and temporal (three-year period
+      with seasonal and daily cycles) patterns as experimental variables affecting
+      aerobiome diversity.
+  - field_name: oxy_stat_samp
+    reason: Air samples are inherently aerobic environments, making oxygen status
+      relevant to characterizing the sampling conditions.
+  verified_slots:
+  - env_broad_scale
+  - env_local_scale
+  - env_medium
+  - experimental_factor
+  - samp_collec_method
+  - samp_mat_process
+  - ventilation_type
+  verified_scores: &id004
+    precision: 0.25
+    recall: 1.0
+    f1: 0.4
+    true_positives:
+    - ventilation_type
+    false_positives:
+    - experimental_factor
+    - samp_collec_method
+    - samp_mat_process
+    false_negatives: []
+    excluded_correct:
+    - env_broad_scale
+    - env_local_scale
+    - env_medium
+  verified_suggestions:
+  - field_name: env_broad_scale
+    reason_category: mentioned_in_text
+    evidence_snippet: Air samples taken over a three-year period (2017-2019) from
+      six global cities were subjected to shotgun metagenomic sequencing.
+    reason: Study explicitly examines aerobiomes across six global cities, establishing
+      urban/anthropogenic environment as the broad environmental system.
+  - field_name: env_local_scale
+    reason_category: mentioned_in_text
+    evidence_snippet: The objective of this study was to examine spatial and temporal
+      patterns in the species diversity of public transit aerobiomes.
+    reason: Samples collected specifically from public transit systems, which is a
+      distinct local environmental context requiring documentation.
+  - field_name: env_medium
+    reason_category: mentioned_in_text
+    evidence_snippet: Air samples taken over a three-year period (2017-2019) from
+      six global cities were subjected to shotgun metagenomic sequencing.
+    reason: Study explicitly focuses on air samples and aerobiomes, making air the
+      primary environmental medium being sampled.
+  - field_name: samp_collec_method
+    reason_category: experimental_design
+    evidence_snippet: Air samples taken over a three-year period (2017-2019) from
+      six global cities were subjected to shotgun metagenomic sequencing.
+    reason: Study design involves systematic air sampling from public transit systems
+      over a defined temporal period, requiring documentation of collection methodology.
+  - field_name: samp_mat_process
+    reason_category: mentioned_in_text
+    evidence_snippet: Improved classification databases, notably for fungi, applying
+      stringent parameters for trimming, exogenous contamination removal and classification
+      yielded high species-level resolution. The importance of a robust bioinformatics
+      analysis pipeline to identify and remove exogenous contaminants for studying
+      low biomass samples is highlighted.
+    reason: Study explicitly describes critical sample processing steps including
+      trimming, contamination removal, and bioinformatics classification.
+  - field_name: ventilation_type
+    reason_category: mentioned_in_text
+    evidence_snippet: A possible correlation between geographical distance and ventilation
+      method and the genetic signatures of aerobiomes is suggested.
+    reason: Study identifies ventilation method as a factor potentially influencing
+      aerobiome community structure and genetic signatures.
+  - field_name: experimental_factor
+    reason_category: experimental_design
+    evidence_snippet: The objective of this study was to examine spatial and temporal
+      patterns in the species diversity of public transit aerobiomes. Longitudinal
+      studies show aerobiome diversity as dynamic, fluctuating during annual, seasonal
+      and daily cycles.
+    reason: Study systematically examines spatial variation (six cities) and temporal
+      variation (three-year period with seasonal and daily cycles) as experimental
+      factors affecting aerobiome diversity.
+  dropped_suggestions:
+  - field_name: samp_collec_device
+    reason_category: domain_standard
+    drop_reason: While air sampling inherently requires a collection device, the input
+      text does not discuss or specify what device was used. This is a domain standard
+      assumption without textual support.
+  - field_name: ventilation_rate
+    reason_category: domain_standard
+    drop_reason: Although ventilation is mentioned as a potential factor, the text
+      does not discuss ventilation rate measurements or values. Only ventilation type/method
+      is mentioned.
+  - field_name: temp
+    reason_category: domain_standard
+    drop_reason: Temperature is not mentioned or discussed in the input text. While
+      it is a standard environmental parameter, recommending it without textual evidence
+      violates the rule against domain_standard fields.
+  - field_name: humidity
+    reason_category: domain_standard
+    drop_reason: Humidity is not mentioned or discussed in the input text. While it
+      may influence aerobiome diversity, the text provides no evidence of measurement
+      or consideration of this parameter.
+  - field_name: oxy_stat_samp
+    reason_category: domain_standard
+    drop_reason: Although air samples are inherently aerobic, the text does not discuss
+      or measure oxygen status. This is a tautological assumption (all air samples
+      are aerobic) rather than evidence-based recommendation.
+  scores: *id004
+- submission_id: 3215bef4-d8d6-470a-ab43-3f0f728a38e2
+  study_name: 'AI example: Investigating the effect of agriculture and fire on soil
+    molecular properties'
+  package: soil
+  model: anthropic/claude-haiku-4-5-20251001
+  backend: llm
+  provider: llm
+  enrichment: false
+  verified: true
+  elapsed_seconds: 24.67
+  input_tokens: 26584
+  output_tokens: 2884
+  est_cost_usd: 0.032803
+  expected_slots:
+  - agrochem_addition
+  - crop_rotation
+  - fire
+  - tillage
+  predicted_slots:
+  - agrochem_addition
+  - crop_rotation
+  - cur_land_use
+  - cur_vegetation
+  - env_broad_scale
+  - env_local_scale
+  - env_medium
+  - experimental_factor
+  - experimental_factor_other
+  - link_addit_analys
+  - microbial_biomass_c
+  - org_matter
+  - samp_collec_method
+  - samp_mat_process
+  - soil_type
+  - tillage
+  - tot_org_carb
+  - water_content
+  raw_scores:
+    precision: 0.2
+    recall: 0.75
+    f1: 0.3158
+    true_positives:
+    - agrochem_addition
+    - crop_rotation
+    - tillage
+    false_positives:
+    - cur_land_use
+    - cur_vegetation
+    - experimental_factor
+    - experimental_factor_other
+    - link_addit_analys
+    - microbial_biomass_c
+    - org_matter
+    - samp_collec_method
+    - samp_mat_process
+    - soil_type
+    - tot_org_carb
+    - water_content
+    false_negatives:
+    - fire
+    excluded_correct:
+    - env_broad_scale
+    - env_local_scale
+    - env_medium
+  all_suggestions:
+  - field_name: env_broad_scale
+    reason: The study involves sampling agricultural land use gradients at KBS LTER
+      site, which is characterized as cropland and grassland biomes with forest reference
+      areas.
+  - field_name: env_local_scale
+    reason: Samples are collected from agricultural fields, grassland areas, and forest
+      plots representing different land use intensities.
+  - field_name: env_medium
+    reason: The study focuses on soil sampling across different agricultural management
+      practices and land uses.
+  - field_name: cur_land_use
+    reason: The study explicitly describes current land use as row crop agriculture,
+      early successional grassland, and deciduous forest.
+  - field_name: cur_vegetation
+    reason: Current vegetation includes corn-soy-wheat rotations, grassland with high
+      plant diversity, and deciduous forest.
+  - field_name: crop_rotation
+    reason: The study explicitly mentions corn-soy-wheat rotation as one of the main
+      cropping systems being studied.
+  - field_name: agrochem_addition
+    reason: The study compares treatments with varying chemical inputs including conventional
+      with full inputs, reduced input (1/3 of chemicals), and organic with no chemical
+      inputs.
+  - field_name: tillage
+    reason: The study includes treatments comparing conventional tillage versus no-tillage
+      practices as part of the management gradient.
+  - field_name: experimental_factor
+    reason: The study is designed around a land use intensity gradient with different
+      agricultural management practices as the primary experimental factor.
+  - field_name: experimental_factor_other
+    reason: The study examines interactions between soil biological and physical properties,
+      including X-ray CT on intact soil, across management practices.
+  - field_name: samp_collec_method
+    reason: The submission describes sampling from long-term treatment plots at the
+      KBS LTER Main Cropping Systems Experiment.
+  - field_name: samp_mat_process
+    reason: The study mentions X-ray CT analysis on intact soil samples, indicating
+      specific processing methods are employed.
+  - field_name: link_addit_analys
+    reason: The study references existing KBS LTER datasets on soils, climate, and
+      ecosystem services that will be integrated with new molecular measurements.
+  - field_name: microbial_biomass_c
+    reason: The study aims to characterize soil biological properties including microbial
+      communities across the management gradient.
+  - field_name: tot_org_carb
+    reason: The study explicitly mentions soil carbon accumulation as an ecosystem
+      service outcome being investigated.
+  - field_name: org_matter
+    reason: The study notes that no-till treatments have accumulated greater soil
+      organic matter compared to conventional tilled treatments.
+  - field_name: water_content
+    reason: The study mentions that no-till treatments have greater water holding
+      capacity, a key soil physical property.
+  - field_name: soil_type
+    reason: Understanding soil type is important for interpreting how agricultural
+      management affects soil molecular properties across the gradient.
+  verified_slots:
+  - agrochem_addition
+  - crop_rotation
+  - cur_land_use
+  - cur_vegetation
+  - env_broad_scale
+  - env_local_scale
+  - env_medium
+  - experimental_factor
+  - experimental_factor_other
+  - link_addit_analys
+  - microbial_biomass_c
+  - org_matter
+  - samp_collec_method
+  - samp_mat_process
+  - tillage
+  - tot_org_carb
+  - water_content
+  verified_scores: &id005
+    precision: 0.2143
+    recall: 0.75
+    f1: 0.3333
+    true_positives:
+    - agrochem_addition
+    - crop_rotation
+    - tillage
+    false_positives:
+    - cur_land_use
+    - cur_vegetation
+    - experimental_factor
+    - experimental_factor_other
+    - link_addit_analys
+    - microbial_biomass_c
+    - org_matter
+    - samp_collec_method
+    - samp_mat_process
+    - tot_org_carb
+    - water_content
+    false_negatives:
+    - fire
+    excluded_correct:
+    - env_broad_scale
+    - env_local_scale
+    - env_medium
+  verified_suggestions:
+  - field_name: env_broad_scale
+    reason_category: mentioned_in_text
+    evidence_snippet: 'agricultural land use gradient at KBS LTER site... oriented
+      along a land use intensity gradient: four treatments in row crop agriculture...
+      two successional plant communities, early successional grassland, and Deciduous
+      forest'
+    reason: The study explicitly describes sampling across cropland biome (row crop
+      agriculture) and grassland/forest biomes as reference areas.
+  - field_name: env_local_scale
+    reason_category: mentioned_in_text
+    evidence_snippet: Samples will come from 6 long-term treatments in KBS's Main
+      Cropping Systems Experiment... agricultural field [for row crops], grassland
+      area [early successional], and forest plots [deciduous forest]
+    reason: 'The study describes sampling from specific local environmental entities:
+      agricultural fields, grassland areas, and forest plots.'
+  - field_name: env_medium
+    reason_category: mentioned_in_text
+    evidence_snippet: sample the agricultural land use gradient... to understand how
+      agricultural management affects soil molecular properties
+    reason: The study focuses on soil as the environmental medium being sampled across
+      different land uses.
+  - field_name: cur_land_use
+    reason_category: mentioned_in_text
+    evidence_snippet: 'oriented along a land use intensity gradient: four treatments
+      in row crop agriculture... early successional grassland, and Deciduous forest'
+    reason: Current land use is explicitly described as row crop agriculture, grassland,
+      and forest.
+  - field_name: cur_vegetation
+    reason_category: mentioned_in_text
+    evidence_snippet: corn-soy-wheat rotation... early successional grassland (high
+      plant diversity)... Deciduous forest
+    reason: Current vegetation types are explicitly mentioned for each treatment.
+  - field_name: crop_rotation
+    reason_category: mentioned_in_text
+    evidence_snippet: 'corn-soy-wheat rotation: 1) Conventional with tillage, 2) No-tillage
+      3) Reduced input... 4) Organic'
+    reason: The study explicitly describes corn-soy-wheat rotation as the cropping
+      system.
+  - field_name: agrochem_addition
+    reason_category: mentioned_in_text
+    evidence_snippet: Reduced input (1/3 of chemical inputs), with cover crops...
+      Organic, with no chemical inputs and cover crops... link soil measurements to
+      management decisions (tillage, cover crops, perennials)
+    reason: The study compares treatments with varying chemical inputs from full conventional
+      inputs to 1/3 reduced to zero (organic).
+  - field_name: tillage
+    reason_category: mentioned_in_text
+    evidence_snippet: 1) Conventional with tillage, 2) No-tillage... link soil measurements
+      to management decisions (tillage, cover crops, perennials)
+    reason: The study explicitly compares conventional tillage versus no-tillage as
+      management treatments.
+  - field_name: experimental_factor
+    reason_category: experimental_design
+    evidence_snippet: 6 long-term treatments in KBS's Main Cropping Systems Experiment,
+      oriented along a land use intensity gradient... replicated field trial with
+      N=5 for grassland, N=3 for forest
+    reason: The study is designed around a land use intensity gradient with systematically
+      varied agricultural management practices as the primary experimental factor.
+  - field_name: experimental_factor_other
+    reason_category: mentioned_in_text
+    evidence_snippet: Interactions between soil biological and soil physical properties
+      (including X-ray CT on intact soil) are a major gap... MONet measurements across
+      our long-term gradient
+    reason: The study examines interactions between soil biological and physical properties
+      using specialized measurements like X-ray CT.
+  - field_name: samp_collec_method
+    reason_category: mentioned_in_text
+    evidence_snippet: Samples will come from 6 long-term treatments in KBS's Main
+      Cropping Systems Experiment... long-term (35 year) nature of these treatments
+    reason: The submission describes sampling from established long-term treatment
+      plots at a specific experimental site.
+  - field_name: samp_mat_process
+    reason_category: mentioned_in_text
+    evidence_snippet: X-ray CT on intact soil... MONet measurements... amplicon sequencing
+      data
+    reason: The study describes specific processing and analytical methods applied
+      to soil samples including X-ray CT and molecular sequencing.
+  - field_name: link_addit_analys
+    reason_category: mentioned_in_text
+    evidence_snippet: Previous and current data on soils, climate, and ecosystem services
+      generated by the KBS LTER (https://lter.kbs.msu.edu/datatables) will increase
+      the impact of this work
+    reason: The study explicitly references existing KBS LTER datasets that will be
+      integrated with new molecular measurements.
+  - field_name: microbial_biomass_c
+    reason_category: mentioned_in_text
+    evidence_snippet: characterizing soil biological and soil physical properties...
+      soil biological properties... amplicon sequencing data
+    reason: The study aims to characterize soil biological properties including microbial
+      communities across the management gradient.
+  - field_name: tot_org_carb
+    reason_category: mentioned_in_text
+    evidence_snippet: ecosystem service outcomes (soil health, trace gas flux, soil
+      carbon accumulation)
+    reason: Soil carbon accumulation is explicitly mentioned as an ecosystem service
+      outcome being investigated.
+  - field_name: org_matter
+    reason_category: mentioned_in_text
+    evidence_snippet: no-till treatments have accumulated greater soil organic matter
+      than conventional tilled treatments
+    reason: The study explicitly discusses differences in soil organic matter between
+      tillage treatments.
+  - field_name: water_content
+    reason_category: mentioned_in_text
+    evidence_snippet: no-till treatments have accumulated greater soil organic matter
+      than conventional tilled treatments and have greater water holding capacity
+    reason: Water holding capacity (related to water content) is mentioned as a key
+      soil physical property differing between treatments.
+  dropped_suggestions:
+  - field_name: soil_type
+    reason_category: domain_standard
+    drop_reason: While soil type is standard for soil studies, the input text does
+      not discuss or imply soil classification, soil series, or soil type information.
+      The study focuses on management practices and their effects rather than soil
+      classification.
+  scores: *id005
+- submission_id: c361c3f9-d023-4ff4-9ef3-8b308fd67d70
+  study_name: 'AI example: Umpqua National Forest Postfire'
+  package: soil
+  model: anthropic/claude-haiku-4-5-20251001
+  backend: llm
+  provider: llm
+  enrichment: false
+  verified: true
+  elapsed_seconds: 22.25
+  input_tokens: 26225
+  output_tokens: 2856
+  est_cost_usd: 0.032404
+  expected_slots:
+  - fire
+  - other_treatment
+  predicted_slots:
+  - bulk_elect_conductivity
+  - cur_land_use
+  - env_broad_scale
+  - env_local_scale
+  - env_medium
+  - experimental_factor_other
+  - extreme_event
+  - fire
+  - link_addit_analys
+  - micro_biomass_c_meth
+  - microbial_biomass_c
+  - microbial_biomass_n
+  - org_matter
+  - ph
+  - previous_land_use
+  - samp_collec_method
+  - samp_mat_process
+  - soil_burn_severity
+  - tot_nitro_content
+  - tot_org_carb
+  raw_scores:
+    precision: 0.0588
+    recall: 0.5
+    f1: 0.1053
+    true_positives:
+    - fire
+    false_positives:
+    - bulk_elect_conductivity
+    - cur_land_use
+    - experimental_factor_other
+    - extreme_event
+    - link_addit_analys
+    - micro_biomass_c_meth
+    - microbial_biomass_c
+    - microbial_biomass_n
+    - org_matter
+    - ph
+    - previous_land_use
+    - samp_collec_method
+    - samp_mat_process
+    - soil_burn_severity
+    - tot_nitro_content
+    - tot_org_carb
+    false_negatives:
+    - other_treatment
+    excluded_correct:
+    - env_broad_scale
+    - env_local_scale
+    - env_medium
+  all_suggestions:
+  - field_name: env_broad_scale
+    reason: The study is conducted in the Umpqua National Forest, which is part of
+      seasonally dry forests of western North America, fitting the coniferous forest
+      biome classification.
+  - field_name: env_local_scale
+    reason: Sampling occurs in specific forest areas affected by wildfire, including
+      burned areas and salvage logging units within the national forest.
+  - field_name: env_medium
+    reason: The study focuses on soil properties in severely burned soils and areas
+      with varying soil burn severity, making burned soil the primary environmental
+      medium.
+  - field_name: fire
+    reason: The study explicitly examines effects of severe wildfire on soil properties,
+      making fire history a critical metadata field.
+  - field_name: extreme_event
+    reason: Severe wildfire is an unusual physical event that has affected the microbial
+      populations and soil properties being studied.
+  - field_name: cur_land_use
+    reason: The study compares properties within and outside salvage logging units,
+      indicating different current land use management practices.
+  - field_name: previous_land_use
+    reason: Understanding the pre-fire forest condition is relevant to assessing post-fire
+      soil changes and recovery.
+  - field_name: soil_burn_severity
+    reason: The study specifically examines areas mapped as high, low, or no soil
+      burn severity, which is a critical classification variable.
+  - field_name: microbial_biomass_c
+    reason: The study aims to assess impacts on soil microbial communities and their
+      recovery, making microbial biomass carbon a key measurement.
+  - field_name: microbial_biomass_n
+    reason: Microbial biomass nitrogen is relevant to understanding microbial community
+      recovery in burned soils.
+  - field_name: micro_biomass_c_meth
+    reason: Method documentation is needed for microbial biomass carbon measurements
+      in the study.
+  - field_name: tot_org_carb
+    reason: Total organic carbon is a key soil property affected by wildfire and relevant
+      to understanding soil recovery and organic matter changes.
+  - field_name: tot_nitro_content
+    reason: Total nitrogen content is important for assessing chemical soil property
+      changes in burned soils.
+  - field_name: org_matter
+    reason: Organic matter concentration is directly relevant to the study's focus
+      on organic material retention and recovery in burned soils.
+  - field_name: ph
+    reason: Soil pH is a fundamental chemical property that changes with fire and
+      is relevant to assessing soil condition.
+  - field_name: bulk_elect_conductivity
+    reason: Electrical conductivity reflects soil chemistry changes and is relevant
+      to assessing fire impacts on soil properties.
+  - field_name: samp_collec_method
+    reason: Documentation of sampling methodology is essential for reproducibility
+      and data interpretation.
+  - field_name: samp_mat_process
+    reason: Description of any processing applied to soil samples during or after
+      collection is needed for proper data interpretation.
+  - field_name: experimental_factor_other
+    reason: The comparison between salvage logging units and non-logged areas represents
+      an important experimental factor affecting soil properties.
+  - field_name: link_addit_analys
+    reason: The study mentions monitoring for visible signs of erosion and rapid assessment
+      mapping, which may have associated analysis results.
+  verified_slots:
+  - cur_land_use
+  - env_broad_scale
+  - env_local_scale
+  - env_medium
+  - experimental_factor_other
+  - extreme_event
+  - fire
+  - micro_biomass_c_meth
+  - microbial_biomass_c
+  - org_matter
+  - ph
+  - samp_collec_method
+  - samp_mat_process
+  - tot_nitro_content
+  - tot_org_carb
+  verified_scores: &id006
+    precision: 0.0833
+    recall: 0.5
+    f1: 0.1429
+    true_positives:
+    - fire
+    false_positives:
+    - cur_land_use
+    - experimental_factor_other
+    - extreme_event
+    - micro_biomass_c_meth
+    - microbial_biomass_c
+    - org_matter
+    - ph
+    - samp_collec_method
+    - samp_mat_process
+    - tot_nitro_content
+    - tot_org_carb
+    false_negatives:
+    - other_treatment
+    excluded_correct:
+    - env_broad_scale
+    - env_local_scale
+    - env_medium
+  verified_suggestions:
+  - field_name: env_broad_scale
+    reason_category: mentioned_in_text
+    evidence_snippet: extensive seasonally dry forests of western North America and
+      similar biomes worldwide
+    reason: The text explicitly describes the forest type and biome context of the
+      study location.
+  - field_name: env_local_scale
+    reason_category: mentioned_in_text
+    evidence_snippet: Sampling on the Umpqua National Forest...severely burned soils
+      within and outside salvage logging units, and in areas with low or no soil burn
+      severity
+    reason: The text specifies the local sampling context including burned areas and
+      salvage logging units.
+  - field_name: env_medium
+    reason_category: mentioned_in_text
+    evidence_snippet: severely burned soils...areas mapped as high soil burn severity
+    reason: The study explicitly focuses on burned soil as the environmental medium
+      being sampled.
+  - field_name: fire
+    reason_category: mentioned_in_text
+    evidence_snippet: effects of severe wildfire and postfire management on soil physical,
+      chemical, and biological properties
+    reason: Severe wildfire is the central disturbance event being studied.
+  - field_name: extreme_event
+    reason_category: mentioned_in_text
+    evidence_snippet: severe wildfire...Fire effects are an important component of
+      all ecological processes
+    reason: Wildfire is explicitly identified as an unusual physical event affecting
+      soil microbial populations.
+  - field_name: cur_land_use
+    reason_category: mentioned_in_text
+    evidence_snippet: compare properties in severely burned soils within and outside
+      salvage logging units
+    reason: The study examines different current land management practices (salvage
+      logging vs. non-logged areas).
+  - field_name: microbial_biomass_c
+    reason_category: mentioned_in_text
+    evidence_snippet: assess impacts on soil microbial communities...helping soil
+      microbial communities and organic matter recover
+    reason: The study explicitly aims to measure microbial community recovery in burned
+      soils.
+  - field_name: micro_biomass_c_meth
+    reason_category: experimental_design
+    evidence_snippet: MONet analyses will provide the first microbial community data
+      on the Umpqua National Forest
+    reason: The study design involves systematic measurement of microbial biomass
+      using MONet protocols.
+  - field_name: tot_org_carb
+    reason_category: mentioned_in_text
+    evidence_snippet: organic material retained or added to burned areas...goals of
+      helping soil microbial communities and organic matter recover
+    reason: Total organic carbon is directly relevant to the study's focus on organic
+      matter changes and recovery.
+  - field_name: tot_nitro_content
+    reason_category: mentioned_in_text
+    evidence_snippet: assess the effects of severe wildfire...on soil physical, chemical,
+      and biological properties
+    reason: Total nitrogen is a key chemical soil property affected by fire and relevant
+      to assessing soil changes.
+  - field_name: org_matter
+    reason_category: mentioned_in_text
+    evidence_snippet: amount of organic material retained or added to burned areas...organic
+      matter recover
+    reason: Organic matter concentration is central to the study's focus on post-fire
+      soil recovery.
+  - field_name: ph
+    reason_category: mentioned_in_text
+    evidence_snippet: assess the effects of severe wildfire...on soil physical, chemical,
+      and biological properties
+    reason: pH is a fundamental chemical property affected by fire and relevant to
+      assessing soil condition changes.
+  - field_name: samp_collec_method
+    reason_category: experimental_design
+    evidence_snippet: Sampling on the Umpqua National Forest will allow land managers
+      to assess the effects
+    reason: The study design involves systematic sampling requiring documentation
+      of collection methodology.
+  - field_name: samp_mat_process
+    reason_category: experimental_design
+    evidence_snippet: sampling sites are already being monitored...more information
+      is needed to understand how severely the chemical and biological soil properties
+      were impacted
+    reason: The study involves processing soil samples for chemical and biological
+      analysis requiring documentation.
+  - field_name: experimental_factor_other
+    reason_category: mentioned_in_text
+    evidence_snippet: compare properties in severely burned soils within and outside
+      salvage logging units, and in areas with low or no soil burn severity
+    reason: Salvage logging status and soil burn severity are key experimental factors
+      being compared.
+  dropped_suggestions:
+  - field_name: previous_land_use
+    reason_category: domain_standard
+    drop_reason: While pre-fire forest condition may be contextually relevant, the
+      input text does not discuss or imply measurement of previous land use history
+      or dates. The focus is on post-fire assessment, not historical land use documentation.
+  - field_name: soil_burn_severity
+    reason_category: domain_standard
+    drop_reason: This field does not exist in the provided schema. While the text
+      mentions 'areas mapped as high soil burn severity,' there is no corresponding
+      metadata field in the SoilInterface schema to capture this variable.
+  - field_name: microbial_biomass_n
+    reason_category: domain_standard
+    drop_reason: While microbial community recovery is discussed, the text does not
+      specifically mention nitrogen in microbial biomass. Only microbial biomass carbon
+      is explicitly relevant to the stated study goals.
+  - field_name: bulk_elect_conductivity
+    reason_category: domain_standard
+    drop_reason: While electrical conductivity is a standard soil property, the input
+      text does not discuss or imply measurement of this parameter in the study design.
+  - field_name: link_addit_analys
+    reason_category: domain_standard
+    drop_reason: The text mentions monitoring for visible erosion signs and rapid
+      assessment mapping, but does not indicate these are separate analysis results
+      to be linked. This is speculative rather than evidence-based.
+  scores: *id006
