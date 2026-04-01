@@ -3,6 +3,7 @@
 # Secrets
 .env
 .envrc
+*-service-account.json
 
 # llm-runner output
 *-output/
