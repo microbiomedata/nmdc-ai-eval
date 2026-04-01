@@ -153,7 +153,7 @@ All checks are defined once in `.pre-commit-config.yaml`. The justfile and CI bo
 | pytest (excludes `@api`) | yes | yes | yes | yes |
 | pip-audit | yes | yes | yes | yes |
 
-The minimum coverage threshold is **90%** (enforced via `--cov-fail-under` in pre-commit). `run_suite.py` and `llm_adapter.py` are excluded from measurement because they require live API calls.
+The minimum coverage threshold is **90%** (enforced via `--cov-fail-under` in pre-commit). `run_suite.py` is excluded from measurement because it requires live LLM calls. `llm_adapter.py` is tested with mocked LLM calls.
 
 ## Datasets
 

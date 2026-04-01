@@ -17,6 +17,8 @@ from __future__ import annotations
 
 from typing import Any
 
+import llm as llm_lib
+
 
 class LLMLibraryAdapter:
     """Adapter that routes prompts through the llm library plugin ecosystem.
@@ -74,8 +76,6 @@ class LLMLibraryAdapter:
         PDF files are sent as llm.Attachment objects. Models that don't support
         attachments will ignore them gracefully.
         """
-        import llm as llm_lib
-
         effective_model = model or self.model
         m = llm_lib.get_model(effective_model)
         full_prompt = "\n\n".join(self.messages)

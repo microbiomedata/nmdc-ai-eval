@@ -34,8 +34,6 @@ def score_sets(
     }
     if not predicted and not expected:
         return {"precision": 1.0, "recall": 1.0, "f1": 1.0, **empty}
-    if not expected:
-        return {"precision": 0.0, "recall": 0.0, "f1": 0.0, **empty}
 
     exclude = exclude_from_precision or set()
     precision_set = predicted - exclude
