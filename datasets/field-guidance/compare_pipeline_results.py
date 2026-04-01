@@ -26,10 +26,10 @@ def load_all_results() -> list[dict[str, Any]]:
         return []
     results = []
     for path in sorted(RESULTS_DIR.glob("*.yaml")):
-        with open(path) as f:
-            data = yaml.safe_load(f)
-            data["_file"] = path.name
-            results.append(data)
+        with open(path, encoding="utf-8") as f:
+            data = yaml.safe_load(f) or {}
+        data["_file"] = path.name
+        results.append(data)
     return results
 
 
@@ -58,9 +58,12 @@ def summarize_run(data: dict[str, Any]) -> dict[str, Any]:
     avg_r = sum(r["scores"]["recall"] for r in scored) / len(scored)
     avg_f1 = sum(r["scores"]["f1"] for r in scored) / len(scored)
     total_time = sum(r.get("elapsed_seconds", 0) for r in scored)
-    total_in = sum(r.get("input_tokens") or 0 for r in scored)
-    total_out = sum(r.get("output_tokens") or 0 for r in scored)
-    total_cost = sum(r.get("est_cost_usd") or 0 for r in scored)
+    in_vals = [r["input_tokens"] for r in scored if r.get("input_tokens") is not None]
+    out_vals = [r["output_tokens"] for r in scored if r.get("output_tokens") is not None]
+    cost_vals = [r["est_cost_usd"] for r in scored if r.get("est_cost_usd") is not None]
+    total_in = sum(in_vals) if in_vals else None
+    total_out = sum(out_vals) if out_vals else None
+    total_cost = sum(cost_vals) if cost_vals else None
 
     return {
         "model": data.get("model", "?"),
@@ -109,11 +112,12 @@ def print_comparison(summaries: list[dict[str, Any]]) -> None:
             )
             continue
 
-        tok = f"{s['input_tokens']}+{s['output_tokens']}" if s["input_tokens"] else "—"
+        tok = f"{s['input_tokens']}+{s['output_tokens']}" if s["input_tokens"] is not None else "—"
+        cost_str = f"${s['total_cost']:>7.4f}" if s["total_cost"] is not None else f"{'—':>8s}"
         print(
             f"{s['model']:<28s} {s['provider']:<5s} {doi:>3s}"
             f" {s['precision']:>6.3f} {s['recall']:>6.3f} {s['f1']:>6.3f}"
-            f" ${s['total_cost']:>7.4f} {s['total_time']:>5.0f}s {tok:>12s}"
+            f" {cost_str} {s['total_time']:>5.0f}s {tok:>12s}"
             f" {s['n']:>3d} {s['timestamp']:<16s}"
         )
 
