@@ -21,7 +21,7 @@ jobs:
         run: uv lock --upgrade
 
       - name: Open PR if lockfile changed
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@v8
         with:
           commit-message: "chore: uv lock --upgrade"
           branch: chore/uv-upgrade
