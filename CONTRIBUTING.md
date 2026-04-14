@@ -78,7 +78,7 @@ cp -r datasets/ebs-prediction/ datasets/my-new-eval/
 The suite YAML must parse into `llm_matrix.schema.Suite` (Pydantic-validated). Key requirements:
 
 - **`cases[].input`** — required, must be a string (not null). Even for WIP, use `"TODO"`.
-- **`cases[].ideal`** — recommended for scoring. Without it, you can still run the eval but can't score automatically.
+- **`cases[].ideal`** — required, must be a non-null string. Tests enforce that every case has an ideal answer. Even for WIP, use a placeholder like `"TODO"`.
 - **`matrix.hyperparameters`** — must include `model` and `temperature`.
 - **File naming** — must match the `*-suite*.yaml` glob to be discovered by tests.
 
