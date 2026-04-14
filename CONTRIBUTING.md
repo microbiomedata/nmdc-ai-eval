@@ -2,13 +2,7 @@
 
 ## Getting started
 
-```bash
-git clone git@github.com:microbiomedata/nmdc-ai-eval.git
-cd nmdc-ai-eval
-just setup    # installs deps via uv sync + installs pre-commit hooks
-```
-
-Set up API keys per the [README quickstart](README.md#quickstart).
+Follow the [Quickstart in README](README.md#quickstart) to clone the repo, install [prerequisites](README.md#prerequisites), and run `just setup`. Then come back here.
 
 ### Branch workflow
 
@@ -17,6 +11,8 @@ Set up API keys per the [README quickstart](README.md#quickstart).
 - Keep PRs focused — if you find an unrelated problem, open a separate issue/PR.
 
 ## Pre-commit hooks explained
+
+Pre-commit hooks are automated checks that run every time you `git commit`. If any check fails, the commit is blocked until you fix the issue. This repo uses them to catch lint errors, type problems, test failures, and dependency vulnerabilities before code reaches a PR.
 
 Every `git commit` runs the full suite of checks automatically. You can also run them manually:
 
@@ -28,7 +24,7 @@ The hooks and what they enforce are documented in the [QC and automation table i
 
 ### Common failures and fixes
 
-**pytest** — Read the assertion or validation error. The most common cause for new contributors: suite YAML files with null required fields. In YAML, a bare key with no value (e.g. `input:`) parses as `null`. `TestCase.input` must be a non-null string. Even for work-in-progress cases, use a placeholder:
+**pytest (suite YAML validation)** — Read the assertion or validation error. The most common cause for new contributors: suite YAML files with null required fields. Each suite YAML is loaded and checked against a strict Pydantic schema (`llm_matrix.schema.Suite`) — if a field is missing or the wrong type, you get a `ValidationError`. In YAML, a bare key with no value (e.g. `input:`) parses as `null`. `TestCase.input` must be a non-null string. Even for work-in-progress cases, use a placeholder:
 
 ```yaml
 # Wrong — parses as null
