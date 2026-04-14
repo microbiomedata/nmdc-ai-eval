@@ -98,9 +98,9 @@ def main() -> None:
             {
                 "input": format_prompt(biosample, study_example["study"]),
                 "ideal": make_ideal(
-                    biosample.get("env_broad_scale").get("raw_value"),
-                    biosample.get("env_local_scale").get("raw_value"),
-                    biosample.get("env_medium").get("raw_value"),
+                    biosample.get("env_broad_scale").get("has_raw_value"),
+                    biosample.get("env_local_scale").get("has_raw_value"),
+                    biosample.get("env_medium").get("has_raw_value"),
                 ),
                 "tags": ["value_prediction"],
             }
