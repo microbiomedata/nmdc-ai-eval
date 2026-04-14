@@ -37,6 +37,7 @@ dev = [
   "pytest-cov>=7.0.0",
   "pandas-stubs>=3.0.0.260204",
   "nmdc-metadata-suggestor-ai-tool>=1.1",
+  "nmdc-api-utilities>=0.6.1",
   "pymongo>=4.16.0",
   "types-pyyaml>=6.0.12.20250915",
 ]
