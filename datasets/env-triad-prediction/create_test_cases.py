@@ -38,7 +38,7 @@ def get_bioscales_study_example() -> list[dict]:
     # biosample_search = BiosampleSearch()
     study = search.get_record_by_id(collection_id=study_id)
     # get the linked biosamples
-    biosamples = search.get_linked_instances(ids=[study_id], types="nmdc:Biosample", hydrate=False, max_page_size=1999)
+    biosamples = search.get_linked_instances(ids=[study_id], types="nmdc:Biosample", hydrate=True, max_page_size=1999)
     # # get the ids of the biosamples
     # biosample_ids = [biosample["id"] for biosample in biosamples]
     # # get the full biosample records
@@ -49,11 +49,11 @@ def get_bioscales_study_example() -> list[dict]:
 
 def format_prompt(biosample: dict, study: dict) -> str:
     """Build a prompt from the biosample, study, and SchemaContextBuilder."""
-
+    copy = biosample.copy()  # avoid mutating the original
     # remove env triad from biosample
-    biosample.pop("env_broad_scale", None)
-    biosample.pop("env_local_scale", None)
-    biosample.pop("env_medium", None)
+    copy.pop("env_broad_scale", None)
+    copy.pop("env_local_scale", None)
+    copy.pop("env_medium", None)
 
     # Schema context
     builder = SchemaContextBuilder()
@@ -62,7 +62,7 @@ def format_prompt(biosample: dict, study: dict) -> str:
     prompt_parts = [mixs_schema]
     prompt_parts.append(f"\n--- NMDC Schema Context ---\n{mixs_schema}")
     prompt_parts.append(f"\n--- Study Metadata ---\n{study}")
-    prompt_parts.append(f"\n--- Biosample Metadata ---\n{biosample}")
+    prompt_parts.append(f"\n--- Biosample Metadata ---\n{copy}")
     prompt_parts.append("Suggest env triad values for the biosample")
 
     return "\n".join(prompt_parts)
