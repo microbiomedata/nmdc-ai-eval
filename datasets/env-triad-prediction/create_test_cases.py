@@ -788,7 +788,7 @@ urban stormwater [ENVO:01001268], waste water [ENVO:00002001], water ice \
         },
         "matrix": {
             "hyperparameters": {
-                "model": "gemini/gemini-2.5-flash",
+                "model": models,
                 "temperature": [0.0],
             }
         },
