@@ -8,12 +8,6 @@ database (~/.config/io.datasette.llm/logs.db) after each LLM call. Cost is
 estimated using the pricing table in nmdc_ai_eval.pricing. All three appear
 as columns in the output TSV alongside accuracy scores.
 
-For env-triad evals, the ``simple_question`` LLM-as-judge score is
-overridden by direct per-field comparison via ``_env_triad_score``. The
-judge call still executes (llm-matrix evaluates before yielding the
-result) but its score is discarded. Eliminating the call entirely
-requires a fork of llm-matrix; left as a future improvement. See #72.
-
 For env-triad-style evals where ``case_ideal`` is a JSON string of shape
 ``{"metadata_fields": [{field_name, value, ...}, ...]}``, the output TSV
 also gets per-field columns (``expected_broad``/``got_broad``/
@@ -106,47 +100,6 @@ def _short_label(text: str | None, fallback_chars: int = 80) -> str:
     return text[:fallback_chars].replace("\n", " ").replace("\r", " ")
 
 
-def _try_parse_env_triad(text: str | None) -> dict[str, str | None]:
-    """Extract env-triad field values from a JSON string.
-
-    Accepts raw JSON, JSON wrapped in ```json``` fences, or JSON embedded
-    in prose. Returns ``{"broad": ..., "local": ..., "medium": ...}`` with
-    ``None`` for any field that can't be parsed. Never raises.
-    """
-    empty: dict[str, str | None] = {"broad": None, "local": None, "medium": None}
-    if not text:
-        return empty
-    fenced = re.search(r"```(?:json)?\s*(\{.*\})\s*```", text, re.DOTALL)
-    if fenced:
-        payload: str | None = fenced.group(1)
-    else:
-        m = re.search(r"\{.*\}", text, re.DOTALL)
-        payload = m.group(0) if m else None
-    if not payload:
-        return empty
-    try:
-        data = json.loads(payload)
-    except json.JSONDecodeError:
-        return empty
-    if not isinstance(data, dict):
-        return empty
-    fields = data.get("metadata_fields")
-    if not isinstance(fields, list):
-        return empty
-    field_map: dict[str, str | None] = {}
-    for item in fields:
-        if isinstance(item, dict):
-            name = item.get("field_name")
-            if isinstance(name, str):
-                value = item.get("value")
-                field_map[name] = value if isinstance(value, str) else None
-    return {
-        "broad": field_map.get("env_broad_scale"),
-        "local": field_map.get("env_local_scale"),
-        "medium": field_map.get("env_medium"),
-    }
-
-
 def _preflight(model_names: list[str]) -> list[str]:
     """Check that all models are available via llm plugins.
 
@@ -178,35 +131,6 @@ def _get_max_rowid(db: sqlite3.Connection) -> int:
     """Get the current max rowid in the responses table."""
     row = db.execute("SELECT COALESCE(MAX(rowid), 0) FROM responses").fetchone()
     return int(row[0]) if row else 0
-
-
-_TRIAD_SCORE_MAP = {0: 0.0, 1: 0.33, 2: 0.67, 3: 1.0}
-
-
-def _env_triad_score(ideal: str | None, response: str | None) -> float | None:
-    """Direct per-field score for env-triad responses.
-
-    Returns one of 0.0 / 0.33 / 0.67 / 1.0 based on how many of the three
-    env-triad fields (broad, local, medium) match exactly. Returns ``None``
-    only when the ideal doesn't parse as env-triad JSON — the caller then
-    falls back to the original metric for non-env-triad suites.
-
-    When the *response* is unparsable (prose, empty, bad JSON), all fields
-    compare as non-matching and the score is 0.0, not ``None``.
-
-    Note: the judge call from ``simple_question`` still executes; this
-    function merely overrides its result. See module docstring for context.
-    """
-    ideal_fields = _try_parse_env_triad(ideal)
-    if not any(ideal_fields.values()):
-        return None  # not an env-triad case — leave scoring to the original metric
-    response_fields = _try_parse_env_triad(response)
-    matches = sum(
-        1
-        for k in ("broad", "local", "medium")
-        if ideal_fields.get(k) is not None and ideal_fields.get(k) == response_fields.get(k)
-    )
-    return _TRIAD_SCORE_MAP[matches]
 
 
 def _capture_log_entry(db: sqlite3.Connection, after_rowid: int) -> tuple[int, dict[str, int | None]]:
@@ -313,7 +237,17 @@ def _print_summary(df: "pd.DataFrame") -> None:
     default=None,
     help="Output directory (default: <suite>-output/)",
 )
-def main(suite_path: Path, output_dir: Path | None = None) -> None:
+@click.option(
+    "--scorer-model",
+    default=None,
+    envvar="LLM_SCORER_MODEL",
+    help=(
+        "llm model to use for scoring (default: llm's default model). "
+        "Override when the default scorer returns prose instead of a leading number — "
+        "e.g. --scorer-model gpt-4o-mini. Also reads LLM_SCORER_MODEL env var."
+    ),
+)
+def main(suite_path: Path, output_dir: Path | None = None, scorer_model: str | None = None) -> None:
     """Run an llm-matrix eval suite and write results to TSV."""
     import pandas as pd
 
@@ -336,20 +270,12 @@ def main(suite_path: Path, output_dir: Path | None = None) -> None:
     n_total = n_cases * n_models
     click.echo(f"Running {n_cases} cases × {n_models} models = {n_total} calls (~{n_total * 3}–{n_total * 5}s)")
 
-    # Warn when simple_question is active and no scorer model is pinned.
-    # simple_question makes a second LLM call per result using llm's default
-    # model (currently gpt-4o per llm_matrix/metrics.py:DEFAULT_EVALUATION_MODEL_NAME).
-    # That default is implicit and can change. Env-triad suites bypass this via
-    # _env_triad_score(); other suites should pin --scorer-model for reproducibility.
-    uses_simple_question = any("simple_question" in (t.metrics or []) for t in (suite.templates or {}).values())
-    scorer_model_env = __import__("os").environ.get("LLM_SCORER_MODEL")
-    if uses_simple_question and not scorer_model_env:
-        click.echo(
-            "  Note: suite uses simple_question metric. Scorer model is llm's default "
-            "(currently gpt-4o). Pin it with --scorer-model or LLM_SCORER_MODEL env var "
-            "for reproducible scoring across runs.",
-            err=True,
-        )
+    # Configure scorer model if specified.
+    from llm_matrix.runner import LLMRunnerConfig  # type: ignore[import-untyped]
+
+    runner_config = LLMRunnerConfig(evaluation_model_name=scorer_model) if scorer_model else None
+    if scorer_model:
+        click.echo(f"  (scorer model: {scorer_model})")
 
     # Open llm logs DB for inline token/timing capture
     logs_db = _open_llm_logs_db()
@@ -359,18 +285,23 @@ def main(suite_path: Path, output_dir: Path | None = None) -> None:
     else:
         click.echo("  (llm logs DB not found — token/timing will not be captured)")
 
-    runner = LLMRunner(store_path=store_path)
+    runner = LLMRunner(store_path=store_path, config=runner_config)
     results = []
     token_data: list[dict[str, float | None]] = []
+    score_parse_failures = 0
     try:
         for i, r in enumerate(runner.run_iter(suite), 1):
-            # For env-triad cases, override the LLM-as-judge score with a
-            # direct per-field comparison — cheaper, faster, and not subject
-            # to scorer flakiness. Falls back to the original score for
-            # non-env-triad evals (when _env_triad_score returns None).
-            direct = _env_triad_score(r.case.ideal, r.response.text)
-            if direct is not None:
-                r.score = direct
+            # llm-matrix raises ValueError("Could not parse score from ...")
+            # when the scorer model returns prose before the numeric score.
+            # Catch per-result so one flaky model doesn't abort the whole run.
+            if r.score is None and r.evaluation_message and r.evaluation_message.startswith("Could not parse score"):
+                score_parse_failures += 1
+                click.echo(
+                    f"  ? {i:>3d}/{n_total} [score?] "
+                    f"{str(r.hyperparameters.get('model', '?')).split('/')[-1][:15]:<15s}"
+                    f"  scorer returned prose — score recorded as None",
+                    err=True,
+                )
 
             results.append(r)
 
@@ -403,10 +334,26 @@ def main(suite_path: Path, output_dir: Path | None = None) -> None:
                 f"  expected={_short_label(r.case.ideal)}  got={_short_label(r.response.text, 200)}"
                 f"{tok_str}{cost_str}"
             )
+    except ValueError as exc:
+        # Score-parse errors from llm-matrix bubble up here if they weren't
+        # caught per-result above (older llm-matrix versions raise directly).
+        # Record what we have and continue to write the TSV.
+        click.echo(f"\n  Warning: scorer error on call {len(results)}: {exc}", err=True)
+        click.echo("  Continuing with results collected so far.", err=True)
+        score_parse_failures += 1
     except Exception as exc:  # noqa: BLE001
         click.echo(f"\nError during eval: {exc}", err=True)
         click.echo("Check model names and API keys. Run: uv run llm models list", err=True)
         sys.exit(1)
+
+    if score_parse_failures:
+        click.echo(
+            f"\n  Note: {score_parse_failures} result(s) had unparsable scorer responses "
+            f"(score recorded as None). This usually means the scorer model returned prose "
+            f"instead of a leading number. Set LLM_SCORER_MODEL env var to override the "
+            f"default scorer (e.g. LLM_SCORER_MODEL=gpt-4o-mini).",
+            err=True,
+        )
 
     if not results:
         click.echo("No results generated.", err=True)
