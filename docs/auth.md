@@ -81,12 +81,14 @@ The key store takes priority over env vars.
 
 ## CBORG (LBNL)
 
-CBORG is LBL's internal OpenAI-compatible proxy. One endpoint, many model families (OpenAI, Anthropic, Gemini, and others). Get a key from the [CBORG portal](https://cborg.lbl.gov/).
+CBORG is LBL's internal OpenAI-compatible proxy. One endpoint, many model families (OpenAI, Anthropic, Gemini, and others). Manage keys at <https://api.cborg.lbl.gov/key/manage> (portal home: <https://cborg.lbl.gov/>; API docs: <https://cborg.lbl.gov/api_docs/>).
 
 ```bash
-CBORG_API_KEY=sk-...
-CBORG_BASE_URL=https://api.cborg.lbl.gov/v1
+CBORG_API_KEY=<your key>
+CBORG_BASE_URL=https://api.cborg.lbl.gov
 ```
+
+Note: no `/v1` suffix — the OpenAI SDK appends the path automatically.
 
 `just verify-auth` tests CBORG with `gpt-4o-mini` by default. Override with `CBORG_TEST_MODEL=...` if that model isn't in your CBORG allowlist.
 
