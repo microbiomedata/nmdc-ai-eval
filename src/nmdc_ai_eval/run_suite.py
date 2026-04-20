@@ -13,6 +13,12 @@ overridden by direct per-field comparison via ``_env_triad_score``. The
 judge call still executes (llm-matrix evaluates before yielding the
 result) but its score is discarded. Eliminating the call entirely
 requires a fork of llm-matrix; left as a future improvement. See #72.
+
+For env-triad-style evals where ``case_ideal`` is a JSON string of shape
+``{"metadata_fields": [{field_name, value, ...}, ...]}``, the output TSV
+also gets per-field columns (``expected_broad``/``got_broad``/
+``broad_match`` etc.) so downstream analysis can pivot without re-parsing.
+Non-env-triad evals see those columns as ``None`` — harmless.
 """
 
 import json
@@ -33,6 +39,57 @@ if TYPE_CHECKING:
     import pandas as pd
 
 _LLM_LOGS_DB = Path.home() / ".config" / "io.datasette.llm" / "logs.db"
+
+# Slot names for env-triad extraction. Used by _try_parse_env_triad below.
+_ENV_TRIAD_SLOTS = ("env_broad_scale", "env_local_scale", "env_medium")
+
+
+def _try_parse_env_triad(text: str | None) -> dict[str, str | None]:
+    """Extract env-triad field values from a JSON string.
+
+    Accepts raw JSON, JSON wrapped in ``` ```json ``` fences, or a mixed
+    response where JSON appears after prose. Returns ``{"broad": ..., "local":
+    ..., "medium": ...}`` with ``None`` for any field that can't be parsed.
+    Never raises — callers use the None sentinels to decide whether a cell
+    is meaningful.
+    """
+    empty: dict[str, str | None] = {"broad": None, "local": None, "medium": None}
+    if not text:
+        return empty
+    fenced = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", text, re.DOTALL)
+    if fenced:
+        payload = fenced.group(1)
+    else:
+        braces = re.search(r"\{.*\}", text, re.DOTALL)
+        if not braces:
+            return empty
+        payload = braces.group(0)
+    try:
+        data = json.loads(payload)
+    except json.JSONDecodeError:
+        return empty
+    field_map = {f.get("field_name"): f.get("value") for f in data.get("metadata_fields", [])}
+    return {
+        "broad": field_map.get("env_broad_scale"),
+        "local": field_map.get("env_local_scale"),
+        "medium": field_map.get("env_medium"),
+    }
+
+
+def _short_label(text: str | None, fallback_chars: int = 80) -> str:
+    """Short display label for a JSON ideal/response.
+
+    If the text parses as an env-triad JSON, returns
+    ``"broad | local | medium"`` with question marks for missing fields.
+    Otherwise returns the first ``fallback_chars`` of the text with
+    newlines replaced by spaces, so it fits on one console line.
+    """
+    if not text:
+        return ""
+    parsed = _try_parse_env_triad(text)
+    if any(parsed.values()):
+        return " | ".join(parsed.get(k) or "?" for k in ("broad", "local", "medium"))
+    return text[:fallback_chars].replace("\n", " ").replace("\r", " ")
 
 
 def _try_parse_env_triad(text: str | None) -> dict[str, str | None]:
@@ -171,7 +228,9 @@ def _print_summary(df: "pd.DataFrame") -> None:
     if "case_ideal" in df.columns:
         most_common = df["case_ideal"].value_counts()
         baseline = most_common.iloc[0] / len(df)
-        click.echo(f"\n  Majority-class baseline: {baseline:.0%} (always predict '{most_common.index[0]}')")
+        click.echo(
+            f"\n  Majority-class baseline: {baseline:.0%} (always predict '{_short_label(most_common.index[0])}')"
+        )
 
     # Cost and timing summary (if data is available)
     has_cost = "est_cost_usd" in df.columns and df["est_cost_usd"].notna().any()
@@ -206,22 +265,26 @@ def _print_summary(df: "pd.DataFrame") -> None:
 
     click.echo("\n── Per-category accuracy (by model) ──")
     if "case_ideal" in df.columns:
-        pivot = df.pivot_table(values="score", index="case_ideal", columns="model", aggfunc="mean")
-        pivot["support"] = df.groupby("case_ideal")["score"].count() // len(df["model"].unique())
+        # Group by a short label derived from the ideal, not the full ideal
+        # string, so category rows fit on one console line.
+        df_with_cat = df.assign(_cat=df["case_ideal"].map(_short_label))
+        pivot = df_with_cat.pivot_table(values="score", index="_cat", columns="model", aggfunc="mean")
+        pivot["support"] = df_with_cat.groupby("_cat")["score"].count() // len(df["model"].unique())
         for cat, row in pivot.iterrows():
             models_str = "  ".join(f"{row.get(m, float('nan')):.0%}" for m in model_scores.index)
-            click.echo(f"  {cat:<50s} {models_str}  (n={row['support']:.0f})")
-        click.echo(f"  {'models:':<50s} {'  '.join(str(m) for m in model_scores.index)}")
+            click.echo(f"  {cat:<70s} {models_str}  (n={row['support']:.0f})")
+        click.echo(f"  {'models:':<70s} {'  '.join(str(m) for m in model_scores.index)}")
 
-    # Show misses grouped by expected category
+    # Show misses grouped by expected category (short label)
     misses = df[df["score"] < 1.0]
     if not misses.empty:
         click.echo(f"\n── Misses ({len(misses)}/{len(df)}) ──")
-        for cat in sorted(misses["case_ideal"].unique()):
-            cat_misses = misses[misses["case_ideal"] == cat]
+        misses_with_cat = misses.assign(_cat=misses["case_ideal"].map(_short_label))
+        for cat in sorted(misses_with_cat["_cat"].unique()):
+            cat_misses = misses_with_cat[misses_with_cat["_cat"] == cat]
             click.echo(f"  expected '{cat}' ({len(cat_misses)} misses):")
             for _, row in cat_misses.iterrows():
-                response = str(row.get("response_text", ""))[:50]
+                response = _short_label(str(row.get("response_text", "")), 200)
                 study = str(row.get("study_name", ""))[:40] if "study_name" in row.index else ""
                 model_short = str(row["model"]).split("/")[-1]
                 click.echo(f"    {model_short:<30s} got '{response}'  [{study}]")
@@ -323,7 +386,8 @@ def main(suite_path: Path, output_dir: Path | None = None) -> None:
                 tok_str = f" {entry['input_tokens']}+{entry['output_tokens']}tok"
             click.echo(
                 f"  {mark} {i:>3d}/{n_total} [{score_str}] {model_short:<15s} {study:<30s}"
-                f"  expected={r.case.ideal}  got={r.response.text[:50]}{tok_str}{cost_str}"
+                f"  expected={_short_label(r.case.ideal)}  got={_short_label(r.response.text, 200)}"
+                f"{tok_str}{cost_str}"
             )
     except Exception as exc:  # noqa: BLE001
         click.echo(f"\nError during eval: {exc}", err=True)
@@ -338,6 +402,17 @@ def main(suite_path: Path, output_dir: Path | None = None) -> None:
     df = results_to_dataframe(results)
     token_df = pd.DataFrame(token_data)
     df = pd.concat([df, token_df], axis=1)
+
+    # Add per-field env-triad columns for downstream analysis. For evals whose
+    # ideal isn't env-triad-shaped, these come out as None — harmless.
+    if "case_ideal" in df.columns:
+        ideal_fields = df["case_ideal"].apply(_try_parse_env_triad)
+        response_fields = df["response_text"].apply(_try_parse_env_triad) if "response_text" in df.columns else None
+        for key in ("broad", "local", "medium"):
+            df[f"expected_{key}"] = [d.get(key) for d in ideal_fields]
+            if response_fields is not None:
+                df[f"got_{key}"] = [d.get(key) for d in response_fields]
+                df[f"{key}_match"] = df[f"expected_{key}"] == df[f"got_{key}"]
 
     tsv_path = output_dir / "results.tsv"
     df.to_csv(tsv_path, sep="\t", index=False)
