@@ -63,6 +63,11 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/e1/5a/9d85b85686d5cdd79f5488c8667e668d7920d06a0a1a1beb454a5b77b2db/anthropic-0.85.0-py3-none-any.whl", hash = "sha256:b4f54d632877ed7b7b29c6d9ba7299d5e21c4c92ae8de38947e9d862bff74adf", size = 458237 },
 ]
 
+[package.optional-dependencies]
+vertex = [
+    { name = "google-auth", extra = ["requests"] },
+]
+
 [[package]]
 name = "antlr4-python3-runtime"
 version = "4.9.3"
@@ -1901,6 +1906,7 @@ wheels = [
 name = "nmdc-ai-eval"
 source = { editable = "." }
 dependencies = [
+    { name = "anthropic", extra = ["vertex"] },
     { name = "click" },
     { name = "ipython" },
     { name = "llm-claude-3" },
@@ -1930,6 +1936,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "anthropic", extras = ["vertex"], specifier = ">=0.84" },
     { name = "click", specifier = "<8.3" },
     { name = "ipython", specifier = ">=9.10.0" },
     { name = "llm-claude-3", specifier = ">=0.11" },

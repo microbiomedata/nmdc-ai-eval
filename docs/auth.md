@@ -111,7 +111,23 @@ VERTEX_PROJECT_ID=nmdc-llm
 
 **Service account (SA)** = a non-human Google Cloud identity. The JSON file is its long-lived credential; whoever holds it can act as that identity. The `nmdc-llm` SA is shared across the team — contact Sierra Moxon for the file. Treat the JSON like a password (gitignored; don't share over Slack).
 
-> **Budget reminder:** The `nmdc-llm` GCP project has a shared $500 total budget. Prefer personal or CBORG keys for iterative dev and model comparisons.
+### Vertex is not Gemini-only — but the suggestor's dispatcher is
+
+The `nmdc-llm` project has **multiple Model Garden publishers enabled**, including Google (Gemini) and Anthropic (Claude). Sierra's 2026-02-06 `vertex-usage` report shows active usage on `claude-opus-4-6`, `claude-sonnet-4-5`, and `claude-haiku-4-5`.
+
+However, Vertex exposes each publisher through a **different API endpoint**:
+
+| Publisher | Endpoint | Python SDK |
+|---|---|---|
+| Google (Gemini) | `:generateContent` | `google.genai.Client(vertexai=True)` |
+| Anthropic (Claude) | `:rawPredict` / `:streamRawPredict` | `from anthropic import AnthropicVertex` |
+| Others (e.g. Meta via MaaS) | varies | varies |
+
+The suggestor's `LLMClient(access_provider="gcp")` currently only dispatches via `generateContent` (see [`llm_client.py:229`](https://github.com/microbiomedata/nmdc-metadata-suggestor-ai-tool/blob/main/src/nmdc_metadata_suggestor_ai_tool/llm_client.py#L229)), which means Gemini works but Claude calls return `400 "not supported in the generateContent API"` even though the project has Claude enabled. This is a **dispatcher gap, not an access restriction.**
+
+Run `just probe-vertex-garden` to see the current picture for your SA. The probe routes Anthropic candidates through `AnthropicVertex` directly as a workaround until the suggestor grows a `gcp-anthropic` access provider. See [issue #46](https://github.com/microbiomedata/nmdc-ai-eval/issues/46) for status.
+
+> **Budget reminder:** The `nmdc-llm` GCP project has a shared $500 total budget. Claude Opus is ~$15/$75 per 1M tokens — use it sparingly. Prefer personal or CBORG keys for iterative dev.
 
 ## PNNL AI Incubator
 
