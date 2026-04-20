@@ -181,6 +181,21 @@ def main(suite_path: Path, output_dir: Path | None = None) -> None:
     n_total = n_cases * n_models
     click.echo(f"Running {n_cases} cases × {n_models} models = {n_total} calls (~{n_total * 3}–{n_total * 5}s)")
 
+    # Warn when simple_question is active and no scorer model is pinned.
+    # simple_question makes a second LLM call per result using llm's default
+    # model (currently gpt-4o per llm_matrix/metrics.py:DEFAULT_EVALUATION_MODEL_NAME).
+    # That default is implicit and can change. Env-triad suites bypass this via
+    # _env_triad_score(); other suites should pin --scorer-model for reproducibility.
+    uses_simple_question = any("simple_question" in (t.metrics or []) for t in (suite.templates or {}).values())
+    scorer_model_env = __import__("os").environ.get("LLM_SCORER_MODEL")
+    if uses_simple_question and not scorer_model_env:
+        click.echo(
+            "  Note: suite uses simple_question metric. Scorer model is llm's default "
+            "(currently gpt-4o). Pin it with --scorer-model or LLM_SCORER_MODEL env var "
+            "for reproducible scoring across runs.",
+            err=True,
+        )
+
     # Open llm logs DB for inline token/timing capture
     logs_db = _open_llm_logs_db()
     last_rowid = _get_max_rowid(logs_db) if logs_db else 0
