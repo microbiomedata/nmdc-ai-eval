@@ -100,6 +100,35 @@ def _short_label(text: str | None, fallback_chars: int = 80) -> str:
     return text[:fallback_chars].replace("\n", " ").replace("\r", " ")
 
 
+_TRIAD_SCORE_MAP = {0: 0.0, 1: 0.33, 2: 0.67, 3: 1.0}
+
+
+def _env_triad_score(ideal: str | None, response: str | None) -> float | None:
+    """Direct per-field score for env-triad responses.
+
+    Returns one of 0.0 / 0.33 / 0.67 / 1.0 based on how many of the three
+    env-triad fields (broad, local, medium) match exactly. Returns ``None``
+    only when the ideal doesn't parse as env-triad JSON — the caller then
+    falls back to the original metric for non-env-triad suites.
+
+    When the *response* is unparsable (prose, empty, bad JSON), all fields
+    compare as non-matching and the score is 0.0, not ``None``.
+
+    Note: the judge call from ``simple_question`` still executes; this
+    function merely overrides its result. See module docstring for context.
+    """
+    ideal_fields = _try_parse_env_triad(ideal)
+    if not any(ideal_fields.values()):
+        return None  # not an env-triad case — leave scoring to the original metric
+    response_fields = _try_parse_env_triad(response)
+    matches = sum(
+        1
+        for k in ("broad", "local", "medium")
+        if ideal_fields.get(k) is not None and ideal_fields.get(k) == response_fields.get(k)
+    )
+    return _TRIAD_SCORE_MAP[matches]
+
+
 def _preflight(model_names: list[str]) -> list[str]:
     """Check that all models are available via llm plugins.
 
@@ -289,69 +318,75 @@ def main(suite_path: Path, output_dir: Path | None = None, scorer_model: str | N
     results = []
     token_data: list[dict[str, float | None]] = []
     score_parse_failures = 0
-    try:
-        for i, r in enumerate(runner.run_iter(suite), 1):
-            # llm-matrix raises ValueError("Could not parse score from ...")
-            # when the scorer model returns prose before the numeric score.
-            # Catch per-result so one flaky model doesn't abort the whole run.
-            if r.score is None and r.evaluation_message and r.evaluation_message.startswith("Could not parse score"):
-                score_parse_failures += 1
-                click.echo(
-                    f"  ? {i:>3d}/{n_total} [score?] "
-                    f"{str(r.hyperparameters.get('model', '?')).split('/')[-1][:15]:<15s}"
-                    f"  scorer returned prose — score recorded as None",
-                    err=True,
-                )
-
-            results.append(r)
-
-            # Capture tokens/timing from llm logs
-            entry: dict[str, float | None] = {
-                "input_tokens": None,
-                "output_tokens": None,
-                "duration_ms": None,
-                "est_cost_usd": None,
-            }
-            if logs_db:
-                last_rowid, log_entry = _capture_log_entry(logs_db, last_rowid)
-                entry.update(log_entry)
-                model_name = str(r.hyperparameters.get("model", ""))
-                cost = estimate_cost(model_name, log_entry["input_tokens"], log_entry["output_tokens"])
-                if cost is not None:
-                    entry["est_cost_usd"] = round(cost, 6)
-            token_data.append(entry)
-
-            score_str = f"{r.score:.2f}" if r.score is not None else "N/A"
-            mark = "+" if r.score and r.score >= 1.0 else "-"
-            model_short = str(r.hyperparameters.get("model", "?")).split("/")[-1][:15]
-            study = r.case.original_input.get("study_name", "")[:30] if r.case.original_input else ""
-            cost_str = f" ${entry['est_cost_usd']:.4f}" if entry.get("est_cost_usd") else ""
-            tok_str = ""
-            if entry.get("input_tokens") is not None:
-                tok_str = f" {entry['input_tokens']}+{entry['output_tokens']}tok"
+    run_iter = runner.run_iter(suite)
+    i = 0
+    while True:
+        i += 1
+        try:
+            r = next(run_iter)
+        except StopIteration:
+            break
+        except ValueError as exc:
+            # llm-matrix raises ValueError("Could not parse score from <scorer response>")
+            # when the scorer model returns prose before the numeric score. The result
+            # that triggered this is lost (never yielded). Log the error with full
+            # context and continue — the run keeps going from the next case.
+            score_parse_failures += 1
             click.echo(
-                f"  {mark} {i:>3d}/{n_total} [{score_str}] {model_short:<15s} {study:<30s}"
-                f"  expected={_short_label(r.case.ideal)}  got={_short_label(r.response.text, 200)}"
-                f"{tok_str}{cost_str}"
+                f"\n  ! {i:>3d}/{n_total} [score=None] scorer parse error — result lost:\n    {exc}",
+                err=True,
             )
-    except ValueError as exc:
-        # Score-parse errors from llm-matrix bubble up here if they weren't
-        # caught per-result above (older llm-matrix versions raise directly).
-        # Record what we have and continue to write the TSV.
-        click.echo(f"\n  Warning: scorer error on call {len(results)}: {exc}", err=True)
-        click.echo("  Continuing with results collected so far.", err=True)
-        score_parse_failures += 1
-    except Exception as exc:  # noqa: BLE001
-        click.echo(f"\nError during eval: {exc}", err=True)
-        click.echo("Check model names and API keys. Run: uv run llm models list", err=True)
-        sys.exit(1)
+            token_data.append({"input_tokens": None, "output_tokens": None, "duration_ms": None, "est_cost_usd": None})
+            continue
+        except Exception as exc:  # noqa: BLE001
+            click.echo(f"\nError during eval: {exc}", err=True)
+            click.echo("Check model names and API keys. Run: uv run llm models list", err=True)
+            break
 
+        # Override the LLM-as-judge score with direct per-field comparison for
+        # env-triad evals. Falls back to the original score for other evals.
+        direct = _env_triad_score(r.case.ideal, r.response.text)
+        if direct is not None:
+            r.score = direct
+
+        results.append(r)
+
+        # Capture tokens/timing from llm logs
+        entry: dict[str, float | None] = {
+            "input_tokens": None,
+            "output_tokens": None,
+            "duration_ms": None,
+            "est_cost_usd": None,
+        }
+        if logs_db:
+            last_rowid, log_entry = _capture_log_entry(logs_db, last_rowid)
+            entry.update(log_entry)
+            model_name = str(r.hyperparameters.get("model", ""))
+            cost = estimate_cost(model_name, log_entry["input_tokens"], log_entry["output_tokens"])
+            if cost is not None:
+                entry["est_cost_usd"] = round(cost, 6)
+        token_data.append(entry)
+
+        score_str = f"{r.score:.2f}" if r.score is not None else "N/A"
+        mark = "+" if r.score and r.score >= 1.0 else "-"
+        model_short = str(r.hyperparameters.get("model", "?")).split("/")[-1][:15]
+        study = r.case.original_input.get("study_name", "")[:30] if r.case.original_input else ""
+        cost_str = f" ${entry['est_cost_usd']:.4f}" if entry.get("est_cost_usd") else ""
+        tok_str = ""
+        if entry.get("input_tokens") is not None:
+            tok_str = f" {entry['input_tokens']}+{entry['output_tokens']}tok"
+        click.echo(
+            f"  {mark} {i:>3d}/{n_total} [{score_str}] {model_short:<15s} {study:<30s}"
+            f"  expected={_short_label(r.case.ideal)}  got={_short_label(r.response.text, 200)}"
+            f"{tok_str}{cost_str}"
+        )
     if score_parse_failures:
         click.echo(
-            f"\n  Note: {score_parse_failures} result(s) had unparsable scorer responses "
-            f"(score recorded as None). This usually means the scorer model returned prose "
-            f"instead of a leading number. Set LLM_SCORER_MODEL env var to override the "
-            f"default scorer (e.g. LLM_SCORER_MODEL=gpt-4o-mini).",
+            f"\n  Note: {score_parse_failures} scorer parse error(s) — those results have "
+            f"score=None and no response_text in the TSV (the result was lost when the "
+            f"exception interrupted the iterator). The full scorer response is in the "
+            f"error lines above. To prevent this, set LLM_SCORER_MODEL=gpt-4o-mini "
+            f"(or --scorer-model gpt-4o-mini) to pin the scorer to a reliable model.",
             err=True,
         )
 
