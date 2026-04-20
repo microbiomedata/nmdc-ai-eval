@@ -33,9 +33,7 @@ from nmdc_metadata_suggestor_ai_tool.schema_context import SchemaContextBuilder,
 HERE = Path(__file__).parent
 MODELS_YAML = HERE.parent / "models.yaml"
 OUTPUT_YAML = HERE / "env-triad-suite.yaml"
-
-# Bioscales study. Expand to multiple studies for biome diversity — see #55.
-DEFAULT_STUDY_ID = "nmdc:sty-11-r2h77870"
+STUDIES_YAML = HERE / "studies.yaml"
 
 ENV_TRIAD_SLOTS = ["env_broad_scale", "env_local_scale", "env_medium"]
 
@@ -93,6 +91,13 @@ def build_system_prompt() -> str:
 def load_models() -> list[str]:
     with open(MODELS_YAML) as f:
         return yaml.safe_load(f)["models"]
+
+
+def load_study_ids(studies_yaml: Path) -> list[str]:
+    """Read the curated list of study IDs from studies.yaml."""
+    with open(studies_yaml) as f:
+        config = yaml.safe_load(f)
+    return [entry["id"] for entry in config.get("studies", [])]
 
 
 def get_study_with_biosamples(study_id: str) -> dict[str, Any]:
@@ -156,27 +161,49 @@ def make_ideal(biosample: dict) -> str | None:
 def main() -> None:
     parser = argparse.ArgumentParser(description="Generate env-triad llm-matrix suite")
     parser.add_argument("--output", type=Path, default=OUTPUT_YAML)
-    parser.add_argument("--study-id", type=str, default=DEFAULT_STUDY_ID)
+    parser.add_argument(
+        "--study-id",
+        type=str,
+        action="append",
+        default=None,
+        help=(
+            "NMDC study ID. May be repeated. If omitted, reads the curated "
+            f"list from {STUDIES_YAML.relative_to(HERE.parent.parent)}."
+        ),
+    )
+    parser.add_argument(
+        "--studies-yaml",
+        type=Path,
+        default=STUDIES_YAML,
+        help="Alternate studies.yaml config path (ignored if --study-id is given).",
+    )
     args = parser.parse_args()
 
+    study_ids: list[str] = args.study_id if args.study_id else load_study_ids(args.studies_yaml)
     models = load_models()
-    data = get_study_with_biosamples(args.study_id)
-    study = data["study"]
 
-    cases = []
-    skipped = 0
-    for biosample in data["biosamples"]:
-        ideal = make_ideal(biosample)
-        if ideal is None:
-            skipped += 1
-            continue
-        cases.append(
-            {
-                "input": format_prompt(biosample, study),
-                "ideal": ideal,
-                "tags": ["value_prediction"],
-            }
-        )
+    cases: list[dict[str, Any]] = []
+    per_study_counts: list[tuple[str, int, int]] = []  # (id, kept, skipped)
+
+    for study_id in study_ids:
+        data = get_study_with_biosamples(study_id)
+        study = data["study"]
+        kept = 0
+        skipped = 0
+        for biosample in data["biosamples"]:
+            ideal = make_ideal(biosample)
+            if ideal is None:
+                skipped += 1
+                continue
+            cases.append(
+                {
+                    "input": format_prompt(biosample, study),
+                    "ideal": ideal,
+                    "tags": ["value_prediction", study_id],
+                }
+            )
+            kept += 1
+        per_study_counts.append((study_id, kept, skipped))
 
     suite = {
         "name": "Env Triad Prediction Test Suite",
@@ -200,7 +227,11 @@ def main() -> None:
     with open(args.output, "w") as f:
         yaml.dump(suite, f, default_flow_style=False, sort_keys=False, width=120, allow_unicode=True)
 
-    print(f"Generated {len(cases)} cases ({skipped} skipped) x {len(models)} models -> {args.output}")
+    total_kept = sum(k for _, k, _ in per_study_counts)
+    total_skipped = sum(s for _, _, s in per_study_counts)
+    print(f"Generated {total_kept} cases ({total_skipped} skipped) x {len(models)} models -> {args.output}")
+    for study_id, kept, skipped in per_study_counts:
+        print(f"  {study_id}: {kept} cases ({skipped} skipped)")
 
 
 if __name__ == "__main__":
