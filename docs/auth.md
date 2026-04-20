@@ -23,6 +23,13 @@
 
 The script always exits 0; missing providers are expected. Only genuine failures (with credentials present) are highlighted.
 
+For the three llm-plugin providers (OpenAI / Anthropic / Gemini direct), each `OK`/`FAIL` line also shows the resolved key source — `llm-store` (from `uv run llm keys set <provider>`) or `env` (from `.env` or the shell). **The llm key store takes priority over env vars**, so if you updated `.env` but the old key is still in the store, the store wins. Inspect it with:
+
+```bash
+uv run llm keys list                # which providers have store entries
+uv run llm keys path                # path to the JSON file
+```
+
 ## Provider comparison
 
 | Provider | Who | Use for | Auth mechanism | Status |
@@ -118,6 +125,7 @@ Contact Olivia Hess for the endpoint URL and key. Model names use a `-project` s
 ## Troubleshooting
 
 - **`FAIL` with a truncated error** — the script truncates to 200 chars. For full tracebacks, run the script directly: `uv run python scripts/verify_auth.py` and re-raise as needed.
+- **I updated `.env` but my eval still uses the old key** — for OpenAI / Anthropic / Gemini direct, the llm key store (`uv run llm keys path`) takes priority over env vars. Check what's set with `uv run llm keys list`; overwrite an entry with `uv run llm keys set <provider>`, or clear the store by editing the JSON file directly.
 - **`FAIL` on PNNL with a 403 or timeout** — PNNL's endpoint may enforce IP restrictions. Check whether you need VPN.
 - **`FAIL` on Vertex with "creds file not found"** — `GOOGLE_APPLICATION_CREDENTIALS` points at a file that doesn't exist at that path. Check the path is absolute and the file is readable.
 - **CBORG returns "model not found"** — your CBORG allowlist may not include the default test model. Set `CBORG_TEST_MODEL` to something in your allowlist.

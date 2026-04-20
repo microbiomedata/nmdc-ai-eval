@@ -6,6 +6,8 @@ pipeline credentials from .env. Each provider is checked with one
 real LLM call. Missing credentials produce SKIP, not FAIL.
 """
 
+import contextlib
+import json
 import os
 import sys
 from pathlib import Path
@@ -15,6 +17,32 @@ import yaml
 from dotenv import load_dotenv
 
 MODELS_YAML = Path(__file__).parent.parent / "datasets" / "models.yaml"
+LLM_KEYS_PATH = Path.home() / ".config" / "io.datasette.llm" / "keys.json"
+
+# Env vars the llm-* plugins typically read when the key store is empty.
+_LLM_ENV_VARS = {
+    "openai": "OPENAI_API_KEY",
+    "anthropic": "ANTHROPIC_API_KEY",
+    "gemini": "GEMINI_API_KEY",
+}
+
+
+def _llm_key_source(provider: str) -> str:
+    """Best-effort report of which source llm would use for this provider's key.
+
+    The llm key store takes priority over env vars, so this mirrors llm's
+    resolution order. Returns 'llm-store', 'env', or 'none'.
+    """
+    with contextlib.suppress(OSError, json.JSONDecodeError):
+        if LLM_KEYS_PATH.exists():
+            with open(LLM_KEYS_PATH) as f:
+                keys = json.load(f)
+            if keys.get(provider):
+                return "llm-store"
+    env_var = _LLM_ENV_VARS.get(provider)
+    if env_var and os.environ.get(env_var):
+        return "env"
+    return "none"
 
 
 def test_llm_providers() -> list[str]:
@@ -31,14 +59,15 @@ def test_llm_providers() -> list[str]:
             continue
         seen_providers.add(provider)
 
+        source = _llm_key_source(provider)
         try:
             m = llm.get_model(name)
             r = m.prompt("Reply with only: OK", temperature=0)
             text = str(r).strip()[:20]
-            print(f"  OK    {name:45s} -> {text}")
+            print(f"  OK    {name:45s} [key: {source:9s}] -> {text}")
         except Exception as e:
             err = str(e)[:200]
-            print(f"  FAIL  {name:45s} -> {err}")
+            print(f"  FAIL  {name:45s} [key: {source:9s}] -> {err}")
             failures.append(name)
 
     return failures
