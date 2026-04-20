@@ -109,6 +109,11 @@ eval-sampledata: clean-sampledata-outputs generate-sampledata run-sampledata
 eval-ebs: clean-ebs-outputs generate-ebs run-ebs score-ebs
 eval-env-triad: clean-env-triad-outputs generate-env-triad run-env-triad
 
+# Tiny smoke test: N cases x 1 cheap model. Defaults to 3 cases x gpt-4o-mini (~$0.001)
+pilot-env-triad max_cases="3" model="gpt-4o-mini": clean-env-triad-outputs
+    uv run python datasets/env-triad-prediction/generate_suite.py --max-cases {{ max_cases }} --models {{ model }}
+    just run-env-triad
+
 # --- Cleanup ---
 
 clean-cache:

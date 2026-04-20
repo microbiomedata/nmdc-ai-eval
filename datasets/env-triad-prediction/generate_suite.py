@@ -177,10 +177,26 @@ def main() -> None:
         default=STUDIES_YAML,
         help="Alternate studies.yaml config path (ignored if --study-id is given).",
     )
+    parser.add_argument(
+        "--max-cases",
+        type=int,
+        default=None,
+        help="Cap the number of cases for quick pilot runs. None = all cases.",
+    )
+    parser.add_argument(
+        "--models",
+        type=str,
+        default=None,
+        help=(
+            "Comma-separated model names to override the list from models.yaml "
+            "(e.g. 'gpt-4o-mini' or 'gpt-4o-mini,gemini/gemini-2.5-flash'). "
+            "Useful with --max-cases for cheap pilot runs."
+        ),
+    )
     args = parser.parse_args()
 
     study_ids: list[str] = args.study_id if args.study_id else load_study_ids(args.studies_yaml)
-    models = load_models()
+    models = [m.strip() for m in args.models.split(",")] if args.models else load_models()
 
     cases: list[dict[str, Any]] = []
     per_study_counts: list[tuple[str, int, int]] = []  # (id, kept, skipped)
@@ -204,6 +220,9 @@ def main() -> None:
             )
             kept += 1
         per_study_counts.append((study_id, kept, skipped))
+
+    if args.max_cases is not None and len(cases) > args.max_cases:
+        cases = cases[: args.max_cases]
 
     suite = {
         "name": "Env Triad Prediction Test Suite",
