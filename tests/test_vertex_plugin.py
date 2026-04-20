@@ -63,3 +63,18 @@ def test_vertex_unknown_model_raises() -> None:
     """llm.get_model() raises UnknownModelError for unregistered vertex names."""
     with pytest.raises(llm.UnknownModelError):
         llm.get_model("vertex/gpt-4o")  # OpenAI is not on Vertex Model Garden
+
+
+def test_vertex_options_accept_temperature() -> None:
+    """Vertex models accept temperature=0.0 without pydantic rejecting it.
+
+    Regression: llm-matrix passes temperature through Options; earlier
+    the Options class inherited llm.Options with no temperature field
+    and raised `extra_forbidden`, aborting every eval call.
+    """
+    gemini = llm.get_model("vertex/gemini-2.5-flash")
+    claude = llm.get_model("vertex/claude-haiku-4-5")
+    # Each model's Options class must parse temperature without error.
+    assert gemini.Options(temperature=0.0).temperature == 0.0
+    assert claude.Options(temperature=0.7).temperature == 0.7
+    assert gemini.Options(max_tokens=100).max_tokens == 100

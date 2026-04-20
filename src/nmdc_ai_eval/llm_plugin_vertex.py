@@ -40,6 +40,7 @@ from typing import TYPE_CHECKING, Iterator
 
 import llm
 from dotenv import load_dotenv
+from pydantic import Field
 
 if TYPE_CHECKING:
     from llm import Conversation, Prompt, Response
@@ -49,6 +50,18 @@ load_dotenv()
 _DEFAULT_VERTEX_REGION = os.environ.get("CLOUD_ML_REGION", os.environ.get("GEMINI_REGION", "us-east5"))
 _VERTEX_PROJECT_ID = os.environ.get("VERTEX_PROJECT_ID")
 _CREDS_FILE = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS")
+
+
+class _VertexOptions(llm.Options):
+    """Shared options for Vertex models.
+
+    Declared so llm-matrix (and other callers) can pass ``temperature``
+    without pydantic rejecting it as an extra input. Keep this minimal —
+    add options only when a caller actually needs to set them.
+    """
+
+    temperature: float | None = Field(default=None, ge=0.0, le=2.0)
+    max_tokens: int | None = Field(default=None, ge=1)
 
 
 def _get_vertex_project() -> str:
@@ -61,6 +74,7 @@ class VertexGeminiModel(llm.Model):
     """Gemini model on Vertex AI via google.genai (generateContent endpoint)."""
 
     needs_key = None  # auth via service-account file, not API key
+    Options = _VertexOptions  # type: ignore[assignment]
 
     def __init__(self, model_id: str, vertex_model_name: str) -> None:
         self.model_id = model_id
@@ -122,6 +136,7 @@ class VertexClaudeModel(llm.Model):
     """Claude model on Vertex AI via AnthropicVertex (rawPredict endpoint)."""
 
     needs_key = None  # auth via service-account file, not API key
+    Options = _VertexOptions  # type: ignore[assignment]
 
     def __init__(self, model_id: str, vertex_model_name: str) -> None:
         self.model_id = model_id
