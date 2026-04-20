@@ -1,0 +1,33 @@
+name: Dependabot auto-merge
+
+# Auto-merge dependabot PRs for minor/patch bumps when CI passes.
+# Majors (breaking) still require manual review.
+#
+# Requires:
+#   - Branch protection on `main` with "Require status checks to pass
+#     before merging" enabled. Without that, --auto just merges
+#     immediately which defeats the point.
+#   - "Allow auto-merge" enabled in repo settings (Settings ->
+#     General -> Pull Requests).
+
+on: pull_request
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  automerge:
+    if: github.actor == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fetch dependabot metadata
+        id: meta
+        uses: dependabot/fetch-metadata@v3
+
+      - name: Enable auto-merge for non-major bumps
+        if: steps.meta.outputs.update-type != 'version-update:semver-major'
+        run: gh pr merge --auto --squash "$PR_URL"
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,7 +1,15 @@
 version: 2
 updates:
-  - package-ecosystem: "github-actions"
+  - package-ecosystem: github-actions
     directory: "/"
     schedule:
-      interval: "weekly"
+      interval: weekly
+    # One grouped PR per week instead of one per Action. Minor/patch
+    # bumps auto-merge via .github/workflows/dependabot-automerge.yml
+    # when CI passes; majors stay in their own PR for human review.
+    groups:
+      actions-minor:
+        update-types:
+          - minor
+          - patch
     open-pull-requests-limit: 5

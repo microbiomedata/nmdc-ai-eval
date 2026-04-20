@@ -28,6 +28,14 @@ coverage:
 verify-auth:
     uv run python scripts/verify_auth.py
 
+# Probe which model names our Vertex SA+project can actually reach
+probe-vertex-garden:
+    uv run python scripts/probe_vertex_garden.py
+
+# Probe cost tiers across OpenAI / Anthropic / Google (`--channel=llm|cborg`)
+probe-tiers *args="":
+    uv run python scripts/probe_model_tiers.py {{ args }}
+
 # --- Setup ---
 
 # Install dependencies and pre-commit hooks

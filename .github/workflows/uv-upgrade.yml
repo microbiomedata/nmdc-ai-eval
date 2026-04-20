@@ -12,24 +12,33 @@ jobs:
       contents: write
       pull-requests: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@v7
 
       - name: Upgrade all dependencies
         run: uv lock --upgrade
 
       - name: Open PR if lockfile changed
-        uses: peter-evans/create-pull-request@v7
+        id: create-pr
+        uses: peter-evans/create-pull-request@v8
         with:
           commit-message: "chore: uv lock --upgrade"
           branch: chore/uv-upgrade
           delete-branch: true
           title: "chore: weekly dependency upgrade"
           body: |
-            Automated weekly `uv lock --upgrade`.
+            Automated weekly `uv lock --upgrade`. Auto-merges when CI
+            passes (branch protection catches any regression).
 
             Check the Security tab after merging — Dependabot alerts for packages
             bumped here will auto-close once the new versions land on main.
           labels: dependencies
+
+      - name: Enable auto-merge on the PR
+        if: steps.create-pr.outputs.pull-request-number
+        run: gh pr merge --auto --squash "$PR_NUM"
+        env:
+          PR_NUM: ${{ steps.create-pr.outputs.pull-request-number }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
