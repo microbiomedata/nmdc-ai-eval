@@ -2,8 +2,6 @@
 
 import json
 
-import pytest
-
 from nmdc_ai_eval.run_suite import _env_triad_score, _try_parse_env_triad
 
 
@@ -54,6 +52,20 @@ class TestTryParseEnvTriad:
         result = _try_parse_env_triad("I cannot determine the env triad values.")
         assert result == {"broad": None, "local": None, "medium": None}
 
+    def test_json_embedded_in_prose(self) -> None:
+        prose = (
+            "Based on the biosample metadata, here are my suggestions:\n"
+            + _make_ideal(
+                "terrestrial biome [ENVO:00000446]",
+                "rhizosphere [ENVO:00005801]",
+                "soil [ENVO:00001998]",
+            )
+            + "\nPlease use these values."
+        )
+        result = _try_parse_env_triad(prose)
+        assert result["broad"] == "terrestrial biome [ENVO:00000446]"
+        assert result["medium"] == "soil [ENVO:00001998]"
+
     def test_malformed_json(self) -> None:
         result = _try_parse_env_triad("{not valid json}")
         assert result == {"broad": None, "local": None, "medium": None}
@@ -82,7 +94,7 @@ class TestEnvTriadScore:
             "soil [ENVO:00001998]",  # correct medium
         )
         score = _env_triad_score(IDEAL, response)
-        assert score == pytest.approx(2 / 3, abs=0.001)
+        assert score == 0.67  # fixed bucket, not 2/3 ≈ 0.6667
 
     def test_one_of_three_match(self) -> None:
         response = _make_ideal(
@@ -91,7 +103,7 @@ class TestEnvTriadScore:
             "soil [ENVO:00001998]",  # correct medium only
         )
         score = _env_triad_score(IDEAL, response)
-        assert score == pytest.approx(1 / 3, abs=0.001)
+        assert score == 0.33  # fixed bucket, not 1/3 ≈ 0.3333
 
     def test_no_match(self) -> None:
         response = _make_ideal(

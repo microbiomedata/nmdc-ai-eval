@@ -8,10 +8,11 @@ database (~/.config/io.datasette.llm/logs.db) after each LLM call. Cost is
 estimated using the pricing table in nmdc_ai_eval.pricing. All three appear
 as columns in the output TSV alongside accuracy scores.
 
-For env-triad evals, the ``simple_question`` LLM-as-judge is bypassed in
-favour of direct per-field comparison via ``_env_triad_score``. This is
-cheaper (no second LLM call per result), faster, deterministic, and not
-subject to scorer flakiness. See issue #72.
+For env-triad evals, the ``simple_question`` LLM-as-judge score is
+overridden by direct per-field comparison via ``_env_triad_score``. The
+judge call still executes (llm-matrix evaluates before yielding the
+result) but its score is discarded. Eliminating the call entirely
+requires a fork of llm-matrix; left as a future improvement. See #72.
 """
 
 import json
@@ -45,11 +46,11 @@ def _try_parse_env_triad(text: str | None) -> dict[str, str | None]:
     if not text:
         return empty
     fenced = re.search(r"```(?:json)?\s*(\{.*\})\s*```", text, re.DOTALL)
-    payload = (
-        fenced.group(1)
-        if fenced
-        else (re.search(r"\{.*\}", text, re.DOTALL) or type("", (), {"group": lambda s, n: None})()).group(0)
-    )  # noqa: E501
+    if fenced:
+        payload: str | None = fenced.group(1)
+    else:
+        m = re.search(r"\{.*\}", text, re.DOTALL)
+        payload = m.group(0) if m else None
     if not payload:
         return empty
     try:
@@ -108,16 +109,22 @@ def _get_max_rowid(db: sqlite3.Connection) -> int:
     return int(row[0]) if row else 0
 
 
+_TRIAD_SCORE_MAP = {0: 0.0, 1: 0.33, 2: 0.67, 3: 1.0}
+
+
 def _env_triad_score(ideal: str | None, response: str | None) -> float | None:
     """Direct per-field score for env-triad responses.
 
-    Returns the fraction of the three env-triad fields (broad, local, medium)
-    that match exactly between the ideal and the response (0.0, 0.33, 0.67, 1.0),
-    or ``None`` if either side can't be parsed as env-triad JSON.
+    Returns one of 0.0 / 0.33 / 0.67 / 1.0 based on how many of the three
+    env-triad fields (broad, local, medium) match exactly. Returns ``None``
+    only when the ideal doesn't parse as env-triad JSON — the caller then
+    falls back to the original metric for non-env-triad suites.
 
-    This replaces the ``simple_question`` LLM-as-judge for env-triad evals.
-    It is cheaper (no second LLM call), faster, and not subject to scorer
-    flakiness. Only called when the ideal parses as env-triad JSON.
+    When the *response* is unparsable (prose, empty, bad JSON), all fields
+    compare as non-matching and the score is 0.0, not ``None``.
+
+    Note: the judge call from ``simple_question`` still executes; this
+    function merely overrides its result. See module docstring for context.
     """
     ideal_fields = _try_parse_env_triad(ideal)
     if not any(ideal_fields.values()):
@@ -128,7 +135,7 @@ def _env_triad_score(ideal: str | None, response: str | None) -> float | None:
         for k in ("broad", "local", "medium")
         if ideal_fields.get(k) is not None and ideal_fields.get(k) == response_fields.get(k)
     )
-    return round(matches / 3, 4)
+    return _TRIAD_SCORE_MAP[matches]
 
 
 def _capture_log_entry(db: sqlite3.Connection, after_rowid: int) -> tuple[int, dict[str, int | None]]:
