@@ -9,9 +9,6 @@ import inspect
 
 import pytest
 from nmdc_metadata_suggestor_ai_tool.llm_client import (
-    DEFAULT_GEMINI_MODEL,
-    GEMINI_MODELS,
-    PNNL_GPT_MODELS,
     LLMClient,
 )
 from nmdc_metadata_suggestor_ai_tool.models.llm_output import (
@@ -55,15 +52,28 @@ def test_metadata_field_suggestion_model() -> None:
     assert suggestion.value != ""
 
 
-def test_gemini_models_available() -> None:
-    """At least one Gemini model is configured."""
-    assert len(GEMINI_MODELS) > 0
-    assert DEFAULT_GEMINI_MODEL in GEMINI_MODELS
+def test_llm_client_accepts_arbitrary_model(monkeypatch: pytest.MonkeyPatch) -> None:
+    """LLMClient passes model names through without enum/whitelist validation.
 
+    Uses the ``pnnl`` access_provider rather than ``gcp`` so this test runs
+    in CI without Google credentials. ``LLMClient.__init__`` for ``gcp``
+    eagerly calls ``google.auth.default()`` which fails in credential-less
+    environments; ``pnnl`` just reads env vars and constructs an ``OpenAI``
+    client (no network call on init). The point being verified — that the
+    model string is stored as-is — is provider-independent.
+    """
+    # Suggestor v1.1 captures AI_INCUBATOR_KEY and BASE_URL at module import
+    # time, so monkeypatch.setenv alone doesn't help once the module is loaded.
+    # Patch both the module-level constants and the env vars for compatibility
+    # with future suggestor versions that read env vars inside __init__.
+    from nmdc_metadata_suggestor_ai_tool import llm_client as llm_client_module
 
-def test_pnnl_models_available() -> None:
-    """PNNL model list is populated."""
-    assert len(PNNL_GPT_MODELS) > 0
+    monkeypatch.setenv("AI_INCUBATOR_KEY", "test-key")
+    monkeypatch.setenv("AI_INCUBATOR_BASE_URL", "https://example.invalid")
+    monkeypatch.setattr(llm_client_module, "AI_INCUBATOR_KEY", "test-key", raising=False)
+    monkeypatch.setattr(llm_client_module, "BASE_URL", "https://example.invalid", raising=False)
+    client = LLMClient(access_provider="pnnl", model="any-weird-name")
+    assert client.model == "any-weird-name"
 
 
 def test_schema_context_builder_exists() -> None:
