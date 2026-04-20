@@ -110,9 +110,13 @@ def load_study_ids(studies_yaml: Path) -> list[str]:
     return [entry["id"] for entry in config.get("studies", [])]
 
 
-def get_study_with_biosamples(study_id: str) -> dict[str, Any]:
-    """Fetch one study and its linked biosamples from the NMDC public API."""
-    search = StudySearch()
+def get_study_with_biosamples(study_id: str, env: str = "prod") -> dict[str, Any]:
+    """Fetch one study and its linked biosamples from the NMDC API.
+
+    ``env`` is passed through to ``StudySearch`` — use ``"dev"`` to hit
+    ``api-dev.microbiomedata.org`` when the prod API is unavailable.
+    """
+    search = StudySearch(env=env)
     study = search.get_record_by_id(collection_id=study_id)
     biosamples = search.get_linked_instances(
         ids=[study_id],
@@ -203,16 +207,28 @@ def main() -> None:
             "Useful with --max-cases for cheap pilot runs."
         ),
     )
+    parser.add_argument(
+        "--env",
+        choices=["prod", "dev"],
+        default="prod",
+        help=(
+            "NMDC API environment to fetch biosamples from. Use 'dev' "
+            "(api-dev.microbiomedata.org) when the prod API is unavailable."
+        ),
+    )
     args = parser.parse_args()
 
     study_ids: list[str] = args.study_id if args.study_id else load_study_ids(args.studies_yaml)
     models = [m.strip() for m in args.models.split(",")] if args.models else load_models()
 
+    if args.env != "prod":
+        print(f"Note: using NMDC {args.env} API (api-{args.env}.microbiomedata.org)")
+
     cases: list[dict[str, Any]] = []
     per_study_counts: list[tuple[str, int, int]] = []  # (id, kept, skipped)
 
     for study_id in study_ids:
-        data = get_study_with_biosamples(study_id)
+        data = get_study_with_biosamples(study_id, env=args.env)
         study = data["study"]
         kept = 0
         skipped = 0
