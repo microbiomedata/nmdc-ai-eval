@@ -72,9 +72,9 @@ generate-all: generate generate-field-guidance generate-env-triad
 
 # --- Eval Runs (require API keys) ---
 
-# Run a single eval suite
-run suite_path:
-    uv run python -m nmdc_ai_eval.run_suite {{ suite_path }}
+# Run a single eval suite. Optional: scorer_model="gpt-4o-mini" to pin the scoring model.
+run suite_path scorer_model="":
+    uv run python -m nmdc_ai_eval.run_suite {{ suite_path }} {{ if scorer_model != "" { "--scorer-model " + scorer_model } else { "" } }}
 
 # Run sampleData eval
 run-sampledata:
