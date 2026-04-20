@@ -107,7 +107,7 @@ warn_return_any = true
 warn_unused_configs = true
 
 [tool.deptry]
-per_rule_ignores = {DEP002 = ["ipython", "llm-claude-3", "llm-gemini", "pyyaml"], DEP003 = ["llm"]}
+per_rule_ignores = {DEP002 = ["ipython", "llm-claude-3", "llm-gemini", "pyyaml"], DEP003 = ["llm", "openai"]}
 
 [tool.typos.files]
 extend-exclude = [

@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Verify API auth works for all configured providers.
 
-Tests llm-plugin models (personal API keys) and GCP/PNNL pipeline
-credentials from .env.
+Tests llm-plugin models (personal API keys), CBORG, and GCP/PNNL
+pipeline credentials from .env. Each provider is checked with one
+real LLM call. Missing credentials produce SKIP, not FAIL.
 """
 
 import os
@@ -36,9 +37,39 @@ def test_llm_providers() -> list[str]:
             text = str(r).strip()[:20]
             print(f"  OK    {name:45s} -> {text}")
         except Exception as e:
-            err = str(e)[:80]
+            err = str(e)[:200]
             print(f"  FAIL  {name:45s} -> {err}")
             failures.append(name)
+
+    return failures
+
+
+def test_cborg_credentials() -> list[str]:
+    """Test CBORG (LBNL) credentials from .env. Returns list of failures."""
+    failures: list[str] = []
+    key = os.environ.get("CBORG_API_KEY")
+    url = os.environ.get("CBORG_BASE_URL")
+
+    if not key or not url:
+        print("  SKIP  CBORG                                        -> no credentials in .env")
+        return []
+
+    model = os.environ.get("CBORG_TEST_MODEL", "gpt-4o-mini")
+    try:
+        from openai import OpenAI
+
+        client = OpenAI(api_key=key, base_url=url)
+        response = client.chat.completions.create(
+            model=model,
+            messages=[{"role": "user", "content": "Reply with only: OK"}],
+            temperature=0,
+        )
+        text = (response.choices[0].message.content or "").strip()[:20]
+        print(f"  OK    CBORG ({model:37s}) -> {text}")
+    except Exception as e:
+        err = str(e)[:200]
+        print(f"  FAIL  CBORG ({model:37s}) -> {err}")
+        failures.append("cborg")
 
     return failures
 
@@ -66,7 +97,7 @@ def test_gcp_credentials() -> list[str]:
         text = response.strip()[:20]
         print(f"  OK    GCP Vertex ({client.model:35s}) -> {text}")
     except Exception as e:
-        err = str(e)[:80]
+        err = str(e)[:200]
         print(f"  FAIL  GCP Vertex AI                                -> {err}")
         failures.append("gcp")
 
@@ -92,7 +123,7 @@ def test_pnnl_credentials() -> list[str]:
         text = response.strip()[:20]
         print(f"  OK    PNNL ({client.model:37s}) -> {text}")
     except Exception as e:
-        err = str(e)[:80]
+        err = str(e)[:200]
         print(f"  FAIL  PNNL AI Incubator                            -> {err}")
         failures.append("pnnl")
 
@@ -105,7 +136,8 @@ def main() -> int:
     print("llm plugin providers (personal API keys):")
     failures = test_llm_providers()
 
-    print("\nPipeline providers (.env credentials):")
+    print("\nInstitutional providers (.env credentials):")
+    failures += test_cborg_credentials()
     failures += test_gcp_credentials()
     failures += test_pnnl_credentials()
 
