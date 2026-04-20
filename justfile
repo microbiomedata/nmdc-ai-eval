@@ -32,6 +32,10 @@ verify-auth:
 probe-vertex-garden:
     uv run python scripts/probe_vertex_garden.py
 
+# Probe cost tiers across OpenAI / Anthropic / Google (`--channel=llm|cborg`)
+probe-tiers *args="":
+    uv run python scripts/probe_model_tiers.py {{ args }}
+
 # --- Setup ---
 
 # Install dependencies and pre-commit hooks
