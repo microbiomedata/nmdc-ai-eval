@@ -60,7 +60,7 @@ generate-ebs per_category="10" min_pool="10":
 generate-field-guidance:
     uv run python datasets/field-guidance/generate_suite.py
 
-# Regenerate env-triad suite YAML (hits NMDC public API, no MongoDB needed)
+# Regenerate env-triad suite YAML (hits NMDC public API). Pass env=dev to use api-dev if prod is down.
 generate-env-triad env="prod":
     uv run python datasets/env-triad-prediction/generate_suite.py --env {{ env }}
 
@@ -109,8 +109,8 @@ eval-sampledata: clean-sampledata-outputs generate-sampledata run-sampledata
 eval-ebs: clean-ebs-outputs generate-ebs run-ebs score-ebs
 eval-env-triad: clean-env-triad-outputs generate-env-triad run-env-triad
 
-# Tiny smoke test: N cases x 1 cheap model. Defaults to 3 cases x gpt-4o-mini (~$0.001)
-# Pass env=dev to use api-dev.microbiomedata.org when prod is unavailable.
+# Smoke test: N cases x model(s). Defaults: 3 cases x gpt-4o-mini (~$0.001). env=dev for fallback API.
+# Example: just pilot-env-triad 50 "gpt-4o-mini,cborg/claude-sonnet-4-6" dev
 pilot-env-triad max_cases="3" model="gpt-4o-mini" env="prod": clean-env-triad-outputs
     uv run python datasets/env-triad-prediction/generate_suite.py --max-cases {{ max_cases }} --models {{ model }} --env {{ env }}
     just run-env-triad

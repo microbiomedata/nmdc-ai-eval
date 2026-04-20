@@ -19,6 +19,15 @@ Usage::
 
     uv run python datasets/env-triad-prediction/generate_suite.py
     uv run python datasets/env-triad-prediction/generate_suite.py --study-id nmdc:sty-...
+    uv run python datasets/env-triad-prediction/generate_suite.py \
+        --max-cases 50 --models gpt-4o-mini,cborg/claude-sonnet-4-6
+    uv run python datasets/env-triad-prediction/generate_suite.py --env dev   # fallback when prod API returns 502
+
+Or via just::
+
+    just generate-env-triad          # full suite, prod API
+    just generate-env-triad dev      # full suite, dev API (api-dev.microbiomedata.org)
+    just pilot-env-triad 50 "gpt-4o-mini,cborg/claude-sonnet-4-6" dev
 """
 
 import argparse

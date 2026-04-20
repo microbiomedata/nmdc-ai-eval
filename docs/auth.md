@@ -201,3 +201,9 @@ Contact Olivia Hess for the endpoint URL and key. Model names use a `-project` s
 - **`FAIL` on PNNL with a 403 or timeout** — PNNL's endpoint may enforce IP restrictions. Check whether you need VPN.
 - **`FAIL` on Vertex with "creds file not found"** — `GOOGLE_APPLICATION_CREDENTIALS` points at a file that doesn't exist at that path. Check the path is absolute and the file is readable.
 - **CBORG returns "model not found"** — your CBORG allowlist may not include the default test model. Set `CBORG_TEST_MODEL` to something in your allowlist.
+- **NMDC API returns 502 during suite generation** — `just generate-env-triad` and `just pilot-env-triad` hit `api.microbiomedata.org` to fetch biosamples. When that returns 502, use the dev API as a fallback:
+  ```bash
+  just pilot-env-triad 50 "gpt-4o-mini,cborg/gemini-2.5-flash" dev
+  just generate-env-triad dev
+  ```
+  The dev API (`api-dev.microbiomedata.org`) may lag prod by a sprint but the biosample data is the same for stable studies. Check `api-dev.microbiomedata.org` health with `curl -s -o /dev/null -w "%{http_code}" https://api-dev.microbiomedata.org/` before relying on it.
