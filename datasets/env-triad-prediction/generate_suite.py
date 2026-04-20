@@ -21,7 +21,7 @@ from nmdc_api_utilities.study_search import StudySearch
 
 HERE = Path(__file__).parent
 MODELS_YAML = HERE.parent / "models.yaml"
-OUTPUT_YAML = HERE / "env-triad-test-suite.yaml"
+OUTPUT_YAML = HERE / "env-triad-suite.yaml"
 
 
 def load_models() -> list[str]:

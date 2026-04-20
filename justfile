@@ -60,11 +60,15 @@ generate-ebs per_category="10" min_pool="10":
 generate-field-guidance:
     uv run python datasets/field-guidance/generate_suite.py
 
+# Regenerate env-triad suite YAML (hits NMDC public API, no MongoDB needed)
+generate-env-triad:
+    uv run python datasets/env-triad-prediction/generate_suite.py
+
 # Regenerate TSV-based suite YAMLs (no external dependencies)
 generate: generate-sampledata generate-ebs
 
 # Regenerate all suite YAMLs (field-guidance requires nmdc_data_dev MongoDB)
-generate-all: generate generate-field-guidance
+generate-all: generate generate-field-guidance generate-env-triad
 
 # --- Eval Runs (require API keys) ---
 
@@ -88,6 +92,10 @@ score-ebs:
 run-field-guidance:
     just run datasets/field-guidance/field-guidance-suite.yaml
 
+# Run env-triad eval via llm-matrix
+run-env-triad:
+    just run datasets/env-triad-prediction/env-triad-suite.yaml
+
 # Field guidance eval: models × enrichment × verification → summary
 full-eval *args="":
     uv run python datasets/field-guidance/run_full_eval.py {{ args }}
@@ -99,6 +107,7 @@ compare-pipeline-results *args="":
 # End-to-end value prediction evals (llm-matrix, no DOI/PDF)
 eval-sampledata: clean-sampledata-outputs generate-sampledata run-sampledata
 eval-ebs: clean-ebs-outputs generate-ebs run-ebs score-ebs
+eval-env-triad: clean-env-triad-outputs generate-env-triad run-env-triad
 
 # --- Cleanup ---
 
@@ -109,6 +118,7 @@ clean-cache:
 clean-suites:
     rm -f datasets/submission-metadata-prediction/sampledata-suite.yaml
     rm -f datasets/ebs-prediction/ebs-suite.yaml
+    rm -f datasets/env-triad-prediction/env-triad-suite.yaml
 
 clean-sampledata-outputs:
     rm -rf datasets/submission-metadata-prediction/sampledata-suite-output/
@@ -124,6 +134,10 @@ clean-field-guidance-outputs:
     rm -f datasets/field-guidance/field-guidance-suite.db
     rm -rf datasets/field-guidance/pipeline-results/
 
-clean-outputs: clean-sampledata-outputs clean-ebs-outputs clean-field-guidance-outputs
+clean-env-triad-outputs:
+    rm -rf datasets/env-triad-prediction/env-triad-suite-output/
+    rm -f datasets/env-triad-prediction/env-triad-suite.db
+
+clean-outputs: clean-sampledata-outputs clean-ebs-outputs clean-field-guidance-outputs clean-env-triad-outputs
 
 clean-all: clean-cache clean-suites clean-outputs
