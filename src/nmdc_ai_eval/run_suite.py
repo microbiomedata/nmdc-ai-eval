@@ -56,7 +56,10 @@ def _try_parse_env_triad(text: str | None) -> dict[str, str | None]:
     empty: dict[str, str | None] = {"broad": None, "local": None, "medium": None}
     if not text:
         return empty
-    fenced = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", text, re.DOTALL)
+    # Greedy match between fences — env-triad JSON has nested {} (one per
+    # field in metadata_fields) so a non-greedy inner match would stop at
+    # the first inner } and fail to parse. The outer fence anchors the end.
+    fenced = re.search(r"```(?:json)?\s*(\{.*\})\s*```", text, re.DOTALL)
     if fenced:
         payload = fenced.group(1)
     else:
@@ -68,7 +71,18 @@ def _try_parse_env_triad(text: str | None) -> dict[str, str | None]:
         data = json.loads(payload)
     except json.JSONDecodeError:
         return empty
-    field_map = {f.get("field_name"): f.get("value") for f in data.get("metadata_fields", [])}
+    if not isinstance(data, dict):
+        return empty
+    fields = data.get("metadata_fields")
+    if not isinstance(fields, list):
+        return empty
+    field_map: dict[str, str | None] = {}
+    for item in fields:
+        if isinstance(item, dict):
+            name = item.get("field_name")
+            if isinstance(name, str):
+                value = item.get("value")
+                field_map[name] = value if isinstance(value, str) else None
     return {
         "broad": field_map.get("env_broad_scale"),
         "local": field_map.get("env_local_scale"),
@@ -412,7 +426,14 @@ def main(suite_path: Path, output_dir: Path | None = None) -> None:
             df[f"expected_{key}"] = [d.get(key) for d in ideal_fields]
             if response_fields is not None:
                 df[f"got_{key}"] = [d.get(key) for d in response_fields]
-                df[f"{key}_match"] = df[f"expected_{key}"] == df[f"got_{key}"]
+                # Match is True/False only when both sides parsed to a value.
+                # If either side is None (non-env-triad eval, or parse failure)
+                # the match column is None, not spuriously True.
+                exp = df[f"expected_{key}"]
+                got = df[f"got_{key}"]
+                df[f"{key}_match"] = [
+                    (e == g) if e is not None and g is not None else None for e, g in zip(exp, got, strict=True)
+                ]
 
     tsv_path = output_dir / "results.tsv"
     df.to_csv(tsv_path, sep="\t", index=False)

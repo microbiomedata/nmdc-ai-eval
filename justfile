@@ -123,6 +123,7 @@ clean-cache:
 clean-suites:
     rm -f datasets/submission-metadata-prediction/sampledata-suite.yaml
     rm -f datasets/ebs-prediction/ebs-suite.yaml
+    rm -f datasets/field-guidance/field-guidance-suite.yaml
     rm -f datasets/env-triad-prediction/env-triad-suite.yaml
 
 clean-sampledata-outputs:
