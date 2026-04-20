@@ -45,6 +45,9 @@ dev = [
   "types-pyyaml>=6.0.12.20250915",
 ]
 
+[project.entry-points."llm"]
+vertex = "nmdc_ai_eval.llm_plugin_vertex"
+
 [tool.hatch.build.targets.wheel]
 packages = ["src/nmdc_ai_eval"]
 
@@ -74,7 +77,8 @@ markers = ["api: tests requiring LLM API calls (excluded from CI)"]
 
 [tool.coverage.run]
 omit = [
-  "src/nmdc_ai_eval/run_suite.py",    # API-only; untestable without live LLM calls
+  "src/nmdc_ai_eval/run_suite.py",          # API-only; untestable without live LLM calls
+  "src/nmdc_ai_eval/llm_plugin_vertex.py",  # execute() methods require live Vertex SA creds
 ]
 
 [tool.ruff]
