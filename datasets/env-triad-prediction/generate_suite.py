@@ -85,7 +85,17 @@ def build_env_triad_schema_context() -> str:
 
 
 def build_system_prompt() -> str:
-    return SYSTEM_PROMPT_HEAD + build_env_triad_schema_context()
+    """Build the full system prompt, with braces escaped for ``str.format``.
+
+    llm-matrix runs ``template.system.format(**template_params)`` on the
+    system string at inference time (see ``llm_matrix.aimodel.AIModel.prompt``).
+    Any literal ``{`` / ``}`` in the prompt — the JSON schema example,
+    regex patterns in the MIxS schema context like ``{7,8}`` — would be
+    treated as format placeholders and fail with KeyError. Doubling them
+    makes ``str.format`` emit the literal characters.
+    """
+    raw = SYSTEM_PROMPT_HEAD + build_env_triad_schema_context()
+    return raw.replace("{", "{{").replace("}", "}}")
 
 
 def load_models() -> list[str]:
