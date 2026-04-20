@@ -22,7 +22,9 @@ dependencies = [
   "llm-gemini>=0.29",
   "llm-matrix>=0.1.3",
   "oaklib>=0.6.0",
+  "openai>=1.0",
   "pandas>=2.0",
+  "python-dotenv>=1.0",
   "pyyaml>=6.0",
 ]
 
@@ -106,8 +108,12 @@ strict = true
 warn_return_any = true
 warn_unused_configs = true
 
+[[tool.mypy.overrides]]
+module = "nmdc_metadata_suggestor_ai_tool.*"
+ignore_missing_imports = true
+
 [tool.deptry]
-per_rule_ignores = {DEP002 = ["ipython", "llm-claude-3", "llm-gemini", "pyyaml"], DEP003 = ["llm", "openai"]}
+per_rule_ignores = {DEP002 = ["ipython", "llm-claude-3", "llm-gemini", "pyyaml"], DEP003 = ["llm"], DEP004 = ["nmdc_metadata_suggestor_ai_tool"]}
 
 [tool.typos.files]
 extend-exclude = [

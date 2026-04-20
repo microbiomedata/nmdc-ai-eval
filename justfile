@@ -28,6 +28,10 @@ coverage:
 verify-auth:
     uv run python scripts/verify_auth.py
 
+# Probe which model names our Vertex SA+project can actually reach
+probe-vertex-garden:
+    uv run python scripts/probe_vertex_garden.py
+
 # --- Setup ---
 
 # Install dependencies and pre-commit hooks

@@ -1907,7 +1907,9 @@ dependencies = [
     { name = "llm-gemini" },
     { name = "llm-matrix" },
     { name = "oaklib" },
+    { name = "openai" },
     { name = "pandas" },
+    { name = "python-dotenv" },
     { name = "pyyaml" },
 ]
 
@@ -1934,7 +1936,9 @@ requires-dist = [
     { name = "llm-gemini", specifier = ">=0.29" },
     { name = "llm-matrix", specifier = ">=0.1.3" },
     { name = "oaklib", specifier = ">=0.6.0" },
+    { name = "openai", specifier = ">=1.0" },
     { name = "pandas", specifier = ">=2.0" },
+    { name = "python-dotenv", specifier = ">=1.0" },
     { name = "pyyaml", specifier = ">=6.0" },
 ]
 

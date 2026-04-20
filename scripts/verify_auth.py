@@ -60,6 +60,9 @@ def test_llm_providers() -> list[str]:
         seen_providers.add(provider)
 
         source = _llm_key_source(provider)
+        if source == "none":
+            print(f"  SKIP  {name:45s} [key: {source:9s}] -> no credentials (llm store or env var)")
+            continue
         try:
             m = llm.get_model(name)
             r = m.prompt("Reply with only: OK", temperature=0)

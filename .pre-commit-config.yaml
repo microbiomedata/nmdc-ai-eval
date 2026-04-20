@@ -38,13 +38,13 @@ repos:
     hooks:
       - id: mypy
         name: mypy
-        entry: uv run mypy src/
+        entry: uv run mypy src/ scripts/
         language: system
         types: [python]
         pass_filenames: false
       - id: deptry
         name: deptry
-        entry: uv run deptry src/
+        entry: uv run deptry src/ scripts/
         language: system
         types: [python]
         pass_filenames: false
