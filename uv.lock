@@ -1916,6 +1916,7 @@ dependencies = [
     { name = "oaklib" },
     { name = "openai" },
     { name = "pandas" },
+    { name = "pydantic" },
     { name = "python-dotenv" },
     { name = "pyyaml" },
 ]
@@ -1947,6 +1948,7 @@ requires-dist = [
     { name = "oaklib", specifier = ">=0.6.0" },
     { name = "openai", specifier = ">=1.0" },
     { name = "pandas", specifier = ">=2.0" },
+    { name = "pydantic", specifier = ">=2.0" },
     { name = "python-dotenv", specifier = ">=1.0" },
     { name = "pyyaml", specifier = ">=6.0" },
 ]

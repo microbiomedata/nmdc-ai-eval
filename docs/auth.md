@@ -52,12 +52,14 @@ uv run llm keys path                # path to the JSON file
 | `gpt-*` | `llm` built-in openai plugin | OpenAI direct |
 | `anthropic/*` | `llm-claude-3` plugin | Anthropic direct |
 | `gemini/*` | `llm-gemini` plugin | Google **AI Studio** (not Vertex) |
+| `vertex/gemini-*` | local `llm_plugin_vertex` | **Vertex AI** (Gemini via generateContent) |
+| `vertex/claude-*` | local `llm_plugin_vertex` | **Vertex AI** (Claude via rawPredict) |
 | `*-project` suffix | Pipeline backend | PNNL AI Incubator |
-| (Vertex / CBORG) | Not via `llm-matrix` — see notes below | |
+| (CBORG) | Not via `llm-matrix` — see notes below | |
 
 **CBORG** fronts OpenAI, Anthropic, and Gemini model families through one OpenAI-compatible endpoint. It is *not* currently wired into `llm-matrix`; `just verify-auth` checks CBORG with a direct `openai` SDK call against `CBORG_BASE_URL`. Evals that want to use CBORG need a dedicated code path (see issue #62).
 
-**Vertex** is Google-only (Gemini natively, Anthropic-on-Vertex via the anthropic SDK). It powers the production suggestor pipeline but is not a drop-in `llm-matrix` target.
+**Vertex** models are now reachable from `llm-matrix` via the in-repo `llm_plugin_vertex` — use `vertex/gemini-*` or `vertex/claude-*` anywhere a model name is accepted. Auth reuses the existing `GOOGLE_APPLICATION_CREDENTIALS` + `VERTEX_PROJECT_ID` setup below. Region defaults to `us-east5`; override with `CLOUD_ML_REGION` (or `GEMINI_REGION`) if your project uses a different Vertex location.
 
 ## Direct LLM APIs (personal keys)
 
@@ -96,9 +98,9 @@ Note: no `/v1` suffix — the OpenAI SDK appends the path automatically.
 
 The `llm-gemini` plugin only supports [Google AI Studio](https://aistudio.google.com/) API keys. It does **not** support Vertex AI authentication.
 
-The suggestor tool uses Vertex AI via Sierra Moxon's `nmdc-llm` service account. Those credentials work with the **pipeline backend** (`--provider gcp`) but not with the **llm backend** or `llm-matrix` suites.
+For Vertex-backed Gemini (and Claude) via `llm` / `llm-matrix`, use the in-repo `llm_plugin_vertex` with model names like `vertex/gemini-2.5-flash` or `vertex/claude-haiku-4-5`. See the [Vertex AI section below](#vertex-ai-gcp).
 
-For Gemini with the `llm` backend: generate a free Google AI Studio key at <https://aistudio.google.com/apikey> and run `uv run llm keys set gemini`. The free tier provides 1,500 requests/day — sufficient for eval runs.
+For Gemini with the `llm` backend (AI Studio, not Vertex): generate a free Google AI Studio key at <https://aistudio.google.com/apikey> and run `uv run llm keys set gemini`. The free tier provides 1,500 requests/day — sufficient for eval runs.
 
 ## Vertex AI (GCP)
 
@@ -125,7 +127,7 @@ However, Vertex exposes each publisher through a **different API endpoint**:
 
 The suggestor's `LLMClient(access_provider="gcp")` currently only dispatches via `generateContent` (see [`llm_client.py:229`](https://github.com/microbiomedata/nmdc-metadata-suggestor-ai-tool/blob/main/src/nmdc_metadata_suggestor_ai_tool/llm_client.py#L229)), which means Gemini works but Claude calls return `400 "not supported in the generateContent API"` even though the project has Claude enabled. This is a **dispatcher gap, not an access restriction.**
 
-Run `just probe-vertex-garden` to see the current picture for your SA. The probe routes Anthropic candidates through `AnthropicVertex` directly as a workaround until the suggestor grows a `gcp-anthropic` access provider. See [issue #46](https://github.com/microbiomedata/nmdc-ai-eval/issues/46) for status.
+The in-repo `llm_plugin_vertex` routes each publisher through the correct SDK, so `vertex/gemini-*` and `vertex/claude-*` both work from `llm-matrix` eval suites. Run `just probe-vertex-garden` to see which specific model names the SA can reach on your project.
 
 > **Budget reminder:** The `nmdc-llm` GCP project has a shared $500 total budget. Claude Opus is ~$15/$75 per 1M tokens — use it sparingly. Prefer personal or CBORG keys for iterative dev.
 

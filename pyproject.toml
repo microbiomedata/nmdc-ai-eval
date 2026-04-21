@@ -26,6 +26,7 @@ dependencies = [
   "oaklib>=0.6.0",
   "openai>=1.0",
   "pandas>=2.0",
+  "pydantic>=2.0",
   "python-dotenv>=1.0",
   "pyyaml>=6.0",
 ]
@@ -44,6 +45,9 @@ dev = [
   "pymongo>=4.16.0",
   "types-pyyaml>=6.0.12.20250915",
 ]
+
+[project.entry-points."llm"]
+vertex = "nmdc_ai_eval.llm_plugin_vertex"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/nmdc_ai_eval"]
@@ -74,7 +78,14 @@ markers = ["api: tests requiring LLM API calls (excluded from CI)"]
 
 [tool.coverage.run]
 omit = [
-  "src/nmdc_ai_eval/run_suite.py",    # API-only; untestable without live LLM calls
+  "src/nmdc_ai_eval/run_suite.py",  # API-only; untestable without live LLM calls
+]
+
+[tool.coverage.report]
+exclude_lines = [
+  # Vertex plugin execute() methods require live SA creds — excluded by pattern,
+  # not whole-file, so register_models() and _get_vertex_project() stay covered.
+  "^\\s*def execute\\(",
 ]
 
 [tool.ruff]
