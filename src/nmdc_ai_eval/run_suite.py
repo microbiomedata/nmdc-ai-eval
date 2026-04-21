@@ -95,7 +95,9 @@ def _short_label(text: str | None, fallback_chars: int = 80) -> str:
     Otherwise returns the first ``fallback_chars`` of the text with
     newlines replaced by spaces, so it fits on one console line.
     """
-    if not text:
+    # Mirror the guard in _try_parse_env_triad: pandas passes NaN (float)
+    # for lost-result rows and str slicing would crash.
+    if not isinstance(text, str) or not text:
         return ""
     parsed = _try_parse_env_triad(text)
     if any(parsed.values()):
@@ -186,6 +188,17 @@ def _capture_log_entry(db: sqlite3.Connection, after_rowid: int) -> tuple[int, d
 
 def _print_summary(df: "pd.DataFrame") -> None:
     """Print a human-readable summary: per-model scores, cost, and misses."""
+    # Drop rows lost to scorer parse errors. Those have NaN in case_ideal,
+    # response_text, and score — nothing in the summary can be computed from
+    # them, and they'd crash helpers that expect strings.
+    lost = df["case_ideal"].isna().sum() if "case_ideal" in df.columns else 0
+    if lost:
+        click.echo(f"\n  (skipping {lost} lost row(s) from scorer parse errors)")
+        df = df[df["case_ideal"].notna()].reset_index(drop=True)
+    if df.empty:
+        click.echo("\nNo scorable rows — nothing to summarize.")
+        return
+
     click.echo("\n── Model ranking ──")
     model_scores = df.groupby("model")["score"].agg(["mean", "count", "sum"])
     model_scores.columns = ["accuracy", "cases", "correct"]

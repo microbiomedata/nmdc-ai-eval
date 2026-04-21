@@ -83,6 +83,19 @@ class TestTryParseEnvTriad:
         assert result == {"broad": None, "local": None, "medium": None}
 
 
+class TestShortLabel:
+    def test_nan_input_does_not_crash(self) -> None:
+        # Mirrors _try_parse_env_triad regression: NaN rows (lost results)
+        # must return empty string, not raise on slicing.
+        import math
+
+        from nmdc_ai_eval.run_suite import _short_label
+
+        assert _short_label(math.nan) == ""  # type: ignore[arg-type]
+        assert _short_label(None) == ""
+        assert _short_label("") == ""
+
+
 class TestEnvTriadScore:
     def test_perfect_match(self) -> None:
         assert _env_triad_score(IDEAL, IDEAL) == 1.0
