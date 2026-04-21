@@ -59,7 +59,7 @@ uv run llm keys path                # path to the JSON file
 
 **CBORG** fronts OpenAI, Anthropic, and Gemini model families through one OpenAI-compatible endpoint. It is *not* currently wired into `llm-matrix`; `just verify-auth` checks CBORG with a direct `openai` SDK call against `CBORG_BASE_URL`. Evals that want to use CBORG need a dedicated code path (see issue #62).
 
-**Vertex** models are now reachable from `llm-matrix` via the in-repo `llm_plugin_vertex` — use `vertex/gemini-*` or `vertex/claude-*` anywhere a model name is accepted. Auth reuses the existing `GOOGLE_APPLICATION_CREDENTIALS` + `VERTEX_PROJECT_ID` setup below.
+**Vertex** models are now reachable from `llm-matrix` via the in-repo `llm_plugin_vertex` — use `vertex/gemini-*` or `vertex/claude-*` anywhere a model name is accepted. Auth reuses the existing `GOOGLE_APPLICATION_CREDENTIALS` + `VERTEX_PROJECT_ID` setup below. Region defaults to `us-east5`; override with `CLOUD_ML_REGION` (or `GEMINI_REGION`) if your project uses a different Vertex location.
 
 ## Direct LLM APIs (personal keys)
 

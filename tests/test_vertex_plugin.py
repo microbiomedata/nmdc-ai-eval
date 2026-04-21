@@ -10,18 +10,21 @@ import pytest
 
 
 def test_vertex_gemini_models_registered() -> None:
-    """All expected vertex/gemini-* models appear in llm model list."""
+    """Every name in _GEMINI_MODELS is registered as vertex/<name>."""
+    from nmdc_ai_eval.llm_plugin_vertex import _GEMINI_MODELS
+
     model_ids = {m.model_id for m in llm.get_models()}
-    assert "vertex/gemini-2.5-flash" in model_ids
-    assert "vertex/gemini-2.5-pro" in model_ids
-    assert "vertex/gemini-2.0-flash" in model_ids
+    for name in _GEMINI_MODELS:
+        assert f"vertex/{name}" in model_ids
 
 
 def test_vertex_claude_models_registered() -> None:
-    """All expected vertex/claude-* models appear in llm model list."""
+    """Every name in _CLAUDE_MODELS is registered as vertex/<name>."""
+    from nmdc_ai_eval.llm_plugin_vertex import _CLAUDE_MODELS
+
     model_ids = {m.model_id for m in llm.get_models()}
-    assert "vertex/claude-haiku-4-5" in model_ids
-    assert "vertex/claude-sonnet-4-5@20250929" in model_ids
+    for name in _CLAUDE_MODELS:
+        assert f"vertex/{name}" in model_ids
 
 
 def test_vertex_model_ids_have_vertex_prefix() -> None:
