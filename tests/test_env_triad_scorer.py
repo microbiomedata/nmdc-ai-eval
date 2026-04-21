@@ -74,6 +74,14 @@ class TestTryParseEnvTriad:
         result = _try_parse_env_triad("[1, 2, 3]")
         assert result == {"broad": None, "local": None, "medium": None}
 
+    def test_nan_input(self) -> None:
+        # pandas passes NaN (float) for missing cells — the parser must
+        # not crash when a scorer error left case_ideal unpopulated.
+        import math
+
+        result = _try_parse_env_triad(math.nan)  # type: ignore[arg-type]
+        assert result == {"broad": None, "local": None, "medium": None}
+
 
 class TestEnvTriadScore:
     def test_perfect_match(self) -> None:

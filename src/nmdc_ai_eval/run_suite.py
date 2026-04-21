@@ -48,7 +48,10 @@ def _try_parse_env_triad(text: str | None) -> dict[str, str | None]:
     is meaningful.
     """
     empty: dict[str, str | None] = {"broad": None, "local": None, "medium": None}
-    if not text:
+    # Guard against non-string input (pandas passes NaN floats for rows where
+    # case_ideal was never populated, e.g. when a scorer parse error drops
+    # the result mid-run). `not text` alone doesn't catch NaN.
+    if not isinstance(text, str) or not text:
         return empty
     # Greedy match between fences — env-triad JSON has nested {} (one per
     # field in metadata_fields) so a non-greedy inner match would stop at
