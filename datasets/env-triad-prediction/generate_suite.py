@@ -266,7 +266,11 @@ def main() -> None:
             "env_triad_prediction": {
                 "system": build_system_prompt(),
                 "prompt": "{input}",
-                "metrics": ["simple_question"],
+                # No `metrics:` — scoring is done by _env_triad_score in
+                # run_suite.py, which compares ideal/response per field
+                # exactly. Using simple_question here would just add a
+                # second LLM call per result whose score we discard, and
+                # its parse errors permanently kill llm-matrix's iterator.
             }
         },
         "matrix": {
