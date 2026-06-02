@@ -12,7 +12,7 @@ Follow the [Quickstart in README](README.md#quickstart) to clone the repo, insta
 
 ## Pre-commit hooks explained
 
-Pre-commit hooks are automated checks that run every time you `git commit`. If any check fails, the commit is blocked until you fix the issue. This repo uses them to catch lint errors, type problems, test failures, and dependency vulnerabilities before code reaches a PR.
+Pre-commit hooks are automated checks that run every time you `git commit`. If any check fails, the commit is blocked until you fix the issue. This repo uses them to catch lint errors, type problems, and test failures before code reaches a PR. Dependency vulnerability scanning is *not* a pre-commit hook (so an upstream advisory never blocks an unrelated PR); run it with `just audit` — see below.
 
 Every `git commit` runs the full suite of checks automatically. You can also run them manually:
 

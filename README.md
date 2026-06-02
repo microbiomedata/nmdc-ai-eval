@@ -135,7 +135,7 @@ Model names must match `uv run llm models list`. `just test` verifies every mode
 
 ## QC and automation
 
-All checks are defined once in `.pre-commit-config.yaml`. The justfile and CI both delegate to pre-commit so there is a single source of truth.
+All PR-gating checks are defined once in `.pre-commit-config.yaml`. The justfile and CI both delegate to pre-commit so there is a single source of truth. Dependency vulnerability scanning is intentionally not one of these checks; it runs separately via `just audit` (see below).
 
 | Check | `just all` | git commit | git push | CI (PR) |
 |---|---|---|---|---|
