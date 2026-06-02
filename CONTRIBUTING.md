@@ -36,14 +36,14 @@ The hooks and what they enforce are documented in the [QC and automation table i
   ideal: "some expected output"
 ```
 
-**pip-audit** (CVEs) — A transitive dependency has a known vulnerability. Update it:
+**pip-audit** (CVEs, run via `just audit` or the weekly CI audit, not as part of `just check`) — A transitive dependency has a known vulnerability. Update it:
 
 ```bash
 uv lock --upgrade-package <package-name>
 uv sync
 ```
 
-Then re-run `just check` to confirm the CVE is resolved.
+Then re-run `just audit` to confirm the CVE is resolved.
 
 **ruff / ruff-format** — Usually auto-fixed by `just fix`. If the error persists after that, read the rule code in the output (e.g. `E501`, `I001`) and fix manually.
 
