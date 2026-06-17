@@ -64,17 +64,21 @@ generate-ebs per_category="10" min_pool="10":
 generate-field-guidance:
     uv run python datasets/field-guidance/generate_suite.py
 
+# Regenerate env-triad suite YAML (hits NMDC public API). Pass env=dev to use api-dev if prod is down.
+generate-env-triad env="prod":
+    uv run python datasets/env-triad-prediction/generate_suite.py --env {{ env }}
+
 # Regenerate TSV-based suite YAMLs (no external dependencies)
 generate: generate-sampledata generate-ebs
 
 # Regenerate all suite YAMLs (field-guidance requires nmdc_data_dev MongoDB)
-generate-all: generate generate-field-guidance
+generate-all: generate generate-field-guidance generate-env-triad
 
 # --- Eval Runs (require API keys) ---
 
-# Run a single eval suite
-run suite_path:
-    uv run python -m nmdc_ai_eval.run_suite {{ suite_path }}
+# Run a single eval suite. Optional: scorer_model="gpt-4o-mini" to pin the scoring model.
+run suite_path scorer_model="":
+    uv run python -m nmdc_ai_eval.run_suite {{ suite_path }} {{ if scorer_model != "" { "--scorer-model " + scorer_model } else { "" } }}
 
 # Run sampleData eval
 run-sampledata:
@@ -92,6 +96,10 @@ score-ebs:
 run-field-guidance:
     just run datasets/field-guidance/field-guidance-suite.yaml
 
+# Run env-triad eval via llm-matrix
+run-env-triad:
+    just run datasets/env-triad-prediction/env-triad-suite.yaml
+
 # Field guidance eval: models × enrichment × verification → summary
 full-eval *args="":
     uv run python datasets/field-guidance/run_full_eval.py {{ args }}
@@ -103,6 +111,13 @@ compare-pipeline-results *args="":
 # End-to-end value prediction evals (llm-matrix, no DOI/PDF)
 eval-sampledata: clean-sampledata-outputs generate-sampledata run-sampledata
 eval-ebs: clean-ebs-outputs generate-ebs run-ebs score-ebs
+eval-env-triad: clean-env-triad-outputs generate-env-triad run-env-triad
+
+# Smoke test: N cases x model(s). Defaults: 3 cases x gpt-4o-mini (~$0.001). env=dev for fallback API.
+# Example: just pilot-env-triad 50 "gpt-4o-mini,cborg/claude-sonnet-4-6" dev
+pilot-env-triad max_cases="3" model="gpt-4o-mini" env="prod": clean-env-triad-outputs
+    uv run python datasets/env-triad-prediction/generate_suite.py --max-cases {{ max_cases }} --models {{ model }} --env {{ env }}
+    just run-env-triad
 
 # --- Cleanup ---
 
@@ -113,6 +128,8 @@ clean-cache:
 clean-suites:
     rm -f datasets/submission-metadata-prediction/sampledata-suite.yaml
     rm -f datasets/ebs-prediction/ebs-suite.yaml
+    rm -f datasets/field-guidance/field-guidance-suite.yaml
+    rm -f datasets/env-triad-prediction/env-triad-suite.yaml
 
 clean-sampledata-outputs:
     rm -rf datasets/submission-metadata-prediction/sampledata-suite-output/
@@ -128,6 +145,10 @@ clean-field-guidance-outputs:
     rm -f datasets/field-guidance/field-guidance-suite.db
     rm -rf datasets/field-guidance/pipeline-results/
 
-clean-outputs: clean-sampledata-outputs clean-ebs-outputs clean-field-guidance-outputs
+clean-env-triad-outputs:
+    rm -rf datasets/env-triad-prediction/env-triad-suite-output/
+    rm -f datasets/env-triad-prediction/env-triad-suite.db
+
+clean-outputs: clean-sampledata-outputs clean-ebs-outputs clean-field-guidance-outputs clean-env-triad-outputs
 
 clean-all: clean-cache clean-suites clean-outputs

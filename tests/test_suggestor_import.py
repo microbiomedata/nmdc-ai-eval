@@ -41,7 +41,10 @@ def test_llm_output_model() -> None:
 def test_metadata_field_suggestion_model() -> None:
     """MetadataFieldSuggestion has field_name, reason, and value."""
     fields = set(MetadataFieldSuggestion.model_fields.keys())
-    assert fields == {"field_name", "reason", "value"}
+    # Presence check, not exact match: the suggestor model gains fields over
+    # time (e.g. the optional `id` added in 1.2.0 for sample-level suggestions),
+    # and this proof-of-life test should not break on benign upstream additions.
+    assert {"field_name", "reason", "value"} <= fields
 
     suggestion = MetadataFieldSuggestion(
         field_name="env_broad_scale",

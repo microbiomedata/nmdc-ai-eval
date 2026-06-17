@@ -9,6 +9,12 @@
 *-output/
 *.db
 
+# Generated suite YAMLs (regenerate on demand via `just generate-*`)
+datasets/submission-metadata-prediction/sampledata-suite.yaml
+datasets/ebs-prediction/ebs-suite.yaml
+datasets/field-guidance/field-guidance-suite.yaml
+datasets/env-triad-prediction/env-triad-suite.yaml
+
 # Pipeline eval results — committed for reproducibility.
 # Individual result YAMLs are timestamped and never overwritten.
 
