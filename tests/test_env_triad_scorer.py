@@ -64,6 +64,7 @@ class TestTryParseEnvTriad:
         )
         result = _try_parse_env_triad(prose)
         assert result["broad"] == "terrestrial biome [ENVO:00000446]"
+        assert result["local"] == "rhizosphere [ENVO:00005801]"
         assert result["medium"] == "soil [ENVO:00001998]"
 
     def test_malformed_json(self) -> None:
