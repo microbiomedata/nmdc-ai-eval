@@ -1,0 +1,23 @@
+# Studies to include in the env-triad eval.
+#
+# Pick studies that together cover multiple biomes so the eval can
+# distinguish models that actually read the biosample metadata from
+# ones that guess "terrestrial biome" blindly. See microbiomedata/nmdc-ai-eval#55.
+#
+# This list is a starting point. Expand with studies across aquatic,
+# marine, host-associated, built-environment, sediment, etc. Each
+# biosample in each study contributes one case (if it has complete
+# env-triad term data); skipped biosamples are counted in the run
+# summary.
+#
+# Each entry:
+#   id:             NMDC study ID
+#   name:           Human-readable label (informational)
+#   expected_biomes: (optional) biomes you expect to see — helps future
+#                    reviewers sanity-check that the selection is diverse
+
+studies:
+  - id: nmdc:sty-11-r2h77870
+    name: Bioscales
+    expected_biomes:
+      - terrestrial biome [ENVO:00000446]

@@ -8,11 +8,11 @@ database (~/.config/io.datasette.llm/logs.db) after each LLM call. Cost is
 estimated using the pricing table in nmdc_ai_eval.pricing. All three appear
 as columns in the output TSV alongside accuracy scores.
 
-For env-triad evals, the ``simple_question`` LLM-as-judge score is
-overridden by direct per-field comparison via ``_env_triad_score``. The
-judge call still executes (llm-matrix evaluates before yielding the
-result) but its score is discarded. Eliminating the call entirely
-requires a fork of llm-matrix; left as a future improvement. See #72.
+For env-triad-style evals where ``case_ideal`` is a JSON string of shape
+``{"metadata_fields": [{field_name, value, ...}, ...]}``, the output TSV
+also gets per-field columns (``expected_broad``/``got_broad``/
+``broad_match`` etc.) so downstream analysis can pivot without re-parsing.
+Non-env-triad evals see those columns as ``None`` — harmless.
 """
 
 import json
@@ -34,25 +34,36 @@ if TYPE_CHECKING:
 
 _LLM_LOGS_DB = Path.home() / ".config" / "io.datasette.llm" / "logs.db"
 
+# Slot names for env-triad extraction. Used by _try_parse_env_triad below.
+_ENV_TRIAD_SLOTS = ("env_broad_scale", "env_local_scale", "env_medium")
+
 
 def _try_parse_env_triad(text: str | None) -> dict[str, str | None]:
     """Extract env-triad field values from a JSON string.
 
-    Accepts raw JSON, JSON wrapped in ```json``` fences, or JSON embedded
-    in prose. Returns ``{"broad": ..., "local": ..., "medium": ...}`` with
-    ``None`` for any field that can't be parsed. Never raises.
+    Accepts raw JSON, JSON wrapped in ``` ```json ``` fences, or a mixed
+    response where JSON appears after prose. Returns ``{"broad": ..., "local":
+    ..., "medium": ...}`` with ``None`` for any field that can't be parsed.
+    Never raises — callers use the None sentinels to decide whether a cell
+    is meaningful.
     """
     empty: dict[str, str | None] = {"broad": None, "local": None, "medium": None}
-    if not text:
+    # Guard against non-string input (pandas passes NaN floats for rows where
+    # case_ideal was never populated, e.g. when a scorer parse error drops
+    # the result mid-run). `not text` alone doesn't catch NaN.
+    if not isinstance(text, str) or not text:
         return empty
+    # Greedy match between fences — env-triad JSON has nested {} (one per
+    # field in metadata_fields) so a non-greedy inner match would stop at
+    # the first inner } and fail to parse. The outer fence anchors the end.
     fenced = re.search(r"```(?:json)?\s*(\{.*\})\s*```", text, re.DOTALL)
     if fenced:
-        payload: str | None = fenced.group(1)
+        payload = fenced.group(1)
     else:
-        m = re.search(r"\{.*\}", text, re.DOTALL)
-        payload = m.group(0) if m else None
-    if not payload:
-        return empty
+        braces = re.search(r"\{.*\}", text, re.DOTALL)
+        if not braces:
+            return empty
+        payload = braces.group(0)
     try:
         data = json.loads(payload)
     except json.JSONDecodeError:
@@ -74,6 +85,53 @@ def _try_parse_env_triad(text: str | None) -> dict[str, str | None]:
         "local": field_map.get("env_local_scale"),
         "medium": field_map.get("env_medium"),
     }
+
+
+def _short_label(text: str | None, fallback_chars: int = 80) -> str:
+    """Short display label for a JSON ideal/response.
+
+    If the text parses as an env-triad JSON, returns
+    ``"broad | local | medium"`` with question marks for missing fields.
+    Otherwise returns the first ``fallback_chars`` of the text with
+    newlines replaced by spaces, so it fits on one console line.
+    """
+    # Mirror the guard in _try_parse_env_triad: pandas passes NaN (float)
+    # for lost-result rows and str slicing would crash.
+    if not isinstance(text, str) or not text:
+        return ""
+    parsed = _try_parse_env_triad(text)
+    if any(parsed.values()):
+        return " | ".join(parsed.get(k) or "?" for k in ("broad", "local", "medium"))
+    return text[:fallback_chars].replace("\n", " ").replace("\r", " ")
+
+
+_TRIAD_SCORE_MAP = {0: 0.0, 1: 0.33, 2: 0.67, 3: 1.0}
+
+
+def _env_triad_score(ideal: str | None, response: str | None) -> float | None:
+    """Direct per-field score for env-triad responses.
+
+    Returns one of 0.0 / 0.33 / 0.67 / 1.0 based on how many of the three
+    env-triad fields (broad, local, medium) match exactly. Returns ``None``
+    only when the ideal doesn't parse as env-triad JSON — the caller then
+    falls back to the original metric for non-env-triad suites.
+
+    When the *response* is unparsable (prose, empty, bad JSON), all fields
+    compare as non-matching and the score is 0.0, not ``None``.
+
+    Note: the judge call from ``simple_question`` still executes; this
+    function merely overrides its result. See module docstring for context.
+    """
+    ideal_fields = _try_parse_env_triad(ideal)
+    if not any(ideal_fields.values()):
+        return None  # not an env-triad case — leave scoring to the original metric
+    response_fields = _try_parse_env_triad(response)
+    matches = sum(
+        1
+        for k in ("broad", "local", "medium")
+        if ideal_fields.get(k) is not None and ideal_fields.get(k) == response_fields.get(k)
+    )
+    return _TRIAD_SCORE_MAP[matches]
 
 
 def _preflight(model_names: list[str]) -> list[str]:
@@ -109,35 +167,6 @@ def _get_max_rowid(db: sqlite3.Connection) -> int:
     return int(row[0]) if row else 0
 
 
-_TRIAD_SCORE_MAP = {0: 0.0, 1: 0.33, 2: 0.67, 3: 1.0}
-
-
-def _env_triad_score(ideal: str | None, response: str | None) -> float | None:
-    """Direct per-field score for env-triad responses.
-
-    Returns one of 0.0 / 0.33 / 0.67 / 1.0 based on how many of the three
-    env-triad fields (broad, local, medium) match exactly. Returns ``None``
-    only when the ideal doesn't parse as env-triad JSON — the caller then
-    falls back to the original metric for non-env-triad suites.
-
-    When the *response* is unparsable (prose, empty, bad JSON), all fields
-    compare as non-matching and the score is 0.0, not ``None``.
-
-    Note: the judge call from ``simple_question`` still executes; this
-    function merely overrides its result. See module docstring for context.
-    """
-    ideal_fields = _try_parse_env_triad(ideal)
-    if not any(ideal_fields.values()):
-        return None  # not an env-triad case — leave scoring to the original metric
-    response_fields = _try_parse_env_triad(response)
-    matches = sum(
-        1
-        for k in ("broad", "local", "medium")
-        if ideal_fields.get(k) is not None and ideal_fields.get(k) == response_fields.get(k)
-    )
-    return _TRIAD_SCORE_MAP[matches]
-
-
 def _capture_log_entry(db: sqlite3.Connection, after_rowid: int) -> tuple[int, dict[str, int | None]]:
     """Get the most recent log entry after the given rowid.
 
@@ -159,6 +188,17 @@ def _capture_log_entry(db: sqlite3.Connection, after_rowid: int) -> tuple[int, d
 
 def _print_summary(df: "pd.DataFrame") -> None:
     """Print a human-readable summary: per-model scores, cost, and misses."""
+    # Drop rows lost to scorer parse errors. Those have NaN in case_ideal,
+    # response_text, and score — nothing in the summary can be computed from
+    # them, and they'd crash helpers that expect strings.
+    lost = df["case_ideal"].isna().sum() if "case_ideal" in df.columns else 0
+    if lost:
+        click.echo(f"\n  (skipping {lost} lost row(s) from scorer parse errors)")
+        df = df[df["case_ideal"].notna()].reset_index(drop=True)
+    if df.empty:
+        click.echo("\nNo scorable rows — nothing to summarize.")
+        return
+
     click.echo("\n── Model ranking ──")
     model_scores = df.groupby("model")["score"].agg(["mean", "count", "sum"])
     model_scores.columns = ["accuracy", "cases", "correct"]
@@ -171,7 +211,9 @@ def _print_summary(df: "pd.DataFrame") -> None:
     if "case_ideal" in df.columns:
         most_common = df["case_ideal"].value_counts()
         baseline = most_common.iloc[0] / len(df)
-        click.echo(f"\n  Majority-class baseline: {baseline:.0%} (always predict '{most_common.index[0]}')")
+        click.echo(
+            f"\n  Majority-class baseline: {baseline:.0%} (always predict '{_short_label(most_common.index[0])}')"
+        )
 
     # Cost and timing summary (if data is available)
     has_cost = "est_cost_usd" in df.columns and df["est_cost_usd"].notna().any()
@@ -206,22 +248,26 @@ def _print_summary(df: "pd.DataFrame") -> None:
 
     click.echo("\n── Per-category accuracy (by model) ──")
     if "case_ideal" in df.columns:
-        pivot = df.pivot_table(values="score", index="case_ideal", columns="model", aggfunc="mean")
-        pivot["support"] = df.groupby("case_ideal")["score"].count() // len(df["model"].unique())
+        # Group by a short label derived from the ideal, not the full ideal
+        # string, so category rows fit on one console line.
+        df_with_cat = df.assign(_cat=df["case_ideal"].map(_short_label))
+        pivot = df_with_cat.pivot_table(values="score", index="_cat", columns="model", aggfunc="mean")
+        pivot["support"] = df_with_cat.groupby("_cat")["score"].count() // len(df["model"].unique())
         for cat, row in pivot.iterrows():
             models_str = "  ".join(f"{row.get(m, float('nan')):.0%}" for m in model_scores.index)
-            click.echo(f"  {cat:<50s} {models_str}  (n={row['support']:.0f})")
-        click.echo(f"  {'models:':<50s} {'  '.join(str(m) for m in model_scores.index)}")
+            click.echo(f"  {cat:<70s} {models_str}  (n={row['support']:.0f})")
+        click.echo(f"  {'models:':<70s} {'  '.join(str(m) for m in model_scores.index)}")
 
-    # Show misses grouped by expected category
+    # Show misses grouped by expected category (short label)
     misses = df[df["score"] < 1.0]
     if not misses.empty:
         click.echo(f"\n── Misses ({len(misses)}/{len(df)}) ──")
-        for cat in sorted(misses["case_ideal"].unique()):
-            cat_misses = misses[misses["case_ideal"] == cat]
+        misses_with_cat = misses.assign(_cat=misses["case_ideal"].map(_short_label))
+        for cat in sorted(misses_with_cat["_cat"].unique()):
+            cat_misses = misses_with_cat[misses_with_cat["_cat"] == cat]
             click.echo(f"  expected '{cat}' ({len(cat_misses)} misses):")
             for _, row in cat_misses.iterrows():
-                response = str(row.get("response_text", ""))[:50]
+                response = _short_label(str(row.get("response_text", "")), 200)
                 study = str(row.get("study_name", ""))[:40] if "study_name" in row.index else ""
                 model_short = str(row["model"]).split("/")[-1]
                 click.echo(f"    {model_short:<30s} got '{response}'  [{study}]")
@@ -236,7 +282,17 @@ def _print_summary(df: "pd.DataFrame") -> None:
     default=None,
     help="Output directory (default: <suite>-output/)",
 )
-def main(suite_path: Path, output_dir: Path | None = None) -> None:
+@click.option(
+    "--scorer-model",
+    default=None,
+    envvar="LLM_SCORER_MODEL",
+    help=(
+        "llm model to use for scoring (default: llm's default model). "
+        "Override when the default scorer returns prose instead of a leading number — "
+        "e.g. --scorer-model gpt-4o-mini. Also reads LLM_SCORER_MODEL env var."
+    ),
+)
+def main(suite_path: Path, output_dir: Path | None = None, scorer_model: str | None = None) -> None:
     """Run an llm-matrix eval suite and write results to TSV."""
     import pandas as pd
 
@@ -259,20 +315,12 @@ def main(suite_path: Path, output_dir: Path | None = None) -> None:
     n_total = n_cases * n_models
     click.echo(f"Running {n_cases} cases × {n_models} models = {n_total} calls (~{n_total * 3}–{n_total * 5}s)")
 
-    # Warn when simple_question is active and no scorer model is pinned.
-    # simple_question makes a second LLM call per result using llm's default
-    # model (currently gpt-4o per llm_matrix/metrics.py:DEFAULT_EVALUATION_MODEL_NAME).
-    # That default is implicit and can change. Env-triad suites bypass this via
-    # _env_triad_score(); other suites should pin --scorer-model for reproducibility.
-    uses_simple_question = any("simple_question" in (t.metrics or []) for t in (suite.templates or {}).values())
-    scorer_model_env = __import__("os").environ.get("LLM_SCORER_MODEL")
-    if uses_simple_question and not scorer_model_env:
-        click.echo(
-            "  Note: suite uses simple_question metric. Scorer model is llm's default "
-            "(currently gpt-4o). Pin it with --scorer-model or LLM_SCORER_MODEL env var "
-            "for reproducible scoring across runs.",
-            err=True,
-        )
+    # Configure scorer model if specified.
+    from llm_matrix.runner import LLMRunnerConfig  # type: ignore[import-untyped]
+
+    runner_config = LLMRunnerConfig(evaluation_model_name=scorer_model) if scorer_model else None
+    if scorer_model:
+        click.echo(f"  (scorer model: {scorer_model})")
 
     # Open llm logs DB for inline token/timing capture
     logs_db = _open_llm_logs_db()
@@ -282,53 +330,81 @@ def main(suite_path: Path, output_dir: Path | None = None) -> None:
     else:
         click.echo("  (llm logs DB not found — token/timing will not be captured)")
 
-    runner = LLMRunner(store_path=store_path)
+    runner = LLMRunner(store_path=store_path, config=runner_config)
     results = []
     token_data: list[dict[str, float | None]] = []
-    try:
-        for i, r in enumerate(runner.run_iter(suite), 1):
-            # For env-triad cases, override the LLM-as-judge score with a
-            # direct per-field comparison — cheaper, faster, and not subject
-            # to scorer flakiness. Falls back to the original score for
-            # non-env-triad evals (when _env_triad_score returns None).
-            direct = _env_triad_score(r.case.ideal, r.response.text)
-            if direct is not None:
-                r.score = direct
-
-            results.append(r)
-
-            # Capture tokens/timing from llm logs
-            entry: dict[str, float | None] = {
-                "input_tokens": None,
-                "output_tokens": None,
-                "duration_ms": None,
-                "est_cost_usd": None,
-            }
-            if logs_db:
-                last_rowid, log_entry = _capture_log_entry(logs_db, last_rowid)
-                entry.update(log_entry)
-                model_name = str(r.hyperparameters.get("model", ""))
-                cost = estimate_cost(model_name, log_entry["input_tokens"], log_entry["output_tokens"])
-                if cost is not None:
-                    entry["est_cost_usd"] = round(cost, 6)
-            token_data.append(entry)
-
-            score_str = f"{r.score:.2f}" if r.score is not None else "N/A"
-            mark = "+" if r.score and r.score >= 1.0 else "-"
-            model_short = str(r.hyperparameters.get("model", "?")).split("/")[-1][:15]
-            study = r.case.original_input.get("study_name", "")[:30] if r.case.original_input else ""
-            cost_str = f" ${entry['est_cost_usd']:.4f}" if entry.get("est_cost_usd") else ""
-            tok_str = ""
-            if entry.get("input_tokens") is not None:
-                tok_str = f" {entry['input_tokens']}+{entry['output_tokens']}tok"
+    score_parse_failures = 0
+    run_iter = runner.run_iter(suite)
+    i = 0
+    while True:
+        i += 1
+        try:
+            r = next(run_iter)
+        except StopIteration:
+            break
+        except ValueError as exc:
+            # llm-matrix raises ValueError("Could not parse score from <scorer response>")
+            # when the scorer model returns prose before the numeric score. The result
+            # that triggered this is lost (never yielded). Log the error with full
+            # context and continue — the run keeps going from the next case.
+            score_parse_failures += 1
             click.echo(
-                f"  {mark} {i:>3d}/{n_total} [{score_str}] {model_short:<15s} {study:<30s}"
-                f"  expected={r.case.ideal}  got={r.response.text[:50]}{tok_str}{cost_str}"
+                f"\n  ! {i:>3d}/{n_total} [score=None] scorer parse error — result lost:\n    {exc}",
+                err=True,
             )
-    except Exception as exc:  # noqa: BLE001
-        click.echo(f"\nError during eval: {exc}", err=True)
-        click.echo("Check model names and API keys. Run: uv run llm models list", err=True)
-        sys.exit(1)
+            token_data.append({"input_tokens": None, "output_tokens": None, "duration_ms": None, "est_cost_usd": None})
+            continue
+        except Exception as exc:  # noqa: BLE001
+            click.echo(f"\nError during eval: {exc}", err=True)
+            click.echo("Check model names and API keys. Run: uv run llm models list", err=True)
+            break
+
+        # Override the LLM-as-judge score with direct per-field comparison for
+        # env-triad evals. Falls back to the original score for other evals.
+        direct = _env_triad_score(r.case.ideal, r.response.text)
+        if direct is not None:
+            r.score = direct
+
+        results.append(r)
+
+        # Capture tokens/timing from llm logs
+        entry: dict[str, float | None] = {
+            "input_tokens": None,
+            "output_tokens": None,
+            "duration_ms": None,
+            "est_cost_usd": None,
+        }
+        if logs_db:
+            last_rowid, log_entry = _capture_log_entry(logs_db, last_rowid)
+            entry.update(log_entry)
+            model_name = str(r.hyperparameters.get("model", ""))
+            cost = estimate_cost(model_name, log_entry["input_tokens"], log_entry["output_tokens"])
+            if cost is not None:
+                entry["est_cost_usd"] = round(cost, 6)
+        token_data.append(entry)
+
+        score_str = f"{r.score:.2f}" if r.score is not None else "N/A"
+        mark = "+" if r.score and r.score >= 1.0 else "-"
+        model_short = str(r.hyperparameters.get("model", "?")).split("/")[-1][:15]
+        study = r.case.original_input.get("study_name", "")[:30] if r.case.original_input else ""
+        cost_str = f" ${entry['est_cost_usd']:.4f}" if entry.get("est_cost_usd") else ""
+        tok_str = ""
+        if entry.get("input_tokens") is not None:
+            tok_str = f" {entry['input_tokens']}+{entry['output_tokens']}tok"
+        click.echo(
+            f"  {mark} {i:>3d}/{n_total} [{score_str}] {model_short:<15s} {study:<30s}"
+            f"  expected={_short_label(r.case.ideal)}  got={_short_label(r.response.text, 200)}"
+            f"{tok_str}{cost_str}"
+        )
+    if score_parse_failures:
+        click.echo(
+            f"\n  Note: {score_parse_failures} scorer parse error(s) — those results have "
+            f"score=None and no response_text in the TSV (the result was lost when the "
+            f"exception interrupted the iterator). The full scorer response is in the "
+            f"error lines above. To prevent this, set LLM_SCORER_MODEL=gpt-4o-mini "
+            f"(or --scorer-model gpt-4o-mini) to pin the scorer to a reliable model.",
+            err=True,
+        )
 
     if not results:
         click.echo("No results generated.", err=True)
@@ -338,6 +414,24 @@ def main(suite_path: Path, output_dir: Path | None = None) -> None:
     df = results_to_dataframe(results)
     token_df = pd.DataFrame(token_data)
     df = pd.concat([df, token_df], axis=1)
+
+    # Add per-field env-triad columns for downstream analysis. For evals whose
+    # ideal isn't env-triad-shaped, these come out as None — harmless.
+    if "case_ideal" in df.columns:
+        ideal_fields = df["case_ideal"].apply(_try_parse_env_triad)
+        response_fields = df["response_text"].apply(_try_parse_env_triad) if "response_text" in df.columns else None
+        for key in ("broad", "local", "medium"):
+            df[f"expected_{key}"] = [d.get(key) for d in ideal_fields]
+            if response_fields is not None:
+                df[f"got_{key}"] = [d.get(key) for d in response_fields]
+                # Match is True/False only when both sides parsed to a value.
+                # If either side is None (non-env-triad eval, or parse failure)
+                # the match column is None, not spuriously True.
+                exp = df[f"expected_{key}"]
+                got = df[f"got_{key}"]
+                df[f"{key}_match"] = [
+                    (e == g) if e is not None and g is not None else None for e, g in zip(exp, got, strict=True)
+                ]
 
     tsv_path = output_dir / "results.tsv"
     df.to_csv(tsv_path, sep="\t", index=False)

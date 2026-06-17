@@ -85,6 +85,8 @@ The key store takes priority over env vars.
 
 CBORG is LBL's internal OpenAI-compatible proxy. One endpoint, many model families (OpenAI, Anthropic, Gemini, and others). Manage keys at <https://api.cborg.lbl.gov/key/manage> (portal home: <https://cborg.lbl.gov/>; API docs: <https://cborg.lbl.gov/api_docs/>).
 
+### Basic setup
+
 ```bash
 CBORG_API_KEY=<your key>
 CBORG_BASE_URL=https://api.cborg.lbl.gov
@@ -93,6 +95,56 @@ CBORG_BASE_URL=https://api.cborg.lbl.gov
 Note: no `/v1` suffix — the OpenAI SDK appends the path automatically.
 
 `just verify-auth` tests CBORG with `gpt-4o-mini` by default. Override with `CBORG_TEST_MODEL=...` if that model isn't in your CBORG allowlist.
+
+### Using CBORG models in eval suites
+
+`just run-env-triad` (and every other `run-*` suite target) resolves model names through the `llm` library's plugin ecosystem, not through the `.env` that `verify-auth` / `probe-tiers` read. So setting `CBORG_API_KEY` alone **does not** make CBORG models usable in suite evals.
+
+The bridge is `llm`'s `extra-openai-models.yaml` feature. Entries in that file register custom model aliases that hit any OpenAI-compatible endpoint. This repo ships a starter at `~/.config/io.datasette.llm/extra-openai-models.yaml` with seven aliases (`cborg/gpt-4o-mini`, `cborg/claude-sonnet-4-6`, `cborg/gemini-2.5-pro`, etc.). See the file's inline comments for how to add more.
+
+**One-time activation:**
+
+```bash
+uv run llm keys set cborg
+# paste the same value you have in CBORG_API_KEY
+```
+
+Verify with `uv run llm models list | grep cborg` — the aliases should appear. After that, any `cborg/*` model name is valid in `just pilot-env-triad` or other suite runs.
+
+**Discover the full CBORG catalog** (~200 models) with:
+
+```bash
+just probe-tiers --list-cborg-models
+```
+
+Pick names you want and add new entries to `extra-openai-models.yaml` following the same pattern.
+
+### Known limitation: key duplication
+
+Right now CBORG credentials have to live in **both** `.env` (as `CBORG_API_KEY` — for `verify-auth` and `probe-tiers`, which use the `openai` SDK directly) **and** the `llm` key store (as `cborg` — for suite evals that route through `llm-matrix`). Changing CBORG's key means updating both places.
+
+Tracked as [#71](https://github.com/microbiomedata/nmdc-ai-eval/issues/71); low priority given the friction is a one-time setup per dev.
+
+### Adding more models from any other OpenAI-compatible endpoint
+
+The same `extra-openai-models.yaml` pattern works for PNNL's AI Incubator, any other LiteLLM/OpenAI-proxy service, or a locally-hosted endpoint. Entry shape:
+
+```yaml
+- model_id: <alias-you-pick>        # what you'll type in suites
+  model_name: <name-on-the-server>  # what the server expects
+  api_base: <server base URL>
+  api_key_name: <keystore entry>    # run `llm keys set <key_name>` once
+```
+
+## Adding more Gemini models via AI Studio
+
+The `llm-gemini` plugin supports the full AI Studio catalog, not just the models listed in `datasets/models.yaml`. Add any `gemini/<name>` form to your command:
+
+```bash
+just pilot-env-triad 50 "gpt-4o-mini,gemini/gemini-2.5-pro,gemini/gemini-2.0-flash"
+```
+
+`uv run llm models list | grep -i gemini` shows what's installed. AI Studio's free tier allows 1500 requests per model per day — enough for most eval sweeps.
 
 ## Gemini: AI Studio vs Vertex
 
@@ -149,3 +201,9 @@ Contact Olivia Hess for the endpoint URL and key. Model names use a `-project` s
 - **`FAIL` on PNNL with a 403 or timeout** — PNNL's endpoint may enforce IP restrictions. Check whether you need VPN.
 - **`FAIL` on Vertex with "creds file not found"** — `GOOGLE_APPLICATION_CREDENTIALS` points at a file that doesn't exist at that path. Check the path is absolute and the file is readable.
 - **CBORG returns "model not found"** — your CBORG allowlist may not include the default test model. Set `CBORG_TEST_MODEL` to something in your allowlist.
+- **NMDC API returns 502 during suite generation** — `just generate-env-triad` and `just pilot-env-triad` hit `api.microbiomedata.org` to fetch biosamples. When that returns 502, use the dev API as a fallback:
+  ```bash
+  just pilot-env-triad 50 "gpt-4o-mini,cborg/gemini-2.5-flash" dev
+  just generate-env-triad dev
+  ```
+  The dev API (`api-dev.microbiomedata.org`) may lag prod by a sprint but the biosample data is the same for stable studies. Check `api-dev.microbiomedata.org` health with `curl -s -o /dev/null -w "%{http_code}" https://api-dev.microbiomedata.org/` before relying on it.
