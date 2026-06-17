@@ -65,10 +65,10 @@ def test_llm_client_accepts_arbitrary_model(monkeypatch: pytest.MonkeyPatch) -> 
     client (no network call on init). The point being verified — that the
     model string is stored as-is — is provider-independent.
     """
-    # Suggestor v1.1 captures AI_INCUBATOR_KEY and BASE_URL at module import
-    # time, so monkeypatch.setenv alone doesn't help once the module is loaded.
-    # Patch both the module-level constants and the env vars for compatibility
-    # with future suggestor versions that read env vars inside __init__.
+    # The suggestor module may capture AI_INCUBATOR_KEY and BASE_URL at module
+    # import time, so monkeypatch.setenv alone doesn't help once loaded.
+    # Patch both the module-level constants and env vars for compatibility
+    # with versions that read env vars inside __init__.
     from nmdc_metadata_suggestor_ai_tool import llm_client as llm_client_module
 
     monkeypatch.setenv("AI_INCUBATOR_KEY", "test-key")
@@ -77,6 +77,18 @@ def test_llm_client_accepts_arbitrary_model(monkeypatch: pytest.MonkeyPatch) -> 
     monkeypatch.setattr(llm_client_module, "BASE_URL", "https://example.invalid", raising=False)
     client = LLMClient(access_provider="pnnl", model="any-weird-name")
     assert client.model == "any-weird-name"
+
+    # Verify patched configuration is actually wired into the instantiated
+    # low-level client when those attributes are exposed by the implementation.
+    inner_client = getattr(client, "client", None)
+    if inner_client is not None:
+        base_url = getattr(inner_client, "base_url", None)
+        if base_url is not None:
+            assert str(base_url).rstrip("/") == "https://example.invalid"
+
+        api_key = getattr(inner_client, "api_key", None)
+        if api_key is not None:
+            assert api_key == "test-key"
 
 
 def test_schema_context_builder_exists() -> None:
