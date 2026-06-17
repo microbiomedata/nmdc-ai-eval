@@ -24,6 +24,10 @@ test:
 coverage:
     uv run pytest -m "not api" --cov=nmdc_ai_eval --cov-report=term-missing
 
+# Audit installed deps for known vulnerabilities (advisory; also runs weekly in CI)
+audit:
+    uv run pip-audit --ignore-vuln CVE-2025-69872 --ignore-vuln CVE-2026-4539
+
 # Verify API auth works for all providers (1 cheap call each)
 verify-auth:
     uv run python scripts/verify_auth.py

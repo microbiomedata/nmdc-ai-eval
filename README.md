@@ -135,7 +135,7 @@ Model names must match `uv run llm models list`. `just test` verifies every mode
 
 ## QC and automation
 
-All checks are defined once in `.pre-commit-config.yaml`. The justfile and CI both delegate to pre-commit so there is a single source of truth.
+All PR-gating checks are defined once in `.pre-commit-config.yaml`. The justfile and CI both delegate to pre-commit so there is a single source of truth. Dependency vulnerability scanning is intentionally not one of these checks; it runs separately via `just audit` (see below).
 
 | Check | `just all` | git commit | git push | CI (PR) |
 |---|---|---|---|---|
@@ -151,7 +151,8 @@ All checks are defined once in `.pre-commit-config.yaml`. The justfile and CI bo
 | mypy | yes | yes | yes | yes |
 | deptry | yes | yes | yes | yes |
 | pytest (excludes `@api`) | yes | yes | yes | yes |
-| pip-audit | yes | yes | yes | yes |
+
+Dependency vulnerability scanning (`pip-audit`) runs separately from the commit/PR gates so an upstream advisory never blocks unrelated work: on demand via `just audit`, and weekly in CI (`.github/workflows/pip-audit.yml`, also runnable on demand from the Actions tab).
 
 The minimum coverage threshold is **90%** (enforced via `--cov-fail-under` in pre-commit). `run_suite.py` is excluded from measurement because it requires live LLM calls. `llm_adapter.py` is tested with mocked LLM calls.
 
