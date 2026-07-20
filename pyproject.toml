@@ -17,7 +17,7 @@ dynamic = ["version"]
 
 dependencies = [
   "anthropic[vertex]>=0.84",
-  "click<8.3",
+  "click>=8.3.3",
   "google-genai>=1.0",
   "ipython>=9.10.0",
   "llm-claude-3>=0.11",
@@ -65,7 +65,7 @@ fallback-version = "0.0.0"
 constraint-dependencies = [
   "anthropic>=0.84.0",    # llm-claude-3 runtime dep
   "linkml>=1.10.0",       # linkml <1.10 references Format.JSON removed in linkml-runtime 1.10
-  "setuptools>=70.0,<81", # oaklib→eutils uses pkg_resources, removed in setuptools 82
+  "setuptools>=83.0.0",   # oaklib/eutils no longer need pkg_resources as of eutils 0.6.1; >=83.0.0 is the first release fixing PYSEC-2026-3447 (verified 2026-07-20)
 ]
 
 [tool.pytest.ini_options]
