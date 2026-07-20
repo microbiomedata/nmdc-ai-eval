@@ -65,7 +65,7 @@ fallback-version = "0.0.0"
 constraint-dependencies = [
   "anthropic>=0.84.0",    # llm-claude-3 runtime dep
   "linkml>=1.10.0",       # linkml <1.10 references Format.JSON removed in linkml-runtime 1.10
-  "setuptools>=82.0",     # oaklib/eutils no longer need pkg_resources as of eutils 0.6.1 (verified 2026-07-20)
+  "setuptools>=83.0.0",   # oaklib/eutils no longer need pkg_resources as of eutils 0.6.1; >=83.0.0 is the first release fixing PYSEC-2026-3447 (verified 2026-07-20)
 ]
 
 [tool.pytest.ini_options]

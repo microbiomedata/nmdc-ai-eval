@@ -17,7 +17,7 @@ resolution-markers = [
 constraints = [
     { name = "anthropic", specifier = ">=0.84.0" },
     { name = "linkml", specifier = ">=1.10.0" },
-    { name = "setuptools", specifier = ">=82.0" },
+    { name = "setuptools", specifier = ">=83.0.0" },
 ]
 
 [[package]]
