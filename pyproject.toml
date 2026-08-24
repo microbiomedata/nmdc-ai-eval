@@ -41,11 +41,13 @@ dev = [
   "pip-audit>=2.10.0",
   "pytest-cov>=7.0.0",
   "pandas-stubs>=3.0.0.260204",
-  # Pinned to a commit on the suggestor's main, not to a PyPI release. Its
-  # newest release is 1.2.1 (2026-06-24) and main is ~145 commits ahead, so
-  # resolving from PyPI scored a June single-pass pipeline and none of the
-  # agentic work. A SHA keeps each eval run attributable to exact suggestor
-  # code; the weekly uv-upgrade job moves it forward.
+  # Resolved from the suggestor's git main, not from PyPI. Its newest release
+  # is 1.2.1 (2026-06-24) and main is ~145 commits ahead, so resolving from
+  # PyPI scored a June single-pass pipeline and none of the agentic work.
+  # Tracking the branch rather than pinning `rev` is deliberate: uv.lock still
+  # records the exact resolved SHA, so a run stays attributable, while
+  # `uv lock --upgrade` can advance it. An explicit `rev` is immutable and
+  # --upgrade will not move it, which would freeze the staleness at a new SHA.
   "nmdc-metadata-suggestor-ai-tool",
   "nmdc-api-utilities>=0.6.1",
   "pymongo>=4.16.0",
@@ -143,4 +145,4 @@ extend-exclude = [
 ]
 
 [tool.uv.sources]
-nmdc-metadata-suggestor-ai-tool = { git = "https://github.com/microbiomedata/nmdc-metadata-suggestor-ai-tool.git", rev = "a79aa83eb22df9b35c3e7d85301294e61f5f32fc" }
+nmdc-metadata-suggestor-ai-tool = { git = "https://github.com/microbiomedata/nmdc-metadata-suggestor-ai-tool.git", branch = "main" }
