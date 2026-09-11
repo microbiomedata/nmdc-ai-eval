@@ -72,7 +72,11 @@ fallback-version = "0.0.0"
 constraint-dependencies = [
   "anthropic>=0.84.0",    # llm-claude-3 runtime dep
   "linkml>=1.10.0",       # linkml <1.10 references Format.JSON removed in linkml-runtime 1.10
-  "setuptools>=83.0.0",   # oaklib/eutils no longer need pkg_resources as of eutils 0.6.1; >=83.0.0 is the first release fixing PYSEC-2026-3447 (verified 2026-07-20)
+  # setuptools>=83.0.0 (PYSEC-2026-3447) was constrained here until 2026-09-11. The
+  # suggestor now depends on oaklib (ENVO lookups), and every oaklib release through
+  # 0.7.4 pins setuptools<82, so the constraint made the suggestor uninstallable.
+  # setuptools is build tooling here, never imported at runtime; the advisory is
+  # ignored in `just audit` until oaklib lifts its pin.
 ]
 
 [tool.pytest.ini_options]
@@ -145,4 +149,6 @@ extend-exclude = [
 ]
 
 [tool.uv.sources]
-nmdc-metadata-suggestor-ai-tool = { git = "https://github.com/microbiomedata/nmdc-metadata-suggestor-ai-tool.git", branch = "main" }
+# TODO: switch back to branch = "main" once microbiomedata/nmdc-metadata-suggestor-ai-tool
+# merges 143-phyllosphere-supplement-eval (adds the `evaluation` package this repo imports).
+nmdc-metadata-suggestor-ai-tool = { git = "https://github.com/microbiomedata/nmdc-metadata-suggestor-ai-tool.git", branch = "143-phyllosphere-supplement-eval" }

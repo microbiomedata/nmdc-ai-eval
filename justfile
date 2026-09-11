@@ -26,7 +26,7 @@ coverage:
 
 # Audit installed deps for known vulnerabilities (advisory; also runs weekly in CI)
 audit:
-    uv run pip-audit --ignore-vuln CVE-2025-69872 --ignore-vuln CVE-2026-4539
+    uv run pip-audit --ignore-vuln CVE-2025-69872 --ignore-vuln CVE-2026-4539 --ignore-vuln PYSEC-2026-3447
 
 # Verify API auth works for all providers (1 cheap call each)
 verify-auth:
@@ -108,6 +108,10 @@ full-eval *args="":
 compare-pipeline-results *args="":
     uv run python datasets/field-guidance/compare_pipeline_results.py {{ args }}
 
+# Env triad with vs. without supplements on the phyllosphere study (runs the suggestor pipeline; needs Vertex creds)
+eval-supplement-triad *args="":
+    uv run python datasets/supplement-triad/run_supplement_eval.py {{ args }}
+
 # End-to-end value prediction evals (llm-matrix, no DOI/PDF)
 eval-sampledata: clean-sampledata-outputs generate-sampledata run-sampledata
 eval-ebs: clean-ebs-outputs generate-ebs run-ebs score-ebs
@@ -149,6 +153,9 @@ clean-env-triad-outputs:
     rm -rf datasets/env-triad-prediction/env-triad-suite-output/
     rm -f datasets/env-triad-prediction/env-triad-suite.db
 
-clean-outputs: clean-sampledata-outputs clean-ebs-outputs clean-field-guidance-outputs clean-env-triad-outputs
+clean-supplement-triad-outputs:
+    rm -rf datasets/supplement-triad/pipeline-results/
+
+clean-outputs: clean-sampledata-outputs clean-ebs-outputs clean-field-guidance-outputs clean-env-triad-outputs clean-supplement-triad-outputs
 
 clean-all: clean-cache clean-suites clean-outputs
