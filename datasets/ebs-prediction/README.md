@@ -32,7 +32,7 @@ uv run llm keys set openai       # if using OpenAI models
 uv run llm keys set anthropic    # if using Anthropic models
 ```
 
-First run of the scorer downloads ~50MB ENVO sqlite (cached in `~/.data/oaklib/`).
+On first use, the scorer loads Oaklib's cached ENVO SQLite database. If its upstream mirror is unavailable, it downloads the official ENVO OWL release instead and caches it in `~/.cache/nmdc-ai-eval/`.
 
 ## Pipeline
 

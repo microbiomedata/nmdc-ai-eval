@@ -50,8 +50,10 @@ from __future__ import annotations
 import csv
 import re
 import time
+from functools import lru_cache
 from pathlib import Path
 from typing import TYPE_CHECKING
+from urllib.request import urlopen
 
 import click
 
@@ -71,6 +73,9 @@ _TEMPLATE_TO_ENUM_PREFIX: dict[str, str] = {
 }
 
 DEFAULT_ENUM_DIR = Path(__file__).parent.parent.parent / "datasets" / "ebs-prediction" / "enum_data"
+_ENVO_OWL_URL = "https://purl.obolibrary.org/obo/envo.owl"
+_ENVO_OWL_PATH = Path.home() / ".cache" / "nmdc-ai-eval" / "envo.owl"
+_OBO_BASE = "http://purl.obolibrary.org/obo/"
 
 # --- Score weights (sum to 1.0) ---
 W_PARSE = 0.1
@@ -98,12 +103,78 @@ def parse_label_curie(text: str) -> tuple[str, str] | None:
     return None
 
 
-def get_envo_adapter() -> "OboGraphInterface":
-    """Get an oaklib adapter for ENVO. Downloads sqlite on first use (~50MB)."""
+class _RDFLibEnvoAdapter:
+    """Minimal ENVO graph adapter backed by the official OWL release."""
+
+    def __init__(self, owl_path: Path) -> None:
+        from rdflib import RDFS, Graph
+
+        self._graph = Graph()
+        self._graph.parse(owl_path)
+        self._subclass_of = RDFS.subClassOf
+        self._label = RDFS.label
+
+    @staticmethod
+    def _iri(curie: str) -> str:
+        return f"{_OBO_BASE}{curie.replace(':', '_', 1)}"
+
+    @staticmethod
+    def _curie(iri: object) -> str:
+        value = str(iri)
+        if value.startswith(_OBO_BASE):
+            return value.removeprefix(_OBO_BASE).replace("_", ":", 1)
+        return value
+
+    def label(self, curie: str) -> str | None:
+        from rdflib import URIRef
+
+        label = self._graph.value(URIRef(self._iri(curie)), self._label)
+        return str(label) if label is not None else None
+
+    def hierarchical_parents(self, curie: str) -> list[str]:
+        from rdflib import URIRef
+
+        node = URIRef(self._iri(curie))
+        return [self._curie(parent) for parent in self._graph.objects(node, self._subclass_of)]
+
+    def ancestors(self, curie: str, predicates: list[str] | None = None) -> list[str]:
+        del predicates
+        ancestors: list[str] = []
+        seen: set[str] = set()
+        pending = self.hierarchical_parents(curie)
+        while pending:
+            parent = pending.pop()
+            if parent in seen:
+                continue
+            seen.add(parent)
+            ancestors.append(parent)
+            pending.extend(self.hierarchical_parents(parent))
+        return ancestors
+
+
+def _download_envo_owl() -> Path:
+    """Download ENVO's official OWL release once into the user cache."""
+    if _ENVO_OWL_PATH.exists():
+        return _ENVO_OWL_PATH
+    _ENVO_OWL_PATH.parent.mkdir(parents=True, exist_ok=True)
+    temporary_path = _ENVO_OWL_PATH.with_suffix(".owl.part")
+    with urlopen(_ENVO_OWL_URL) as response, open(temporary_path, "wb") as output:  # noqa: S310
+        output.write(response.read())
+    temporary_path.replace(_ENVO_OWL_PATH)
+    return _ENVO_OWL_PATH
+
+
+@lru_cache(maxsize=1)
+def get_envo_adapter() -> "OboGraphInterface | _RDFLibEnvoAdapter":
+    """Get ENVO through Oaklib's cache, or the official OWL release as fallback."""
     from oaklib import get_adapter  # type: ignore[import-untyped]
 
-    adapter: OboGraphInterface = get_adapter("sqlite:obo:envo")
-    return adapter
+    try:
+        adapter: OboGraphInterface = get_adapter("sqlite:obo:envo")
+        return adapter
+    except Exception as exc:  # noqa: BLE001
+        click.echo(f"  Oaklib ENVO SQLite unavailable ({exc}); using official ENVO OWL release.", err=True)
+        return _RDFLibEnvoAdapter(_download_envo_owl())
 
 
 def validate_curie_label(adapter: "OboGraphInterface", curie: str, label: str) -> bool:
