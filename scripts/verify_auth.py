@@ -121,12 +121,13 @@ def test_gcp_credentials() -> list[str]:
         return ["gcp"]
 
     try:
-        from nmdc_metadata_suggestor_ai_tool.llm_client import LLMClient
+        from nmdc_metadata_suggestor_ai_tool.llm_client import ConversationManager, LLMClient
 
         client = LLMClient(access_provider="gcp")
-        client.add_message(text="Reply with only: OK")
-        response = client.generate()
-        text = response.strip()[:20]
+        conversation_manager = ConversationManager(llm_client=client, system_prompt="Reply with only: OK")
+        conversation_manager.add_message(text="Reply with only: OK")
+        response = conversation_manager.generate()
+        text = response.metadata_fields[0].value
         print(f"  OK    GCP Vertex ({client.model:35s}) -> {text}")
     except Exception as e:
         err = str(e)[:200]
@@ -147,12 +148,13 @@ def test_pnnl_credentials() -> list[str]:
         return []
 
     try:
-        from nmdc_metadata_suggestor_ai_tool.llm_client import LLMClient
+        from nmdc_metadata_suggestor_ai_tool.llm_client import ConversationManager, LLMClient
 
         client = LLMClient(access_provider="pnnl")
-        client.add_message(text="Reply with only: OK")
-        response = client.generate()
-        text = response.strip()[:20]
+        conversation_manager = ConversationManager(llm_client=client, system_prompt="Reply with only: OK")
+        conversation_manager.add_message(text="Reply with only: OK")
+        response = conversation_manager.generate()
+        text = response.metadata_fields[0].value
         print(f"  OK    PNNL ({client.model:37s}) -> {text}")
     except Exception as e:
         err = str(e)[:200]

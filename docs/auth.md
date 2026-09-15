@@ -30,6 +30,8 @@ uv run llm keys list                # which providers have store entries
 uv run llm keys path                # path to the JSON file
 ```
 
+Suite runs will automatically skip configured models that lack their required `llm` credential. When `--scorer-model` is omitted, the runner uses the first available suite model as the scorer instead of `llm-matrix`'s OpenAI default. An explicitly selected scorer must have credentials.
+
 ## Provider comparison
 
 | Provider | Who | Use for | Auth mechanism | Status |
@@ -193,6 +195,18 @@ AI_INCUBATOR_BASE_URL=https://...
 ```
 
 Contact Olivia Hess for the endpoint URL and key. Model names use a `-project` suffix (e.g. `gpt-5-project`, `gpt-4.1-project`) — see `datasets/models.yaml` for the list with pricing notes.
+
+### Using PNNL models in eval suites
+
+`just run-ebs`, `just pilot-env-triad`, and other llm-matrix suite commands resolve models through `llm`, not through the suggestor's PNNL client. This repository registers the configured `pnnl/*` aliases automatically; no files are needed in llm's user directory. Set `AI_INCUBATOR_BASE_URL` in `.env`, then store the same key used by `AI_INCUBATOR_KEY` in llm's key store:
+
+```bash
+uv run llm keys set pnnl
+uv run llm models list | grep pnnl
+just pilot-env-triad 3 "pnnl/gpt-4.1-project"
+```
+
+Suite runs automatically include the PNNL aliases when the `pnnl` llm key is configured. `AI_INCUBATOR_KEY` and `AI_INCUBATOR_BASE_URL` remain necessary for `just verify-auth` and the pipeline-backend path; `AI_INCUBATOR_BASE_URL` also tells the suite aliases which endpoint to use.
 
 ## Troubleshooting
 
