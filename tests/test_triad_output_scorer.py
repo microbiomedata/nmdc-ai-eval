@@ -103,7 +103,7 @@ def test_score_term_exact_descendant_ancestor_and_unrelated() -> None:
     assert unrelated.relationship == "unrelated" and unrelated.hierarchy_score == 0.0
 
 
-def test_score_term_flags_label_mismatch_and_unparseable_values() -> None:
+def test_score_term_flags_label_mismatch_and_unparsable_values() -> None:
     ref = [TriadTerm("terrestrial biome", "ENVO:00000446")]
     wrong_label = score_term(ADAPTER, "s", "env_broad_scale", TriadTerm("agricultural biome", "ENVO:00000446"), ref)
     assert wrong_label.curie_label_valid is False and wrong_label.exact_match
