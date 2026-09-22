@@ -26,7 +26,10 @@ coverage:
 
 # Audit installed deps for known vulnerabilities (advisory; also runs weekly in CI)
 audit:
-    uv run pip-audit --ignore-vuln CVE-2025-69872 --ignore-vuln CVE-2026-4539
+    # PYSEC-2026-3447 is a MANIFEST.in exclusion bypass during setuptools sdist builds on
+    # macOS. This repo builds with hatchling, has no MANIFEST.in and publishes no sdist.
+    # It is unavoidable while oaklib pins setuptools<82; see INCATools/ontology-access-kit#852.
+    uv run pip-audit --ignore-vuln CVE-2025-69872 --ignore-vuln CVE-2026-4539 --ignore-vuln PYSEC-2026-3447
 
 # Verify API auth works for all providers (1 cheap call each)
 verify-auth:
