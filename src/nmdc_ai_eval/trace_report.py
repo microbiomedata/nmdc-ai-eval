@@ -295,7 +295,7 @@ def main() -> None:  # pragma: no cover - thin CLI over tested functions
         adapter = None
         try:
             if args.envo_db:
-                from oaklib import get_adapter
+                from oaklib import get_adapter  # type: ignore[import-untyped]
 
                 adapter = get_adapter(f"sqlite:{args.envo_db}")
             else:
@@ -313,7 +313,7 @@ def main() -> None:  # pragma: no cover - thin CLI over tested functions
 
         if adapter is not None:
 
-            def label_lookup(curie: str) -> str | None:  # type: ignore[misc]
+            def label_lookup(curie: str) -> str | None:
                 if curie not in cache:
                     try:
                         cache[curie] = adapter.label(curie)

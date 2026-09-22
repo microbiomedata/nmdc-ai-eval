@@ -91,6 +91,10 @@ omit = [
 
 [tool.coverage.report]
 exclude_lines = [
+  # Setting exclude_lines REPLACES coverage.py's default list, which is where
+  # "pragma: no cover" lives. Without this first entry every pragma in the repo is
+  # silently ignored.
+  "pragma: no cover",
   # Vertex plugin execute() methods require live SA creds — excluded by pattern,
   # not whole-file, so register_models() and _get_vertex_project() stay covered.
   "^\\s*def execute\\(",
