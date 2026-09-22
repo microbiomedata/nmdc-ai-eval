@@ -16,5 +16,8 @@ jobs:
       - uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
       - name: Install dependencies
         run: uv sync --dev
+      # Keep this ignore list in sync with the `audit` recipe in the justfile.
+      # PYSEC-2026-3447: setuptools<82 is forced by oaklib; see the justfile for why
+      # this repo is not exposed, and INCATools/ontology-access-kit#852 upstream.
       - name: pip-audit
-        run: uv run pip-audit --ignore-vuln CVE-2025-69872 --ignore-vuln CVE-2026-4539
+        run: uv run pip-audit --ignore-vuln CVE-2025-69872 --ignore-vuln CVE-2026-4539 --ignore-vuln PYSEC-2026-3447
