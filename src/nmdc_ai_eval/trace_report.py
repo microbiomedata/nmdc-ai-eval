@@ -256,6 +256,7 @@ def main() -> None:  # pragma: no cover - thin CLI over tested functions
     import csv
     import json
     import sys
+    from datetime import UTC, datetime
     from pathlib import Path
 
     parser = argparse.ArgumentParser(description=__doc__)
@@ -323,8 +324,11 @@ def main() -> None:  # pragma: no cover - thin CLI over tested functions
     rows = [build_row(b, label_lookup) for b in bundles]
     summary = summarize(rows)
 
+    # Timestamped and never overwritten, matching the convention stated in .gitignore
+    # for datasets/*/pipeline-results/: a result file is a record of one run.
+    stamp = datetime.now(UTC).strftime("%Y%m%d-%H%M%S")
     args.output_dir.mkdir(parents=True, exist_ok=True)
-    tsv_path = args.output_dir / "traces.tsv"
+    tsv_path = args.output_dir / f"traces_{stamp}.tsv"
     with open(tsv_path, "w", newline="") as handle:
         fieldnames = list(rows[0].as_tsv_dict()) if rows else []
         writer = csv.DictWriter(handle, fieldnames=fieldnames, delimiter="\t", lineterminator="\n")
@@ -332,11 +336,11 @@ def main() -> None:  # pragma: no cover - thin CLI over tested functions
         for row in rows:
             writer.writerow(row.as_tsv_dict())
 
-    (args.output_dir / "summary.json").write_text(json.dumps(summary, indent=2) + "\n")
-    (args.output_dir / "report.md").write_text(_markdown(summary))
+    (args.output_dir / f"summary_{stamp}.json").write_text(json.dumps(summary, indent=2) + "\n")
+    (args.output_dir / f"report_{stamp}.md").write_text(_markdown(summary))
 
     print(_markdown(summary))
-    print(f"Wrote {tsv_path}, summary.json and report.md", file=sys.stderr)
+    print(f"Wrote {tsv_path} and its summary and report", file=sys.stderr)
 
 
 if __name__ == "__main__":  # pragma: no cover
