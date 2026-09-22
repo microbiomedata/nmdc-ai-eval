@@ -12,7 +12,7 @@ authors = [
 license = "BSD-3-Clause"
 license-files = ["LICENSE"]
 readme = "README.md"
-requires-python = ">=3.12,<4.0"
+requires-python = ">=3.12,<3.15"
 dynamic = ["version"]
 
 dependencies = [
@@ -23,10 +23,13 @@ dependencies = [
   "llm-claude-3>=0.11",
   "llm-gemini>=0.29",
   "llm-matrix>=0.1.3",
-  # 0.7.4 is the first release that reads SEMSQL_SQLITE_URL_BASE instead of hardcoding
-  # https://s3.amazonaws.com/bbop-sqlite/, which has returned HTTP 403 since the
-  # migration in INCATools/semantic-sql#115. A lower floor lets a consumer resolving
-  # from package metadata rather than this lockfile land on a broken 0.6.x.
+  # 0.7.2 switched the default download to https://semanticsql.berkeleybop.io and added
+  # SEMSQL_SQLITE_URL_BASE (INCATools/ontology-access-kit#898). Before that, oaklib
+  # hardcoded https://s3.amazonaws.com/bbop-sqlite/, which has returned HTTP 403 since the
+  # migration in INCATools/semantic-sql#115. The floor is 0.7.4 because that is the
+  # release the lockfile tests, and a lower floor lets a consumer resolving from package
+  # metadata rather than this lockfile land on a broken 0.6.x. oaklib 0.7.4 declares
+  # Requires-Python <3.15, which is why requires-python above stops there.
   "oaklib>=0.7.4",
   "openai>=1.0",
   "pandas>=2.0",
