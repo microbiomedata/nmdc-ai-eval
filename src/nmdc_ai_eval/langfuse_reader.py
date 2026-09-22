@@ -26,7 +26,6 @@ from __future__ import annotations
 import base64
 import json
 import os
-import urllib.error
 import urllib.parse
 import urllib.request
 from dataclasses import dataclass, field
@@ -106,12 +105,26 @@ def _get_json(endpoint: LangfuseEndpoint, path: str, params: dict[str, Any]) -> 
     return payload
 
 
+class LangfusePaginationGuard(RuntimeError):
+    """Raised when pagination hits its runaway guard, rather than truncating in silence."""
+
+
 def _paginate(
     endpoint: LangfuseEndpoint, path: str, params: dict[str, Any], max_pages: int = 100
 ) -> Iterator[dict[str, Any]]:
-    """Yield every record across pages. ``max_pages`` is a runaway guard, not a filter."""
+    """Yield every record across pages.
+
+    ``max_pages`` is a runaway guard against a server that never reports a last page. Hitting
+    it raises, because a caller of ``fetch_traces`` is promised every trace and a short read
+    would quietly change every denominator in the report.
+    """
     page = 1
-    while page <= max_pages:
+    while True:
+        if page > max_pages:
+            raise LangfusePaginationGuard(
+                f"{path}: stopped after {max_pages} pages of {_PAGE_LIMIT}. "
+                "Raise max_pages if the project is genuinely this large."
+            )
         payload = _get_json(endpoint, path, {**params, "page": page, "limit": _PAGE_LIMIT})
         records = payload.get("data") or []
         if not records:

@@ -40,8 +40,18 @@ class TermCheck:
     canonical_label: str | None = None
 
     @property
-    def well_formed(self) -> bool:
-        return bool(self.parsed and self.curie_resolves and self.label_matches)
+    def checked_against_envo(self) -> bool:
+        """False when ENVO was unavailable, so resolution and label were never looked up."""
+        return self.curie_resolves is not None
+
+    @property
+    def well_formed(self) -> bool | None:
+        """None when ENVO was unavailable. Unknown is not the same as wrong."""
+        if not self.parsed:
+            return False
+        if not self.checked_against_envo:
+            return None
+        return bool(self.curie_resolves and self.label_matches)
 
 
 def _iter_triad_values(output: dict[str, Any]) -> list[tuple[str, str]]:
@@ -101,6 +111,7 @@ class TraceRow:
     duration_ms: int | None
     triad_values: int = 0
     triad_parsed: int = 0
+    triad_checked_against_envo: int = 0
     triad_curie_resolves: int = 0
     triad_label_matches: int = 0
     triad_well_formed: int = 0
@@ -159,9 +170,14 @@ def build_row(bundle: Any, label_lookup: Any = None) -> TraceRow:
             row.checks.append(check)
             row.triad_values += 1
             row.triad_parsed += int(check.parsed)
-            row.triad_curie_resolves += int(bool(check.curie_resolves))
-            row.triad_label_matches += int(bool(check.label_matches))
-            row.triad_well_formed += int(check.well_formed)
+            # Only count a check that actually ran. With --no-envo, or after the adapter
+            # fails, these are None and coercing them to False would report every CURIE
+            # as unresolved rather than unknown.
+            if check.checked_against_envo:
+                row.triad_checked_against_envo += 1
+                row.triad_curie_resolves += int(bool(check.curie_resolves))
+                row.triad_label_matches += int(bool(check.label_matches))
+                row.triad_well_formed += int(bool(check.well_formed))
             if check.prefix and check.prefix != "ENVO":
                 prefixes[check.prefix] += 1
         row.non_envo_prefixes = ";".join(f"{p}={n}" for p, n in sorted(prefixes.items()))
@@ -180,6 +196,7 @@ def summarize(rows: list[TraceRow]) -> dict[str, Any]:
     with_health = [r for r in rows if r.permission_denials is not None]
     llm_rows = [r for r in rows if r.output_shape == "LLMOutput"]
     values = sum(r.triad_values for r in llm_rows)
+    checked = sum(r.triad_checked_against_envo for r in llm_rows)
     return {
         "traces": len(rows),
         "date_first": min((r.timestamp for r in rows), default=""),
@@ -195,6 +212,7 @@ def summarize(rows: list[TraceRow]) -> dict[str, Any]:
         ),
         "total_cost_usd": round(sum(r.total_cost_usd or 0.0 for r in rows), 4),
         "triad_values": values,
+        "triad_checked_against_envo": checked,
         "triad_parsed": sum(r.triad_parsed for r in llm_rows),
         "triad_curie_resolves": sum(r.triad_curie_resolves for r in llm_rows),
         "triad_label_matches": sum(r.triad_label_matches for r in llm_rows),
@@ -234,10 +252,18 @@ def _markdown(summary: dict[str, Any]) -> str:
         "|---|---|---|",
         f"| values suggested | {s['triad_values']} | |",
         f"| parse as `label [CURIE]` | {s['triad_parsed']} | {s['triad_values']} |",
-        f"| CURIE resolves in ENVO | {s['triad_curie_resolves']} | {s['triad_values']} |",
-        f"| label matches ENVO's label | {s['triad_label_matches']} | {s['triad_values']} |",
-        f"| all three | {s['triad_well_formed']} | {s['triad_values']} |",
+        f"| looked up in ENVO | {s['triad_checked_against_envo']} | {s['triad_values']} |",
+        f"| CURIE resolves | {s['triad_curie_resolves']} | {s['triad_checked_against_envo']} |",
+        f"| label matches ENVO's label | {s['triad_label_matches']} | {s['triad_checked_against_envo']} |",
+        f"| all three | {s['triad_well_formed']} | {s['triad_checked_against_envo']} |",
         "",
+        (
+            "Rows below the lookup line use the looked-up count as their denominator. When ENVO "
+            "is unavailable that count is zero and nothing is reported as failing, because "
+            "unknown is not the same as wrong."
+            if s["triad_checked_against_envo"] < s["triad_values"]
+            else ""
+        ),
         f"Non-ENVO prefixes seen: {s['non_envo_prefixes'] or 'none'}",
         "",
         "## Output shapes",

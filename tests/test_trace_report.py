@@ -68,6 +68,8 @@ def test_check_term_without_a_lookup_still_parses() -> None:
     assert check.parsed
     assert check.curie_resolves is None
     assert check.label_matches is None
+    assert check.checked_against_envo is False
+    assert check.well_formed is None, "unknown must not collapse to wrong"
 
 
 def test_build_row_splits_pipe_joined_env_medium() -> None:
@@ -185,6 +187,7 @@ def test_markdown_states_a_denominator_beside_every_count() -> None:
         "completed_despite_denials": 12,
         "total_cost_usd": 25.33,
         "triad_values": 918,
+        "triad_checked_against_envo": 918,
         "triad_parsed": 918,
         "triad_curie_resolves": 918,
         "triad_label_matches": 911,
@@ -201,27 +204,21 @@ def test_markdown_states_a_denominator_beside_every_count() -> None:
 
 
 def test_markdown_says_none_when_no_foreign_prefixes_were_seen() -> None:
+    """Keys come from summarize() itself, so a new summary field cannot silently skip this."""
     from nmdc_ai_eval.trace_report import _markdown
 
-    base = {
-        k: 0
-        for k in (
-            "traces",
-            "model_attribution_disagreements",
-            "traces_with_health_block",
-            "traces_with_any_denial",
-            "max_denials_in_one_run",
-            "completed_despite_denials",
-            "total_cost_usd",
-            "triad_values",
-            "triad_parsed",
-            "triad_curie_resolves",
-            "triad_label_matches",
-            "triad_well_formed",
-        )
-    }
-    base.update(date_first="", date_last="", output_shapes={}, trace_names={}, non_envo_prefixes={})
-    assert "Non-ENVO prefixes seen: none" in _markdown(base)
+    assert "Non-ENVO prefixes seen: none" in _markdown(summarize([]))
+
+
+def test_markdown_explains_the_denominator_when_envo_was_unavailable() -> None:
+    from nmdc_ai_eval.trace_report import _markdown
+
+    summary = summarize([])
+    summary["triad_values"] = 10
+    summary["triad_checked_against_envo"] = 0
+    text = _markdown(summary)
+    assert "| looked up in ENVO | 0 | 10 |" in text
+    assert "unknown is not the same as wrong" in text
 
 
 def test_as_tsv_dict_drops_the_per_term_checks() -> None:
