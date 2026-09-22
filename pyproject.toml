@@ -65,7 +65,14 @@ fallback-version = "0.0.0"
 constraint-dependencies = [
   "anthropic>=0.84.0",    # llm-claude-3 runtime dep
   "linkml>=1.10.0",       # linkml <1.10 references Format.JSON removed in linkml-runtime 1.10
-  "setuptools>=83.0.0",   # oaklib/eutils no longer need pkg_resources as of eutils 0.6.1; >=83.0.0 is the first release fixing PYSEC-2026-3447 (verified 2026-07-20)
+  # setuptools>=83.0.0 (PYSEC-2026-3447) was constrained here until 2026-09-22. It pinned
+  # oaklib to 0.6.23, which hardcodes the retired raw bucket
+  # https://s3.amazonaws.com/bbop-sqlite/{prefix}.db.gz (403 since the migration in
+  # INCATools/semantic-sql#115). oaklib 0.7.4 reads SEMSQL_SQLITE_URL_BASE instead, but
+  # every oaklib release through 0.7.4 pins setuptools<82, so the two cannot both hold.
+  # The advisory is a MANIFEST.in exclusion bypass during setuptools sdist builds on macOS.
+  # This repo builds with hatchling, has no MANIFEST.in and publishes no sdist, so it is not
+  # exposed. Ignored in `just audit` until oaklib lifts its pin.
 ]
 
 [tool.pytest.ini_options]
