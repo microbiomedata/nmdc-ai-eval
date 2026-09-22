@@ -1,0 +1,85 @@
+trace_id	timestamp	name	environment	output_shape	served_model	declared_model	model_attribution_disagrees	num_turns	permission_denials	terminal_reason	is_error	total_cost_usd	duration_ms	triad_values	triad_parsed	triad_curie_resolves	triad_label_matches	triad_well_formed	non_envo_prefixes	mapper_high_confidence	mapper_needs_review	mapper_cant_place
+d7c159dcaaa2650f46319107dbedbfe4	2026-09-22T16:15:18	metadata_mapper_agentic	local	MetadataMapperOutput	claude-opus-4-6	claude-opus-4-6	False	11	0	completed	False	1.88411375	730721	0	0	0	0	0		20	24	188
+efb60b28de0d9c7f7c296fa30cab8e38	2026-09-22T14:11:41	metadata_mapper_agentic	local	MetadataMapperOutput	claude-opus-4-6	claude-opus-4-6	False	12	0	completed	False	1.5604282499999997	533979	0	0	0	0	0		8	60	164
+8f72b0a0686d5067755e0d45b5afb2fb	2026-09-21T16:28:07	metadata_mapper_agentic	local	MetadataMapperOutput	claude-opus-4-6	claude-opus-4-6	False	11	0	completed	False	1.13362225	329241	0	0	0	0	0		0	0	0
+2109b70d19254a6af3e54eb1390d819c	2026-09-21T15:56:35	metadata_mapper_agentic	local	MetadataMapperOutput	claude-opus-4-6	claude-opus-4-6	False	9	0	completed	False	1.5445182499999999	572765	0	0	0	0	0		10	53	169
+2326d93ee2ceac004c3e79f9d6cf1c06	2026-09-21T15:31:17	metadata_mapper_agentic	local	MetadataMapperOutput	claude-opus-4-6	claude-opus-4-6	False	12	0	completed	False	1.33983425	431308	0	0	0	0	0		8	58	166
+0c89d4b4775c723d3bb747768ecda047	2026-09-21T15:12:40	metadata_mapper_agentic	local	MetadataMapperOutput	claude-opus-4-6	claude-opus-4-6	False	10	0	completed	False	1.3603355000000001	452572	0	0	0	0	0		9	62	161
+9f8ed0ce37387daa6859fddafc8514a2	2026-09-21T15:11:40	metadata_mapper_agentic	local	none			False							0	0	0	0	0
+1f2f3ad629e3de8e4967bbebfaaeb1ac	2026-09-21T15:10:34	metadata_mapper_agentic	local	none			False							0	0	0	0	0
+33593c98c473c665b43a092094727272	2026-09-16T19:40:19	metadata_mapper_agentic	local	MetadataMapperOutput	claude-opus-4-6	claude-opus-4-6	False	11	0	completed	False	1.3719872499999999	442866	0	0	0	0	0		6	60	166
+6bd0e9ad28f59db688f22d085199809a	2026-09-16T19:37:44	metadata_mapper_agentic	local	none			False							0	0	0	0	0
+1ca619cc52ae82060678d479ef4f27f8	2026-09-15T13:38:55	agentic	local	LLMOutput	claude-opus-4-6	claude-opus-4-6	False	38	1	completed	False	1.8839217499999998	518226	30	30	30	30	30
+7aa1e99a63a0bb2d296ceeff1583fe64	2026-09-15T13:26:25	agentic	local	none	claude-opus-4-6	claude-opus-4-6	False							0	0	0	0	0
+416f346abe3336d3663495407701abea	2026-09-15T13:20:45	agentic	local	none	claude-opus-4-6	claude-opus-4-6	False							0	0	0	0	0
+98396247b3bd2da57998ffde31d74d82	2026-09-15T13:12:52	agentic	local	none	claude-opus-4-6	claude-opus-4-6	False							0	0	0	0	0
+38f3514b7f7933f8c13a25e302a501be	2026-09-10T15:36:52	agentic	local	LLMOutput	claude-opus-4-6	claude-opus-4-6	False	48	0	completed	False	2.18756875	513267	30	30	30	30	30
+25b43b833a71d45310e804f1ec24e7cb	2026-09-09T20:18:00	metadata_mapper_agentic	local	MetadataMapperOutput	claude-opus-4-6	claude-opus-4-6	False	10	0	completed	False	1.4109695000000002	462926	0	0	0	0	0		11	69	152
+b8e55b84881cff8edb2bb464d6477f2a	2026-09-09T19:18:48	metadata_mapper_agentic	local	MetadataMapperOutput	claude-opus-4-6	claude-opus-4-6	False	13	0	completed	False	1.7049794999999996	583500	0	0	0	0	0		0	0	0
+3fc7d55d1b4e557f5d1a97c488d4661e	2026-09-09T18:58:38		local	none			False							0	0	0	0	0
+4353de9e5f37bf50255b8cb4f1d75c41	2026-09-08T20:46:13	agentic	local	LLMOutput	claude-opus-4-6	claude-opus-4-6	False	41	0	completed	False	1.7910897499999998	378888	30	30	30	30	30
+16c49902effbc049d6a260796563b4dc	2026-09-08T19:49:09	agentic	local	LLMOutput	claude-opus-4-6	claude-opus-4-6	False	35	0	completed	False	1.9302830000000004	462496	30	30	30	30	30
+3e8850a6870cf77e75ab1af2c4614b08	2026-09-08T19:33:42	agentic	local	LLMOutput	claude-opus-4-6	claude-opus-4-6	False	46	0	completed	False	2.1675039999999997	459622	30	30	30	30	30
+513cc39c5b403ea6ceecaedb1dd0c79a	2026-09-08T18:58:06	agentic	local	LLMOutput	claude-opus-4-6	claude-opus-4-6	False	43	2	completed	False	2.0595565000000002	441492	30	30	30	30	30
+28d4a4dcf81fc0c5c23fd37b5ca04315	2026-09-08T18:48:20	agentic	local	none	claude-opus-4-6	claude-opus-4-6	False							0	0	0	0	0
+85a83a14b780bc79b6f8be597039bc1e	2026-09-08T16:30:29	agentic	local	none		claude-opus-4-6	False							0	0	0	0	0
+65659212b259949c2f3f3350a35b643c	2026-09-08T14:46:45		local	none			False							0	0	0	0	0
+8f78d675ed3fc6113b4132b13c7931e4	2026-09-02T18:54:47	env-triad-fixture-run	local	not-a-dict:list	claude-opus-4-6		False							0	0	0	0	0
+a2ebd1513fe47ef5a572a777312ac85c	2026-09-02T18:53:12	env-triad-fixture-run	local	not-a-dict:list	claude-opus-4-6		False							0	0	0	0	0
+8c2023d9f8eca79bdc81fd4a8ebc7619	2026-09-02T15:41:17	agentic	local	none	claude-sonnet-4-5@20250929	claude-sonnet-4-5@20250929	False							0	0	0	0	0
+9221f0baa7c446b2809ce4f0b52bb517	2026-09-02T15:02:52	agentic	local	LLMOutput	claude-sonnet-4-5@20250929	claude-sonnet-4-5@20250929	False							0	0	0	0	0
+d25abd19968d83b92bdef200a7e6528b	2026-09-02T05:06:58	env-triad-fixture-run	local	not-a-dict:list	claude-opus-4-6		False							0	0	0	0	0
+2eb9d05e2ed260911b53eb53c7a6cbbf	2026-09-02T00:26:16	env-triad-fixture-run	local	not-a-dict:list	claude-opus-4-6		False							0	0	0	0	0
+682f2893242b9f30de96e4106418e69e	2026-09-02T00:24:31	env-triad-fixture-run	local	not-a-dict:list	claude-opus-4-6		False							0	0	0	0	0
+b64dda3d3318da129ea937e7d77eb820	2026-09-01T18:24:03	pr139-restricted-bypass	local	none	claude-sonnet-4-5@20250929		False							0	0	0	0	0
+3e7d977c0fc27e173d6525cad9f3f2da	2026-09-01T18:09:17	pr139-cc-by-bypass	local	none	claude-sonnet-4-5@20250929		False							0	0	0	0	0
+a179b135b4ae339ce1ea10da560506ca	2026-09-01T17:35:31	pr139-restricted-default	local	none	claude-sonnet-4-5@20250929		False							0	0	0	0	0
+5dcc7be483d62f09969c4b9953195471	2026-09-01T17:25:55	pr139-cc-by-default	local	none	claude-sonnet-4-5@20250929		False							0	0	0	0	0
+610fc8bf2cfdcebced8f33294af6973f	2026-08-26T19:46:28	env-triad-fixture-run	local	not-a-dict:list	claude-opus-4-6		False							0	0	0	0	0
+650a4b6477db46353c34c01ce92299c2	2026-08-26T19:44:36	env-triad-fixture-run	local	not-a-dict:list	claude-opus-4-6		False							0	0	0	0	0
+47dc0932c35145d37a11b4faec48af9c	2026-08-25T23:39:10	agentic	local	LLMOutput	claude-sonnet-4-5@20250929	gemini-2.5-flash	True	17	3	completed	False			300	300	300	300	300
+614d680e97bca046b26dce15f710d580	2026-08-25T23:36:24	agentic	local	LLMOutput	claude-sonnet-4-5@20250929	gemini-2.5-flash	True	19	1	completed	False			3	3	3	3	3
+eb5619bc35683f5eb382a52659e17182	2026-08-25T22:56:20	agentic	local	LLMOutput	claude-sonnet-4-5@20250929	gemini-2.5-flash	True	12	3	completed	False			300	300	300	300	300
+d98f20f12114312943537d45ed70c6b2	2026-08-25T22:46:28	agentic	local	LLMOutput	claude-sonnet-4-5@20250929	gemini-2.5-flash	True	198	189	completed	False			3	3	3	3	3
+6830775b4399af56fd0c13a3df34c4b2	2026-08-25T22:34:01	agentic	local	LLMOutput	claude-sonnet-4-5@20250929	gemini-2.5-flash	True	27	13	completed	False			0	0	0	0	0
+c04b8a65f0e7c60177ff97d805ea8976	2026-08-25T22:28:57	agentic	local	none	claude-sonnet-4-5@20250929	gemini-2.5-flash	True							0	0	0	0	0
+556f932f51410f03b44534bd8b2c3744	2026-08-25T22:25:19	agentic	local	LLMOutput	claude-sonnet-4-5@20250929	gemini-2.5-flash	True	28	11	completed	False			3	3	3	3	3
+fcc28106e7011093e7ba885b00dbbfb2	2026-08-25T22:16:27	agentic	local	LLMOutput	claude-sonnet-4-5@20250929	gemini-2.5-flash	True	29	15	completed	False			0	0	0	0	0
+ac01c30dc5752a442239f04ff2375c71	2026-08-25T22:04:55	agentic	local	LLMOutput	claude-sonnet-4-5@20250929	gemini-2.5-flash	True	214	205	completed	False			3	3	3	3	3
+27eeff50c4ff33dde65ddb2c5159aea6	2026-08-25T18:26:53	agentic	local	LLMOutput	claude-sonnet-4-5@20250929	gemini-2.5-flash	True	148	137	completed	False			27	27	27	27	27
+5ebfd369f71b039e630889236f518028	2026-08-25T18:17:09	agentic	local	LLMOutput	claude-sonnet-4-5@20250929	gemini-2.5-flash	True	114	106	completed	False			3	3	3	3	3
+2197c91409e05984e6c1ee56f2a023f3	2026-08-21T23:40:25	agentic	local	LLMOutput	claude-sonnet-4-5@20250929	gemini-2.5-flash	True							0	0	0	0	0
+88ecc7c1966a090876e9af8989bc4022	2026-08-21T23:30:33	agentic	local	LLMOutput	claude-sonnet-4-5@20250929	gemini-2.5-flash	True							0	0	0	0	0
+ba56a0b33b22e73eed7396895f406f75	2026-08-21T23:29:33	agentic	local	none		gemini-2.5-flash	False							0	0	0	0	0
+12f0423021c0bad9f287f05eeaf731df	2026-08-21T23:29:31	agentic	local	none		gemini-2.5-flash	False							0	0	0	0	0
+b8558ca6938f1e82cc3240643aed76a8	2026-08-20T16:39:23	agentic	local	LLMOutput	claude-opus-4-6	claude-opus-4-6	False							30	30	30	26	26
+5f2c7d4150f2fe51ada2185e0e83ddb1	2026-08-20T15:34:21	agentic	local	LLMOutput	claude-opus-4-6	claude-opus-4-6	False							30	30	30	29	29
+65e96678242d41368b0cff81608e14b5	2026-08-20T15:05:10	agentic	local	LLMOutput	claude-opus-4-6	claude-opus-4-6	False							30	30	30	29	29
+10eeb9953860605828e68d0b7506183c	2026-08-20T14:20:31		local	none			False							0	0	0	0	0
+79e8650f83e9ac897917002a2a1fba0e	2026-08-20T14:12:57	agentic	local	none		claude-opus-4.6	False							0	0	0	0	0
+beb95fcb70a8165c219aadc740b349af	2026-08-19T21:38:00	agentic	local	LLMOutput	claude-sonnet-4-5@20250929	gemini-2.5-flash	True							3	3	3	3	3
+f42d93d2192a5be4279a4d853e6bb825	2026-08-19T20:28:11	agentic	local	none	claude-sonnet-4-5-20250929	gemini-2.5-flash	True							0	0	0	0	0
+f391e7224f956d26309aa1aa6347c2aa	2026-08-19T20:24:49	agentic	local	none	claude-sonnet-4-5-20250929	gemini-2.5-flash	True							0	0	0	0	0
+987af96347872f5dd52c133cabc82867	2026-08-19T20:24:22	agentic	local	none		gemini-2.5-flash	False							0	0	0	0	0
+ef8d79ef7818b1a2e6985aec8c5bd705	2026-08-19T20:24:08	agentic	local	none		gemini-2.5-flash	False							0	0	0	0	0
+d56be836344c978c2a5f9e6551ebb5e3	2026-08-06T12:10:01	agentic	local	none	claude-sonnet-4-5@20250929	gemini-2.5-flash	True							0	0	0	0	0
+e6143d07e72eeeff7f42da7b8ec2b0a8	2026-08-03T18:08:53	agentic	local	LLMOutput	claude-sonnet-4-5@20250929	gemini-2.5-flash	True							0	0	0	0	0
+7c8a8be6afc30a97cd7616dd848013c3	2026-08-03T17:37:05	agentic	local	LLMOutput	claude-sonnet-4-5@20250929	gemini-2.5-flash	True							0	0	0	0	0
+93312e83151d1ffc7a082bca696ce96b	2026-08-03T17:05:02	agentic	local	LLMOutput	claude-sonnet-4-5@20250929	gemini-2.5-flash	True							0	0	0	0	0
+75abd98682eabf2996724ac3bb0d5bd9	2026-08-03T16:51:49	agentic	local	none		gemini-2.5-flash	False							0	0	0	0	0
+16fd6a907f14c9f4ece75d80c18339e1	2026-08-03T16:18:42	agentic	local	LLMOutput		gemini-2.5-flash	False							0	0	0	0	0
+d1647dfa3bf92c51ce52331f62e12495	2026-08-03T15:56:31	agentic	local	none		gemini-2.5-flash	False							0	0	0	0	0
+8ec376ff9576f343e4512cdc45e1299d	2026-08-03T15:29:33	agentic	local	LLMOutput		gemini-2.5-flash	False							0	0	0	0	0
+26d2292b189ad4900a3092c7a1b64e70	2026-08-03T14:32:47	agentic	local	LLMOutput		gemini-2.5-flash	False							0	0	0	0	0
+09b654c2ddcdd8a6f741e49c19c57c1d	2026-07-30T20:31:02	agentic	local	LLMOutput		gemini-2.5-flash	False							0	0	0	0	0
+46cf155d1f1154a9d3734b14ad385caf	2026-07-30T20:06:29		local	none			False							0	0	0	0	0
+0ffee18d0897cefecb8aa83893c9ccc7	2026-07-30T19:07:15	agentic	local	none		gemini-2.5-flash	False							0	0	0	0	0
+b731586b4ae0f6b76ebd6afe8575ced0	2026-07-30T18:39:02	agentic	local	LLMOutput		gemini-2.5-flash	False							0	0	0	0	0
+90f43fc84c7a15f0039a1de90c40410a	2026-07-24T15:37:55	ClaudeAgentSDK.ClaudeSDKClient.receive_response	testing	not-a-dict:str	claude-sonnet-4-5@20250929		False							0	0	0	0	0
+4940643dd656e3b0b6505b032c3aaa66	2026-07-24T15:13:01		testing	none			False							0	0	0	0	0
+52c8e1571b1154a2058d9b2840021992	2026-07-24T14:53:33		testing	none			False							0	0	0	0	0
+a0126e49006caf4a200b68d16761c7be	2026-07-23T21:00:07	ClaudeAgentSDK.ClaudeSDKClient.receive_response	testing	not-a-dict:str	claude-sonnet-4-5@20250929		False							0	0	0	0	0
+3212b1b97f8755921949cbd4586406c8	2026-07-23T19:26:02	ClaudeAgentSDK.ClaudeSDKClient.receive_response	testing	none			False							0	0	0	0	0
+f1b631dbbc313aa867973fded2316706	2026-07-23T19:06:12		testing	none			False							0	0	0	0	0
+c48e903b60445aa064f31b34010c9b0b	2026-07-23T18:36:45	ClaudeAgentSDK.query	testing	none	claude-sonnet-4-5-20250929		False							0	0	0	0	0
+9d3e6f3562f4bbea718c5a4bf3f12835	2026-07-14T14:00:50	agentic	default	LLMOutput	claude-sonnet-4-5@20250929	gemini-2.5-flash	True							3	3	3	2	2

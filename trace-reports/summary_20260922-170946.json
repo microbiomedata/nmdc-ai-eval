@@ -1,0 +1,36 @@
+{
+  "traces": 84,
+  "date_first": "2026-07-14T14:00:50",
+  "date_last": "2026-09-22T16:15:18",
+  "output_shapes": {
+    "none": 34,
+    "LLMOutput": 32,
+    "MetadataMapperOutput": 9,
+    "not-a-dict:list": 7,
+    "not-a-dict:str": 2
+  },
+  "trace_names": {
+    "agentic": 50,
+    "metadata_mapper_agentic": 12,
+    "<none>": 7,
+    "env-triad-fixture-run": 7,
+    "ClaudeAgentSDK.ClaudeSDKClient.receive_response": 3,
+    "pr139-restricted-bypass": 1,
+    "pr139-cc-by-bypass": 1,
+    "pr139-restricted-default": 1,
+    "pr139-cc-by-default": 1,
+    "ClaudeAgentSDK.query": 1
+  },
+  "model_attribution_disagreements": 21,
+  "traces_with_health_block": 25,
+  "traces_with_any_denial": 12,
+  "max_denials_in_one_run": 205,
+  "completed_despite_denials": 12,
+  "total_cost_usd": 25.3307,
+  "triad_values": 918,
+  "triad_parsed": 918,
+  "triad_curie_resolves": 918,
+  "triad_label_matches": 911,
+  "triad_well_formed": 911,
+  "non_envo_prefixes": {}
+}
