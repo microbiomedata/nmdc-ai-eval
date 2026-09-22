@@ -203,15 +203,24 @@ def test_markdown_states_a_denominator_beside_every_count() -> None:
 def test_markdown_says_none_when_no_foreign_prefixes_were_seen() -> None:
     from nmdc_ai_eval.trace_report import _markdown
 
-    base = {k: 0 for k in (
-        "traces", "model_attribution_disagreements", "traces_with_health_block",
-        "traces_with_any_denial", "max_denials_in_one_run", "completed_despite_denials",
-        "total_cost_usd", "triad_values", "triad_parsed", "triad_curie_resolves",
-        "triad_label_matches", "triad_well_formed",
-    )}
-    base.update(
-        date_first="", date_last="", output_shapes={}, trace_names={}, non_envo_prefixes={}
-    )
+    base = {
+        k: 0
+        for k in (
+            "traces",
+            "model_attribution_disagreements",
+            "traces_with_health_block",
+            "traces_with_any_denial",
+            "max_denials_in_one_run",
+            "completed_despite_denials",
+            "total_cost_usd",
+            "triad_values",
+            "triad_parsed",
+            "triad_curie_resolves",
+            "triad_label_matches",
+            "triad_well_formed",
+        )
+    }
+    base.update(date_first="", date_last="", output_shapes={}, trace_names={}, non_envo_prefixes={})
     assert "Non-ENVO prefixes seen: none" in _markdown(base)
 
 

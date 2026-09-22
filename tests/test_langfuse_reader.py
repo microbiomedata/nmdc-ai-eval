@@ -17,7 +17,12 @@ from nmdc_ai_eval.langfuse_reader import (
     model_by_trace,
 )
 
-ENDPOINT = LangfuseEndpoint(base_url="https://example.invalid", public_key="pk", secret_key="sk")
+# Obviously-fake credentials for a non-routable host. S106 flags the keyword name, not the value.
+ENDPOINT = LangfuseEndpoint(
+    base_url="https://example.invalid",
+    public_key="pk",
+    secret_key="sk",  # noqa: S106
+)
 
 
 def test_auth_header_is_basic_and_round_trips() -> None:
@@ -60,8 +65,12 @@ def test_endpoint_from_env_strips_a_trailing_slash(monkeypatch: pytest.MonkeyPat
 
 def test_endpoint_from_env_names_every_missing_variable(monkeypatch: pytest.MonkeyPatch) -> None:
     for name in (
-        "LANGFUSE_PUBLIC_KEY", "LANGFUSE_SECRET_KEY", "LANGFUSE_BASE_URL",
-        "NMDC_LANGFUSE_PUBLIC_KEY", "NMDC_LANGFUSE_SECRET_KEY", "NMDC_LANGFUSE_BASE_URL",
+        "LANGFUSE_PUBLIC_KEY",
+        "LANGFUSE_SECRET_KEY",
+        "LANGFUSE_BASE_URL",
+        "NMDC_LANGFUSE_PUBLIC_KEY",
+        "NMDC_LANGFUSE_SECRET_KEY",
+        "NMDC_LANGFUSE_BASE_URL",
     ):
         monkeypatch.delenv(name, raising=False)
     with pytest.raises(LangfuseCredentialsMissing) as excinfo:
