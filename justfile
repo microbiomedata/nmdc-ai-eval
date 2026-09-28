@@ -91,6 +91,10 @@ run-sampledata:
 run-ebs:
     just run datasets/ebs-prediction/ebs-suite.yaml
 
+# Report on production traces from Langfuse: run health plus reference-free value checks. No model calls.
+score-traces *args="":
+    uv run python -m nmdc_ai_eval.trace_report {{ args }}
+
 # Score EBS results with ontology-aware metrics
 score-ebs:
     uv run python -m nmdc_ai_eval.envo_scorer datasets/ebs-prediction/ebs-suite-output/results.tsv
