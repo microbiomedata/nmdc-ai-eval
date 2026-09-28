@@ -85,11 +85,13 @@ def _iter_triad_values(output: dict[str, Any]) -> list[tuple[str, str]]:
             continue
         # env_medium is pipe-joined in some references and some outputs. The other two slots take
         # one term, so a pipe there is a malformed value, left whole for check_term to reject.
-        pieces = value.split("|") if slot == "env_medium" else [value]
-        for piece in pieces:
-            piece = piece.strip()
-            if piece:
-                pairs.append((str(slot), piece))
+        pieces = [p.strip() for p in value.split("|")] if slot == "env_medium" else [value.strip()]
+        if not all(pieces):
+            # An empty component ("soil [ENVO:00001998] |", or "|" alone) makes the whole value
+            # malformed. Count it once, whole; its pipe makes check_term reject it.
+            pairs.append((str(slot), value))
+            continue
+        pairs.extend((str(slot), piece) for piece in pieces)
     return pairs
 
 

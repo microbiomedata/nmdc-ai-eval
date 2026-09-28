@@ -385,3 +385,13 @@ def test_markdown_says_so_when_no_traces_matched() -> None:
     text = _markdown(summarize([]))
     assert "No traces matched." in text
     assert " to ." not in text
+
+
+def test_empty_env_medium_component_is_one_malformed_value() -> None:
+    """A trailing or lone pipe must be counted as malformed, not dropped or passed."""
+    for value in ("soil [ENVO:00001998] |", "|", "| soil [ENVO:00001998]"):
+        output = {"metadata_fields": [{"field_name": "env_medium", "value": value}]}
+        row = build_row(_bundle(output), fake_lookup)
+        assert row.triad_values == 1, value
+        assert row.triad_parsed == 0, value
+        assert summarize([row])["triad_with_verdict"] == 1, value
