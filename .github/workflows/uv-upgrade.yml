@@ -17,20 +17,24 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
 
-      - name: Upgrade all dependencies
-        run: uv lock --upgrade
+      # Everything except the AI and agent packages in .github/held-packages.txt, which move
+      # only in their own PR with an eval run before and after (docs/dependency-upgrades.md).
+      - name: Upgrade dependencies except held AI packages
+        run: python3 scripts/upgrade_except_held.py
 
       - name: Open PR if lockfile changed
         id: create-pr
         uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
         with:
-          commit-message: "chore: uv lock --upgrade"
+          commit-message: "chore: upgrade dependencies except held AI packages"
           branch: chore/uv-upgrade
           delete-branch: true
           title: "chore: weekly dependency upgrade"
           body: |
-            Automated weekly `uv lock --upgrade`. Auto-merges when CI
-            passes (branch protection catches any regression).
+            Automated weekly upgrade of every locked package except the AI and agent
+            packages in `.github/held-packages.txt`, which stay put so eval scores do not
+            move with library versions (see `docs/dependency-upgrades.md`). Auto-merges when
+            CI passes (branch protection catches any regression).
 
             Check the Security tab after merging — Dependabot alerts for packages
             bumped here will auto-close once the new versions land on main.
