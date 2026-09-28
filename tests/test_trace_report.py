@@ -176,6 +176,7 @@ def test_markdown_states_a_denominator_beside_every_count() -> None:
 
     summary = {
         "traces": 84,
+        "environments": {"local": 76, "testing": 7, "default": 1},
         "date_first": "2026-07-14T00:00:00",
         "date_last": "2026-09-22T00:00:00",
         "output_shapes": {"LLMOutput": 32, "none": 34},
@@ -189,6 +190,7 @@ def test_markdown_states_a_denominator_beside_every_count() -> None:
         "triad_values": 918,
         "triad_checked_against_envo": 918,
         "triad_parsed": 918,
+        "triad_with_verdict": 918,
         "triad_curie_resolves": 918,
         "triad_label_matches": 911,
         "triad_well_formed": 911,
@@ -201,6 +203,8 @@ def test_markdown_states_a_denominator_beside_every_count() -> None:
     assert "No model was called" in text
     assert "| LLMOutput | 32 |" in text
     assert "| agentic | 50 |" in text
+    assert "Environments covered: local 76, testing 7, default 1." in text
+    assert "Production trace report" not in text
 
 
 def test_markdown_says_none_when_no_foreign_prefixes_were_seen() -> None:
@@ -252,3 +256,95 @@ def test_build_row_skips_suggestions_with_no_usable_value() -> None:
         ]
     }
     assert build_row(_bundle(output), fake_lookup).triad_values == 0
+
+
+def _row(**overrides) -> TraceRow:
+    base = dict(
+        trace_id="r",
+        timestamp="2026-09-01T00:00:00",
+        name="agentic",
+        environment="local",
+        output_shape="LLMOutput",
+        served_model="m",
+        declared_model="m",
+        model_attribution_disagrees=False,
+        num_turns=None,
+        permission_denials=None,
+        terminal_reason=None,
+        is_error=None,
+        total_cost_usd=None,
+        duration_ms=None,
+    )
+    base.update(overrides)
+    return TraceRow(**base)
+
+
+def test_summarize_adds_prefix_counts_across_rows() -> None:
+    """PO=3 in one row and PO=2 in another is five values, not two rows."""
+    rows = [_row(non_envo_prefixes="PO=3;UBERON=1"), _row(non_envo_prefixes="PO=2")]
+    assert summarize(rows)["non_envo_prefixes"] == {"PO": 5, "UBERON": 1}
+
+
+def test_a_failed_lookup_is_unknown_not_unresolved() -> None:
+    """An unreadable ENVO database must not turn every value into a model failure."""
+    from nmdc_ai_eval.trace_report import LookupUnavailable
+
+    def broken_lookup(curie: str) -> str | None:
+        raise LookupUnavailable("database is locked")
+
+    check = check_term("env_medium", "soil [ENVO:00001998]", broken_lookup)
+    assert check.parsed
+    assert check.curie_resolves is None
+    assert check.label_matches is None
+    assert check.well_formed is None
+
+
+def test_all_three_denominator_counts_malformed_values() -> None:
+    """One valid value and one unparsable value is 1 of 2 well formed, not 1 of 1."""
+    output = {
+        "metadata_fields": [
+            {"field_name": "env_medium", "value": "soil [ENVO:00001998]"},
+            {"field_name": "env_broad_scale", "value": "just some prose"},
+        ]
+    }
+    summary = summarize([build_row(_bundle(output), fake_lookup)])
+    assert summary["triad_well_formed"] == 1
+    assert summary["triad_with_verdict"] == 2
+
+
+def test_all_three_denominator_leaves_out_unknown_lookups() -> None:
+    """Without ENVO, a parsed value has no verdict; only the unparsable one does."""
+    output = {
+        "metadata_fields": [
+            {"field_name": "env_medium", "value": "soil [ENVO:00001998]"},
+            {"field_name": "env_broad_scale", "value": "just some prose"},
+        ]
+    }
+    summary = summarize([build_row(_bundle(output), None)])
+    assert summary["triad_with_verdict"] == 1
+    assert summary["triad_well_formed"] == 0
+
+
+def test_empty_corpus_tsv_still_has_a_header(tmp_path) -> None:
+    from nmdc_ai_eval.trace_report import TSV_FIELDS, write_tsv
+
+    path = tmp_path / "traces.tsv"
+    write_tsv([], path)
+    assert path.read_text().rstrip("\n").split("\t") == TSV_FIELDS
+    assert "triad_checked_against_envo" in TSV_FIELDS
+    assert "checks" not in TSV_FIELDS
+
+
+def test_filter_by_environment_keeps_only_named_environments() -> None:
+    from nmdc_ai_eval.trace_report import filter_by_environment
+
+    local = _bundle(None)
+    testing = _bundle(None)
+    testing.trace["environment"] = "testing"
+    assert filter_by_environment([local, testing], ["testing"]) == [testing]
+    assert filter_by_environment([local, testing], None) == [local, testing]
+
+
+def test_summary_reports_environments() -> None:
+    rows = [_row(environment="local"), _row(environment="local"), _row(environment="testing")]
+    assert summarize(rows)["environments"] == {"local": 2, "testing": 1}

@@ -1,4 +1,8 @@
-"""Report on production traces without needing a reference answer.
+"""Report on Langfuse traces without needing a reference answer.
+
+Written for production traffic, where no ground truth exists. As of September 2026 no trace in
+the project is tagged production, so every report states which environments it covers and
+``--environment`` restricts it to one or more of them.
 
 Two questions per run, both answerable from what Langfuse already holds:
 
@@ -15,14 +19,26 @@ The second half reuses ``envo_scorer.parse_label_curie`` and ``envo_scorer.valid
 
 from __future__ import annotations
 
+import csv
 from collections import Counter
-from dataclasses import asdict, dataclass, field
+from collections.abc import Iterable
+from dataclasses import asdict, dataclass, field, fields
+from pathlib import Path
 from typing import Any
 
 from nmdc_ai_eval.envo_scorer import parse_label_curie
 
 ENV_TRIAD_SLOTS = ("env_broad_scale", "env_local_scale", "env_medium")
 MAPPER_BUCKETS = ("high_confidence", "needs_review", "cant_place")
+
+
+class LookupUnavailable(Exception):
+    """Raised by a label lookup when ENVO could not be consulted, as opposed to a CURIE it lacks.
+
+    A lookup returns None for a CURIE that is not in ENVO. It raises this when the lookup itself
+    failed (an unreadable database, a network error), so the check is left unknown rather than
+    reported as an unresolved CURIE.
+    """
 
 
 @dataclass
@@ -84,7 +100,10 @@ def check_term(slot: str, raw_value: str, label_lookup: Any = None) -> TermCheck
     check = TermCheck(slot=slot, raw_value=raw_value, parsed=True, label=label, curie=curie, prefix=prefix)
     if label_lookup is None:
         return check
-    canonical = label_lookup(curie)
+    try:
+        canonical = label_lookup(curie)
+    except LookupUnavailable:
+        return check
     check.curie_resolves = canonical is not None
     check.canonical_label = canonical
     check.label_matches = bool(canonical and canonical.lower() == label.lower())
@@ -191,14 +210,39 @@ def build_row(bundle: Any, label_lookup: Any = None) -> TraceRow:
     return row
 
 
+TSV_FIELDS = [f.name for f in fields(TraceRow) if f.name != "checks"]
+
+
+def filter_by_environment(bundles: Iterable[Any], environments: list[str] | None) -> list[Any]:
+    """Keep bundles whose trace environment is in ``environments``; all of them when it is empty."""
+    if not environments:
+        return list(bundles)
+    wanted = set(environments)
+    return [b for b in bundles if b.trace.get("environment") in wanted]
+
+
+def _sum_prefix_counts(rows: list[TraceRow]) -> dict[str, int]:
+    """Combine each row's ``PREFIX=n`` pairs by adding the counts, not by counting rows."""
+    totals: Counter[str] = Counter()
+    for row in rows:
+        for pair in row.non_envo_prefixes.split(";"):
+            if not pair:
+                continue
+            prefix, _, count = pair.partition("=")
+            totals[prefix] += int(count) if count.isdigit() else 1
+    return dict(totals.most_common())
+
+
 def summarize(rows: list[TraceRow]) -> dict[str, Any]:
     """Corpus-level counts. Every denominator is stated so no rate is read without one."""
     with_health = [r for r in rows if r.permission_denials is not None]
     llm_rows = [r for r in rows if r.output_shape == "LLMOutput"]
     values = sum(r.triad_values for r in llm_rows)
+    parsed = sum(r.triad_parsed for r in llm_rows)
     checked = sum(r.triad_checked_against_envo for r in llm_rows)
     return {
         "traces": len(rows),
+        "environments": dict(Counter(r.environment or "<none>" for r in rows).most_common()),
         "date_first": min((r.timestamp for r in rows), default=""),
         "date_last": max((r.timestamp for r in rows), default=""),
         "output_shapes": dict(Counter(r.output_shape for r in rows).most_common()),
@@ -213,24 +257,37 @@ def summarize(rows: list[TraceRow]) -> dict[str, Any]:
         "total_cost_usd": round(sum(r.total_cost_usd or 0.0 for r in rows), 4),
         "triad_values": values,
         "triad_checked_against_envo": checked,
-        "triad_parsed": sum(r.triad_parsed for r in llm_rows),
+        "triad_parsed": parsed,
+        # Values with a definite well-formed verdict: every lookup that ran, plus every value that
+        # failed to parse, which is malformed whether or not ENVO was available.
+        "triad_with_verdict": checked + (values - parsed),
         "triad_curie_resolves": sum(r.triad_curie_resolves for r in llm_rows),
         "triad_label_matches": sum(r.triad_label_matches for r in llm_rows),
         "triad_well_formed": sum(r.triad_well_formed for r in llm_rows),
-        "non_envo_prefixes": dict(
-            Counter(p.split("=")[0] for r in llm_rows for p in r.non_envo_prefixes.split(";") if p).most_common()
-        ),
+        "non_envo_prefixes": _sum_prefix_counts(llm_rows),
     }
+
+
+def write_tsv(rows: list[TraceRow], path: Path) -> None:
+    """One row per trace. The header comes from TraceRow, so an empty corpus still has a schema."""
+    with open(path, "w", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=TSV_FIELDS, delimiter="\t", lineterminator="\n")
+        writer.writeheader()
+        for row in rows:
+            writer.writerow(row.as_tsv_dict())
 
 
 def _markdown(summary: dict[str, Any]) -> str:
     """A short report suitable for pasting into an issue."""
     s = summary
+    environments = ", ".join(f"{k} {v}" for k, v in s["environments"].items()) or "none"
     lines = [
-        "# Production trace report",
+        "# Trace report",
         "",
         f"{s['traces']} traces, {s['date_first'][:10]} to {s['date_last'][:10]}. "
         f"No model was called to produce this report.",
+        "",
+        f"Environments covered: {environments}. Only traces tagged `production` are production traffic.",
         "",
         "## What the agent did",
         "",
@@ -255,11 +312,12 @@ def _markdown(summary: dict[str, Any]) -> str:
         f"| looked up in ENVO | {s['triad_checked_against_envo']} | {s['triad_values']} |",
         f"| CURIE resolves | {s['triad_curie_resolves']} | {s['triad_checked_against_envo']} |",
         f"| label matches ENVO's label | {s['triad_label_matches']} | {s['triad_checked_against_envo']} |",
-        f"| all three | {s['triad_well_formed']} | {s['triad_checked_against_envo']} |",
+        f"| all three | {s['triad_well_formed']} | {s['triad_with_verdict']} |",
         "",
         (
-            "Rows below the lookup line use the looked-up count as their denominator. When ENVO "
-            "is unavailable that count is zero and nothing is reported as failing, because "
+            "CURIE and label rows use the looked-up count as their denominator. The all-three row "
+            "adds values that failed to parse, which are malformed either way. When ENVO is "
+            "unavailable the looked-up count is zero and no lookup is reported as failing, because "
             "unknown is not the same as wrong."
             if s["triad_checked_against_envo"] < s["triad_values"]
             else ""
@@ -279,14 +337,17 @@ def _markdown(summary: dict[str, Any]) -> str:
 
 def main() -> None:  # pragma: no cover - thin CLI over tested functions
     import argparse
-    import csv
     import json
     import sys
     from datetime import UTC, datetime
-    from pathlib import Path
 
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output-dir", type=Path, default=Path("trace-reports"))
+    parser.add_argument(
+        "--environment",
+        action="append",
+        help="Only include traces from this Langfuse environment. Repeatable. Default: every environment.",
+    )
     parser.add_argument(
         "--no-envo",
         action="store_true",
@@ -315,6 +376,9 @@ def main() -> None:  # pragma: no cover - thin CLI over tested functions
     print(f"Reading traces from {endpoint.base_url}", file=sys.stderr)
     bundles = load_bundles(endpoint)
     print(f"  {len(bundles)} traces", file=sys.stderr)
+    if args.environment:
+        bundles = filter_by_environment(bundles, args.environment)
+        print(f"  {len(bundles)} in environment(s) {', '.join(args.environment)}", file=sys.stderr)
 
     label_lookup = None
     if not args.no_envo:
@@ -340,11 +404,14 @@ def main() -> None:  # pragma: no cover - thin CLI over tested functions
         if adapter is not None:
 
             def label_lookup(curie: str) -> str | None:
+                # adapter.label returns None for a CURIE ENVO lacks. An exception means the
+                # lookup itself failed, so the check stays unknown instead of counting as a
+                # model error. Failures are not cached, so a transient one can recover.
                 if curie not in cache:
                     try:
                         cache[curie] = adapter.label(curie)
-                    except Exception:  # noqa: BLE001 - an unresolvable CURIE is a finding, not a crash
-                        cache[curie] = None
+                    except Exception as exc:  # noqa: BLE001
+                        raise LookupUnavailable(f"{type(exc).__name__}: {exc}") from exc
                 return cache[curie]
 
     rows = [build_row(b, label_lookup) for b in bundles]
@@ -355,12 +422,7 @@ def main() -> None:  # pragma: no cover - thin CLI over tested functions
     stamp = datetime.now(UTC).strftime("%Y%m%d-%H%M%S")
     args.output_dir.mkdir(parents=True, exist_ok=True)
     tsv_path = args.output_dir / f"traces_{stamp}.tsv"
-    with open(tsv_path, "w", newline="") as handle:
-        fieldnames = list(rows[0].as_tsv_dict()) if rows else []
-        writer = csv.DictWriter(handle, fieldnames=fieldnames, delimiter="\t", lineterminator="\n")
-        writer.writeheader()
-        for row in rows:
-            writer.writerow(row.as_tsv_dict())
+    write_tsv(rows, tsv_path)
 
     (args.output_dir / f"summary_{stamp}.json").write_text(json.dumps(summary, indent=2) + "\n")
     (args.output_dir / f"report_{stamp}.md").write_text(_markdown(summary))
