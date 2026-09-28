@@ -74,7 +74,11 @@ class TermCheck:
 def _iter_triad_values(output: dict[str, Any]) -> list[tuple[str, str]]:
     """Every (slot, raw value) pair in an ``LLMOutput``-shaped payload."""
     pairs: list[tuple[str, str]] = []
-    for suggestion in output.get("metadata_fields") or []:
+    fields = output.get("metadata_fields")
+    # Langfuse output is arbitrary JSON: a non-list here is malformed output, not a crash.
+    if not isinstance(fields, list):
+        return pairs
+    for suggestion in fields:
         if not isinstance(suggestion, dict):
             continue
         slot = suggestion.get("field_name")
@@ -167,10 +171,19 @@ def _output_shape(output: Any) -> str:
     return f"not-a-dict:{type(output).__name__}"
 
 
+def _number(value: Any) -> Any:
+    """A numeric metadata value, or None. Booleans and strings are not counts or costs."""
+    if isinstance(value, bool) or not isinstance(value, int | float):
+        return None
+    return value
+
+
 def build_row(bundle: Any, label_lookup: Any = None) -> TraceRow:
     """Build one row from a ``langfuse_reader.TraceBundle``."""
     trace = bundle.trace
-    metadata = trace.get("metadata") or {}
+    metadata = trace.get("metadata")
+    if not isinstance(metadata, dict):
+        metadata = {}
     output = trace.get("output")
     shape = _output_shape(output)
 
@@ -183,12 +196,12 @@ def build_row(bundle: Any, label_lookup: Any = None) -> TraceRow:
         served_model=bundle.served_model,
         declared_model=bundle.declared_model,
         model_attribution_disagrees=bundle.model_attribution_disagrees,
-        num_turns=metadata.get("num_turns"),
-        permission_denials=metadata.get("permission_denials"),
+        num_turns=_number(metadata.get("num_turns")),
+        permission_denials=_number(metadata.get("permission_denials")),
         terminal_reason=metadata.get("terminal_reason"),
         is_error=metadata.get("is_error"),
-        total_cost_usd=metadata.get("total_cost_usd"),
-        duration_ms=metadata.get("duration_ms"),
+        total_cost_usd=_number(metadata.get("total_cost_usd")),
+        duration_ms=_number(metadata.get("duration_ms")),
     )
 
     if shape == "LLMOutput" and isinstance(output, dict):

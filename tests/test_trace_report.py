@@ -395,3 +395,35 @@ def test_empty_env_medium_component_is_one_malformed_value() -> None:
         assert row.triad_values == 1, value
         assert row.triad_parsed == 0, value
         assert summarize([row])["triad_with_verdict"] == 1, value
+
+
+def test_non_list_metadata_fields_does_not_crash() -> None:
+    """One trace with malformed output must not abort the whole report."""
+    for fields in (42, "a string", {"field_name": "env_medium"}, None):
+        row = build_row(_bundle({"metadata_fields": fields}), fake_lookup)
+        assert row.output_shape == "LLMOutput"
+        assert row.triad_values == 0
+
+
+def test_malformed_metadata_does_not_crash_the_report() -> None:
+    """Non-dict metadata, and strings or booleans where numbers belong, are treated as absent."""
+    for metadata in (["not", "a", "dict"], "a string", 7):
+        bundle = _bundle(None)
+        bundle.trace["metadata"] = metadata
+        row = build_row(bundle, fake_lookup)
+        assert row.num_turns is None and row.total_cost_usd is None
+        summarize([row])
+
+    bundle = _bundle(None, metadata={"permission_denials": "5", "total_cost_usd": "1.2", "num_turns": True})
+    row = build_row(bundle, fake_lookup)
+    assert row.permission_denials is None
+    assert row.total_cost_usd is None
+    assert row.num_turns is None
+    summary = summarize([row])
+    assert summary["traces_with_health_block"] == 0
+
+
+def test_declared_model_tolerates_non_dict_metadata() -> None:
+    from nmdc_ai_eval.langfuse_reader import TraceBundle
+
+    assert TraceBundle(trace={"id": "t", "metadata": ["x"]}, served_model="m").declared_model is None

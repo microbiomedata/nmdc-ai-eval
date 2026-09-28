@@ -174,8 +174,8 @@ class TraceBundle:
 
     @property
     def declared_model(self) -> str | None:
-        metadata = self.trace.get("metadata") or {}
-        value = metadata.get("model")
+        metadata = self.trace.get("metadata")
+        value = metadata.get("model") if isinstance(metadata, dict) else None
         return str(value) if value else None
 
     @property
