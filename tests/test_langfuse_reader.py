@@ -187,3 +187,15 @@ def test_get_json_builds_the_url_and_sends_the_auth_header(monkeypatch: pytest.M
     assert captured["url"].startswith("https://example.invalid/api/public/traces?")
     assert "skip" not in captured["url"]
     assert captured["auth"] == ENDPOINT.auth_header
+
+
+def test_pagination_guard_raises_instead_of_truncating(monkeypatch: pytest.MonkeyPatch) -> None:
+    """A server that never reports a last page must fail loudly, not return a short read."""
+    from nmdc_ai_eval.langfuse_reader import LangfusePaginationGuard, _paginate
+
+    def endless(endpoint, path, params):  # type: ignore[no-untyped-def]
+        return {"data": [{"id": f"t{params['page']}"}], "meta": {}}
+
+    monkeypatch.setattr(reader, "_get_json", endless)
+    with pytest.raises(LangfusePaginationGuard, match="stopped after 3 pages"):
+        list(_paginate(ENDPOINT, "/api/public/traces", {}, max_pages=3))

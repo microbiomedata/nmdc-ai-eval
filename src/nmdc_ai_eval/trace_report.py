@@ -270,7 +270,8 @@ def summarize(rows: list[TraceRow]) -> dict[str, Any]:
 
 def write_tsv(rows: list[TraceRow], path: Path) -> None:
     """One row per trace. The header comes from TraceRow, so an empty corpus still has a schema."""
-    with open(path, "w", newline="") as handle:
+    # "x" refuses to overwrite: a result file is the record of one run.
+    with open(path, "x", newline="") as handle:
         writer = csv.DictWriter(handle, fieldnames=TSV_FIELDS, delimiter="\t", lineterminator="\n")
         writer.writeheader()
         for row in rows:
@@ -419,13 +420,17 @@ def main() -> None:  # pragma: no cover - thin CLI over tested functions
 
     # Timestamped and never overwritten, matching the convention stated in .gitignore
     # for datasets/*/pipeline-results/: a result file is a record of one run.
-    stamp = datetime.now(UTC).strftime("%Y%m%d-%H%M%S")
+    # Microseconds, so two runs finishing in the same second get separate files; the "x" mode
+    # writes below refuse to overwrite if they ever collide anyway.
+    stamp = datetime.now(UTC).strftime("%Y%m%d-%H%M%S-%f")
     args.output_dir.mkdir(parents=True, exist_ok=True)
     tsv_path = args.output_dir / f"traces_{stamp}.tsv"
     write_tsv(rows, tsv_path)
 
-    (args.output_dir / f"summary_{stamp}.json").write_text(json.dumps(summary, indent=2) + "\n")
-    (args.output_dir / f"report_{stamp}.md").write_text(_markdown(summary))
+    with open(args.output_dir / f"summary_{stamp}.json", "x") as handle:
+        handle.write(json.dumps(summary, indent=2) + "\n")
+    with open(args.output_dir / f"report_{stamp}.md", "x") as handle:
+        handle.write(_markdown(summary))
 
     print(_markdown(summary))
     print(f"Wrote {tsv_path} and its summary and report", file=sys.stderr)

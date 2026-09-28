@@ -348,3 +348,15 @@ def test_filter_by_environment_keeps_only_named_environments() -> None:
 def test_summary_reports_environments() -> None:
     rows = [_row(environment="local"), _row(environment="local"), _row(environment="testing")]
     assert summarize(rows)["environments"] == {"local": 2, "testing": 1}
+
+
+def test_write_tsv_refuses_to_overwrite(tmp_path) -> None:
+    """A result file is the record of one run; a second write to the same path must fail."""
+    import pytest
+
+    from nmdc_ai_eval.trace_report import write_tsv
+
+    path = tmp_path / "traces.tsv"
+    write_tsv([], path)
+    with pytest.raises(FileExistsError):
+        write_tsv([], path)
