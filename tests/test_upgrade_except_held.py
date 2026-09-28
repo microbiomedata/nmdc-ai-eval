@@ -37,30 +37,47 @@ def test_the_project_itself_is_not_a_locked_package() -> None:
 
 
 def test_moved_reports_a_held_package_that_changed_version() -> None:
-    before = {"llm": "0.35", "duckdb": "1.5.5"}
-    after = {"llm": "0.36", "duckdb": "1.5.6"}
-    assert upgrade.moved(before, after, ["llm"]) == ["llm 0.35 -> 0.36"]
+    before = {"llm": "0.35 {}", "duckdb": "1.5.5 {}"}
+    after = {"llm": "0.36 {}", "duckdb": "1.5.6 {}"}
+    assert upgrade.moved(before, after, ["llm"]) == ["llm: 0.35 {} -> 0.36 {}"]
 
 
 def test_moved_is_empty_when_held_packages_stay_put() -> None:
-    before = {"llm": "0.35", "duckdb": "1.5.5"}
-    after = {"llm": "0.35", "duckdb": "1.5.6"}
+    before = {"llm": "0.35 {}", "duckdb": "1.5.5 {}"}
+    after = {"llm": "0.35 {}", "duckdb": "1.5.6 {}"}
     assert upgrade.moved(before, after, ["llm"]) == []
 
 
 def test_moved_reports_a_held_package_that_disappeared() -> None:
-    assert upgrade.moved({"llm": "0.35"}, {}, ["llm"]) == ["llm 0.35 -> None"]
+    assert upgrade.moved({"llm": "0.35 {}"}, {}, ["llm"]) == ["llm: 0.35 {} -> None"]
+
+
+def test_moved_catches_a_git_dependency_on_a_new_commit_with_the_same_version() -> None:
+    before = {"tool": '1.2.1 {"git": "https://x/tool?branch=main#aaa"}'}
+    after = {"tool": '1.2.1 {"git": "https://x/tool?branch=main#bbb"}'}
+    assert len(upgrade.moved(before, after, ["tool"])) == 1
+
+
+def test_moved_catches_a_new_package_matching_a_held_pattern() -> None:
+    before = {"openinference-a": "1 {}"}
+    after = {"openinference-a": "1 {}", "openinference-b": "1 {}"}
+    assert upgrade.moved(before, after, ["openinference-*"]) == ["openinference-b: None -> 1 {}"]
+
+
+def test_locked_entries_include_the_source() -> None:
+    entry = upgrade.locked_entries()["nmdc-metadata-suggestor-ai-tool"]
+    assert '"git"' in entry
 
 
 def test_main_fails_when_resolution_moves_a_held_package(monkeypatch) -> None:
     """The whole run must stop, not just report, so no upgrade PR is opened."""
     import pytest
 
-    versions = iter([{"llm": "0.35", "duckdb": "1.5.5"}, {"llm": "0.36", "duckdb": "1.5.6"}])
-    monkeypatch.setattr(upgrade, "locked_versions", lambda: next(versions))
+    entries = iter([{"llm": "0.35 {}", "duckdb": "1.5.5 {}"}, {"llm": "0.36 {}", "duckdb": "1.5.6 {}"}])
+    monkeypatch.setattr(upgrade, "locked_entries", lambda: next(entries))
     monkeypatch.setattr(upgrade, "locked_packages", lambda: ["duckdb", "llm"])
     monkeypatch.setattr(upgrade, "held_patterns", lambda: ["llm"])
     monkeypatch.setattr(upgrade.subprocess, "run", lambda *a, **k: None)
     monkeypatch.setattr(upgrade.sys, "argv", ["upgrade_except_held.py"])
-    with pytest.raises(SystemExit, match="llm 0.35 -> 0.36"):
+    with pytest.raises(SystemExit, match="llm: 0.35"):
         upgrade.main()
