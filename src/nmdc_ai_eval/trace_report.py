@@ -82,8 +82,10 @@ def _iter_triad_values(output: dict[str, Any]) -> list[tuple[str, str]]:
         value = suggestion.get("value")
         if not isinstance(value, str) or not value.strip():
             continue
-        # env_medium is pipe-joined in some references and some outputs.
-        for piece in value.split("|"):
+        # env_medium is pipe-joined in some references and some outputs. The other two slots take
+        # one term, so a pipe there is a malformed value, left whole for check_term to reject.
+        pieces = value.split("|") if slot == "env_medium" else [value]
+        for piece in pieces:
             piece = piece.strip()
             if piece:
                 pairs.append((str(slot), piece))
@@ -92,6 +94,10 @@ def _iter_triad_values(output: dict[str, Any]) -> list[tuple[str, str]]:
 
 def check_term(slot: str, raw_value: str, label_lookup: Any = None) -> TermCheck:
     """Check one value. ``label_lookup`` takes a CURIE and returns ENVO's label or None."""
+    # One term never contains a pipe. Without this, "a [X] | b [Y]" parses as a label ending
+    # "| b" and is reported as a label mismatch instead of as two values in one slot.
+    if "|" in raw_value:
+        return TermCheck(slot=slot, raw_value=raw_value, parsed=False)
     parsed = parse_label_curie(raw_value)
     if parsed is None:
         return TermCheck(slot=slot, raw_value=raw_value, parsed=False)

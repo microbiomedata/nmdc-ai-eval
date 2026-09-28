@@ -360,3 +360,19 @@ def test_write_tsv_refuses_to_overwrite(tmp_path) -> None:
     write_tsv([], path)
     with pytest.raises(FileExistsError):
         write_tsv([], path)
+
+
+def test_pipe_splits_env_medium_only() -> None:
+    """env_medium may be pipe-joined; a pipe in the single-term slots is one malformed value."""
+    joined = "soil [ENVO:00001998] | terrestrial biome [ENVO:00000446]"
+    output = {
+        "metadata_fields": [
+            {"field_name": "env_medium", "value": joined},
+            {"field_name": "env_broad_scale", "value": joined},
+        ]
+    }
+    row = build_row(_bundle(output), fake_lookup)
+    by_slot = [(c.slot, c.parsed) for c in row.checks]
+    assert by_slot == [("env_medium", True), ("env_medium", True), ("env_broad_scale", False)]
+    assert row.triad_values == 3
+    assert row.triad_well_formed == 2
