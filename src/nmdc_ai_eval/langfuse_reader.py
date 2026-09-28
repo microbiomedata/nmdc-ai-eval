@@ -1,6 +1,7 @@
 """Read traces and agent observations from a Langfuse project.
 
-Standard library only. The suggestor writes traces (microbiomedata/nmdc-metadata-suggestor-ai-tool
+Standard library for HTTP and JSON; ``endpoint_from_env`` also uses the already-declared
+``python-dotenv`` to read a ``.env`` file. The suggestor writes traces (microbiomedata/nmdc-metadata-suggestor-ai-tool
 PR 139 logs every agent message); this reads them back so an eval can score what production
 actually did rather than a prompt this repo wrote.
 

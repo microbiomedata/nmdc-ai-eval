@@ -376,3 +376,12 @@ def test_pipe_splits_env_medium_only() -> None:
     assert by_slot == [("env_medium", True), ("env_medium", True), ("env_broad_scale", False)]
     assert row.triad_values == 3
     assert row.triad_well_formed == 2
+
+
+def test_markdown_says_so_when_no_traces_matched() -> None:
+    """An environment filter with no matches must not print an empty date range."""
+    from nmdc_ai_eval.trace_report import _markdown
+
+    text = _markdown(summarize([]))
+    assert "No traces matched." in text
+    assert " to ." not in text

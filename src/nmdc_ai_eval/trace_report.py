@@ -14,7 +14,8 @@ Two questions per run, both answerable from what Langfuse already holds:
   None of those checks needs a curated answer, which is what lets this run over production traffic
   where no ground truth exists.
 
-The second half reuses ``envo_scorer.parse_label_curie`` and ``envo_scorer.validate_curie_label``.
+The second half reuses ``envo_scorer.parse_label_curie`` for parsing, then compares the label with
+the one the ontology adapter returns for the CURIE, in ``check_term``.
 """
 
 from __future__ import annotations
@@ -291,8 +292,12 @@ def _markdown(summary: dict[str, Any]) -> str:
     lines = [
         "# Trace report",
         "",
-        f"{s['traces']} traces, {s['date_first'][:10]} to {s['date_last'][:10]}. "
-        f"No model was called to produce this report.",
+        (
+            f"{s['traces']} traces, {s['date_first'][:10]} to {s['date_last'][:10]}. "
+            if s["traces"]
+            else "No traces matched. "
+        )
+        + "No model was called to produce this report.",
         "",
         f"Environments covered: {environments}. Only traces tagged `production` are production traffic.",
         "",
