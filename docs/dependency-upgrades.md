@@ -15,3 +15,5 @@ Only in its own pull request, with an eval run before and after the bump on the 
 ## How the exclusion works
 
 uv has no option to leave packages out of `uv lock --upgrade`: it upgrades everything, or upgrades the packages named with `--upgrade-package` ([uv docs: Upgrading locked package versions](https://docs.astral.sh/uv/concepts/projects/sync/#upgrading-locked-package-versions)). So [`scripts/upgrade_except_held.py`](../scripts/upgrade_except_held.py) reads every package from `uv.lock`, drops the held ones, and passes each remaining name as `--upgrade-package`. Run it with `--dry-run` to see what it would hold and upgrade.
+
+Leaving a package out of `--upgrade-package` does not pin it: uv treats the existing lock as a preference, so an upgraded package that needs a newer held one can still pull it forward (`oaklib` depends on `llm`, for example). The script therefore records the held versions before resolving and exits with an error naming any that moved. The workflow then fails and opens no pull request, and the held package has to move in its own PR.

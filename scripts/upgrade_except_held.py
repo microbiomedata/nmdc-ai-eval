@@ -24,6 +24,21 @@ def held_patterns() -> list[str]:
     return [line.strip() for line in lines if line.strip() and not line.lstrip().startswith("#")]
 
 
+def locked_versions() -> dict[str, str]:
+    """Name to version for every package in uv.lock except the project itself."""
+    lock = tomllib.loads((ROOT / "uv.lock").read_text())
+    return {
+        package["name"]: package.get("version", "")
+        for package in lock["package"]
+        if not {"editable", "virtual"} & set(package.get("source", {}))
+    }
+
+
+def moved(before: dict[str, str], after: dict[str, str], held: list[str]) -> list[str]:
+    """Held packages whose locked version changed, or that appeared or disappeared."""
+    return [f"{name} {before.get(name)} -> {after.get(name)}" for name in held if before.get(name) != after.get(name)]
+
+
 def locked_packages() -> list[str]:
     """Every package in uv.lock except the project itself, which is not a dependency."""
     lock = tomllib.loads((ROOT / "uv.lock").read_text())
@@ -45,7 +60,14 @@ def main() -> None:
     if "--dry-run" in sys.argv:
         print(" ".join(command[:6]), "...")
         return
+    before = locked_versions()
     subprocess.run(command, cwd=ROOT, check=True)  # noqa: S603 - "uv lock" plus names read from this repo's uv.lock
+    # Leaving a package out of --upgrade-package does not pin it: uv treats the existing lock as a
+    # preference, so an upgraded dependent can still pull a held package forward. Fail rather than
+    # let that ride into an automatic upgrade PR; move the held package in its own PR instead.
+    changed = moved(before, locked_versions(), held)
+    if changed:
+        sys.exit("held packages moved during resolution: " + "; ".join(changed))
 
 
 if __name__ == "__main__":
