@@ -93,7 +93,12 @@ There is no middle state for whether a CURIE exists.
 | turns, cost, duration | already in `run_health()` |
 | validation gate outcome: accepted, repaired, replaced | the gate already writes this and nobody reads it |
 
-Always state the denominator. A run that fails these is reported as a failed run, not scored by the judge.
+A run fails, and is reported as a failed run rather than scored by the judge, when either of these holds:
+
+1. it suggested at least one ontology-valued slot and no ontology lookup in the run succeeded;
+2. a tool call was denied permission and the run never called that tool successfully afterwards.
+
+Turns, cost, duration and the validation gate outcome are reported for every run and never fail one. Always state the denominator.
 
 ## Optional: distance from a curated answer
 
@@ -140,7 +145,7 @@ Fluency and helpfulness. Both are checked against nothing here and neither is on
 
 The other half of the 2026-09-18 assignment. None needs a curated metadata value, so none waits on whether the curated triads can be trusted.
 
-1. **Value conversion correctness.** Running a `ValueConversion.expression` only shows what it does, so this needs expected outputs: a small hand-written set of input and output pairs for each conversion type (a date format, a unit scale factor, a delimiter), independent of any submission. With those, apply the expression and compare. This is the highest-risk suggestion the tool makes, because `type='custom'` emits Python that the executor runs. No judge needed.
+1. **Value conversion correctness.** Running a `ValueConversion.expression` only shows what it does, so this needs expected outputs: a small hand-written set of input and output pairs for each conversion type (a date format, a unit scale factor, a delimiter), independent of any submission. With those, apply the expression and compare. This is the highest-risk suggestion the tool makes, because `type='custom'` emits Python that the executor runs. So the evaluation never runs an expression in its own process: each runs in a separate process with no network access, no credentials in its environment, an empty scratch directory, and time and memory limits, and a run that hits a limit counts as a failed conversion. No judge needed.
 2. **Confidence calibration.** The metadata mapper sorts each mapping into `high_confidence`, `needs_review` or `cant_place`. Whether `high_confidence` is right more often than `needs_review` needs an outcome for each mapping: a curator's accept or reject, which the planned thumbs-up signal in Langfuse would record, or the judge's accuracy verdict. Until one exists, report only how mappings are distributed across the three buckets.
 3. **Provenance tier correctness.** `tier: submission_enum` asserts a value came from a curated set. Both agentic call sites passed `interface_names=None`, so the label could claim grounding it did not have. Checkable against the curated value sets with no model call.
 
