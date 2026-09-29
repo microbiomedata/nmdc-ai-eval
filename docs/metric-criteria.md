@@ -53,7 +53,7 @@ One yes/no question per criterion, CheckEval style (https://arxiv.org/abs/2403.1
 | accuracy | Is this value right for this sample, given everything the input says? | the input |
 | factuality | Is every claim in the suggestion's `reason` supported by the input text? | the input |
 | relevancy | Does the value answer the slot it was suggested for, rather than a neighbouring slot? | the slot definition |
-| completeness | Did the suggestion give every value the input gives evidence for, in every slot? A slot that takes several values, such as `env_medium` joined with `\|`, counts as incomplete if any supported value is missing. Asked once per sample. | the input |
+| completeness | Did the suggestion give every value the input gives evidence for, in every slot? How this applies to a slot with several values, such as `env_medium` joined with `\|`, is in https://github.com/microbiomedata/nmdc-ai-eval/issues/123. Asked once per sample. | the input |
 | coherence | Can this value and the other two env triad values describe one sample? Asked once per triad. | the other suggested values |
 
 The three questions an earlier draft listed as needing a judge fit inside these: evidence support is factuality, slot selection is completeness, and citation placement is relevancy for the slot the citation sits on.
@@ -82,7 +82,7 @@ These run on every suggestion before the judge does, and cost nothing. A value t
 | value is in the slot's enum where one exists | schema lookup | the env triad slots use `any_of: [enum, pattern]`, so LinkML alone never enforces membership |
 | a value conversion produces the expected output | apply the expression to sample rows | https://github.com/microbiomedata/nmdc-metadata-suggestor-ai-tool/pull/167 emits executable Python and nothing checks it |
 
-A CURIE either exists or it does not, but the lookup can fail. When the ontology cannot be consulted (an unreadable database, a network error), the check is reported as unknown, the way `LookupUnavailable` in `src/nmdc_ai_eval/trace_report.py` already does. The value is neither failed nor sent to the judge, and a run with any unknown lookups is rerun before its scores are compared.
+A CURIE either exists or it does not, but the lookup can fail. When the ontology cannot be consulted (an unreadable database, a network error), the check is reported as unknown, the way `LookupUnavailable` in `src/nmdc_ai_eval/trace_report.py` already does. The value is neither failed nor sent to the judge, and unknowns are counted separately. The retry rule is in https://github.com/microbiomedata/nmdc-ai-eval/issues/123.
 
 ## Cheap guards: counts from the trace, no judge
 
@@ -145,7 +145,7 @@ Fluency and helpfulness. Both are checked against nothing here and neither is on
 
 The other half of the 2026-09-18 assignment. None needs a curated metadata value, so none waits on whether the curated triads can be trusted.
 
-1. **Value conversion correctness.** Running a `ValueConversion.expression` only shows what it does, so this needs expected outputs: a small hand-written set of input and output pairs for each conversion type (a date format, a unit scale factor, a delimiter), independent of any submission. With those, apply the expression and compare. This is the highest-risk suggestion the tool makes, because `type='custom'` emits Python that the executor runs. So the evaluation never runs an expression on the evaluator's machine directly: each runs in a throwaway container as a non-root user, with no network, no host files mounted except its input rows, and time and memory limits. A run that hits a limit counts as a failed conversion. No judge needed.
+1. **Value conversion correctness.** Running a `ValueConversion.expression` only shows what it does, so this needs expected outputs: a small hand-written set of input and output pairs for each conversion type (a date format, a unit scale factor, a delimiter), independent of any submission. With those, apply the expression and compare. This is the highest-risk suggestion the tool makes, because `type='custom'` emits Python that the executor runs. So the evaluation never runs an expression on the evaluator's machine directly; each runs in a throwaway container, and a run the container stops counts as a failed conversion. The container's limits are specified in https://github.com/microbiomedata/nmdc-ai-eval/issues/123. No judge needed.
 2. **Confidence calibration.** The metadata mapper sorts each mapping into `high_confidence`, `needs_review` or `cant_place`. Whether `high_confidence` is right more often than `needs_review` needs an outcome for each mapping: a curator's accept or reject, which the planned thumbs-up signal in Langfuse would record, or the judge's accuracy verdict. Until one exists, report only how mappings are distributed across the three buckets.
 3. **Provenance tier correctness.** `tier: submission_enum` asserts a value came from a curated set. Both agentic call sites passed `interface_names=None`, so the label could claim grounding it did not have. Checkable against the curated value sets with no model call.
 
