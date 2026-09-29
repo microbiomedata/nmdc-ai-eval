@@ -98,3 +98,29 @@ def test_locked_entries_keep_every_variant_of_a_name(tmp_path, monkeypatch) -> N
     after = upgrade.locked_entries()
     assert "0.36" in after["llm"] and "0.35" in after["llm"]
     assert upgrade.moved(before, after, ["llm"])
+
+
+def _workflow_steps() -> list[dict]:
+    import yaml
+
+    workflow = yaml.safe_load((SCRIPT.parents[1] / ".github" / "workflows" / "uv-upgrade.yml").read_text())
+    return workflow["jobs"]["upgrade"]["steps"]
+
+
+def test_a_failed_weekly_upgrade_opens_an_issue() -> None:
+    """A red scheduled run notifies nobody, so the failure must reach the issue tracker."""
+    steps = {s.get("id"): s for s in _workflow_steps() if s.get("id")}
+    notify = [s for s in _workflow_steps() if "gh issue create" in s.get("run", "")]
+    assert "upgrade" in steps
+    assert len(notify) == 1
+    assert "steps.upgrade.outcome == 'failure'" in notify[0]["if"]
+
+
+def test_the_held_package_pr_is_never_auto_merged() -> None:
+    steps = _workflow_steps()
+    held_pr = [s for s in steps if s.get("with", {}).get("branch") == "chore/uv-upgrade-held"]
+    auto_merge = [s for s in steps if "gh pr merge --auto" in s.get("run", "")]
+    assert len(held_pr) == 1
+    assert "id" not in held_pr[0], "the auto-merge step keys off a PR number output"
+    assert len(auto_merge) == 1
+    assert "steps.create-pr.outputs.pull-request-number" in auto_merge[0]["if"]

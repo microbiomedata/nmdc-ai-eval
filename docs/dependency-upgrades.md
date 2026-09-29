@@ -10,7 +10,20 @@ A version change in any of them can change what a model returns or what gets tra
 
 ## How a held package moves
 
-Only in its own pull request, with an eval run before and after the bump on the same inputs, and the two results compared in the PR. Upgrade one with `uv lock --upgrade-package <name>`.
+Only in its own pull request, with an eval run before and after the bump on the same inputs, and the two results compared in the PR. There are two ways to do it:
+
+- One package: `uv lock --upgrade-package <name>`.
+- Everything, held packages included: `just upgrade-held` locally, or run the "Weekly dependency upgrade" workflow from the Actions tab with "Also upgrade the held AI packages" ticked. The workflow opens a separate PR on the `chore/uv-upgrade-held` branch, titled as needing an eval before and after, and never turns on auto-merge for it.
+
+`just upgrade` runs the same upgrade as the weekly job.
+
+## When the weekly upgrade fails
+
+The workflow opens an issue titled "Weekly dependency upgrade failed", or comments on it if one is already open. One cause is a held package that moved during resolution (below). Until it moves in its own PR, the weekly upgrade stays blocked.
+
+## What still moves
+
+The weekly PR still merges itself when CI passes. That is intended, because it holds none of the AI packages. The dependencies of the held packages (`httpx`, `pydantic`, `opentelemetry-*` and others) are not held and still move weekly; https://github.com/microbiomedata/nmdc-ai-eval/issues/124 tracks whether to hold them too.
 
 ## How the exclusion works
 

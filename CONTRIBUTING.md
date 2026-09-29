@@ -43,7 +43,7 @@ uv lock --upgrade-package <package-name>
 uv sync
 ```
 
-Then re-run `just audit` to confirm the CVE is resolved.
+Then re-run `just audit` to confirm the CVE is resolved. If the package is one of the held AI packages in `.github/held-packages.txt`, the fix follows the held-package rule instead: its own PR, with an eval run before and after (see `docs/dependency-upgrades.md`).
 
 **ruff / ruff-format** — Usually auto-fixed by `just fix`. If the error persists after that, read the rule code in the output (e.g. `E501`, `I001`) and fix manually.
 
