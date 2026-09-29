@@ -88,7 +88,8 @@ def test_locked_entries_keep_every_variant_of_a_name(tmp_path, monkeypatch) -> N
     one = '[[package]]\nname = "llm"\nversion = "0.35"\nsource = { registry = "r" }\n'
     two = (
         one
-        + '\n[[package]]\nname = "llm"\nversion = "0.36"\nsource = { registry = "r" }\nresolution-markers = ["python_full_version >= \'3.13\'"]\n'
+        + '\n[[package]]\nname = "llm"\nversion = "0.36"\nsource = { registry = "r" }\n'
+        + "resolution-markers = [\"python_full_version >= '3.13'\"]\n"
     )
     monkeypatch.setattr(upgrade, "ROOT", tmp_path)
     (tmp_path / "uv.lock").write_text(one)
