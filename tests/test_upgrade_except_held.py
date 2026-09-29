@@ -109,11 +109,13 @@ def _workflow_steps() -> list[dict]:
 
 def test_a_failed_weekly_upgrade_opens_an_issue() -> None:
     """A red scheduled run notifies nobody, so the failure must reach the issue tracker."""
-    steps = {s.get("id"): s for s in _workflow_steps() if s.get("id")}
-    notify = [s for s in _workflow_steps() if "gh issue create" in s.get("run", "")]
-    assert "upgrade" in steps
+    steps = _workflow_steps()
+    notify = [s for s in steps if "gh issue create" in s.get("run", "")]
     assert len(notify) == 1
-    assert "steps.upgrade.outcome == 'failure'" in notify[0]["if"]
+    # Last, and keyed on the job's failure, so a failure in any earlier weekly step is reported.
+    assert steps[-1] is notify[0]
+    assert "failure()" in notify[0]["if"]
+    assert "steps." not in notify[0]["if"]
 
 
 def test_the_held_package_pr_is_never_auto_merged() -> None:

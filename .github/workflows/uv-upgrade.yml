@@ -30,25 +30,6 @@ jobs:
         if: ${{ !inputs.include_held }}
         run: python3 scripts/upgrade_except_held.py
 
-      # A red scheduled run notifies nobody, and one failure (an upgraded package needing
-      # a newer held one) blocks every upgrade until someone moves the held package by hand.
-      - name: Open or update an issue when the weekly upgrade fails
-        if: ${{ failure() && steps.upgrade.outcome == 'failure' }}
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-        run: |
-          title="Weekly dependency upgrade failed"
-          body="The weekly dependency upgrade failed and opened no pull request: $RUN_URL
-
-          If the log says held packages moved during resolution, an upgraded package needs a newer version of a held AI package. Move that package in its own PR with an eval run before and after (docs/dependency-upgrades.md); the weekly upgrade stays blocked until then."
-          existing=$(gh issue list --state open --search "\"$title\" in:title" --json number --jq '.[0].number')
-          if [ -n "$existing" ]; then
-            gh issue comment "$existing" --body "Failed again: $RUN_URL"
-          else
-            gh issue create --title "$title" --body "$body" --label dependencies
-          fi
-
       - name: Upgrade everything, including held AI packages
         if: ${{ inputs.include_held }}
         run: uv lock --upgrade
@@ -96,3 +77,24 @@ jobs:
         env:
           PR_NUM: ${{ steps.create-pr.outputs.pull-request-number }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Last, so it catches a failure in any weekly step. A red scheduled run notifies nobody, and
+      # one failure (an upgraded package needing a newer held one) blocks every upgrade until
+      # someone moves the held package by hand.
+      - name: Open or update an issue when the weekly upgrade fails
+        if: ${{ failure() && !inputs.include_held }}
+        env:
+          GH_REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          title="Weekly dependency upgrade failed"
+          body="The weekly dependency upgrade failed: $RUN_URL
+
+          If the log says held packages moved during resolution, an upgraded package needs a newer version of a held AI package. Move that package in its own PR with an eval run before and after (docs/dependency-upgrades.md); the weekly upgrade stays blocked until then."
+          existing=$(gh issue list --state open --search "\"$title\" in:title" --json number --jq '.[0].number')
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --body "Failed again: $RUN_URL"
+          else
+            gh issue create --title "$title" --body "$body" --label dependencies
+          fi
