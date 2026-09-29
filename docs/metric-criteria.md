@@ -64,7 +64,7 @@ Anchors are written before any judge runs, in the form "yes means ... ; no means
 
 This is the answer to the scale question. A pilot in https://github.com/turbomam/local-llm-evals on 2026-09-28 scored the same fifteen answers with a yes/no checklist and with 3-point anchored scales for relevancy and coherence. Every answer got the top score on both 3-point scales, so they ranked nothing; the yes/no checklist separated the models. A 10-point scale on a judgement with no reference gives more false precision, not less. Results: https://github.com/turbomam/local-llm-evals/tree/main/results/scores/photosynthesis/20260928T160326Z
 
-The same pilot found the judge's count of false statements moved between versions of its prompt on the same text. So the judge is checked against a small set of hand labels, with the agreement reported, before its scores are used to compare anything.
+The same pilot found the judge's count of false statements moved between versions of its prompt on the same text. So the judge is checked against a small set of hand labels before its scores are used to compare anything. The minimum agreement for each criterion is written down with the rubric version before the judge runs. A criterion whose agreement falls below its minimum is reported with that agreement and is not used to compare models or prompts until a revised rubric passes.
 
 ### The judge's model family
 
@@ -145,14 +145,14 @@ Fluency and helpfulness. Both are checked against nothing here and neither is on
 
 The other half of the 2026-09-18 assignment. None needs a curated metadata value, so none waits on whether the curated triads can be trusted.
 
-1. **Value conversion correctness.** Running a `ValueConversion.expression` only shows what it does, so this needs expected outputs: a small hand-written set of input and output pairs for each conversion type (a date format, a unit scale factor, a delimiter), independent of any submission. With those, apply the expression and compare. This is the highest-risk suggestion the tool makes, because `type='custom'` emits Python that the executor runs. So the evaluation never runs an expression in its own process: each runs in a separate process with no network access, no credentials in its environment, an empty scratch directory, and time and memory limits, and a run that hits a limit counts as a failed conversion. No judge needed.
+1. **Value conversion correctness.** Running a `ValueConversion.expression` only shows what it does, so this needs expected outputs: a small hand-written set of input and output pairs for each conversion type (a date format, a unit scale factor, a delimiter), independent of any submission. With those, apply the expression and compare. This is the highest-risk suggestion the tool makes, because `type='custom'` emits Python that the executor runs. So the evaluation never runs an expression on the evaluator's machine directly: each runs in a throwaway container as a non-root user, with no network, no host files mounted except its input rows, and time and memory limits. A run that hits a limit counts as a failed conversion. No judge needed.
 2. **Confidence calibration.** The metadata mapper sorts each mapping into `high_confidence`, `needs_review` or `cant_place`. Whether `high_confidence` is right more often than `needs_review` needs an outcome for each mapping: a curator's accept or reject, which the planned thumbs-up signal in Langfuse would record, or the judge's accuracy verdict. Until one exists, report only how mappings are distributed across the three buckets.
 3. **Provenance tier correctness.** `tier: submission_enum` asserts a value came from a curated set. Both agentic call sites passed `interface_names=None`, so the label could claim grounding it did not have. Checkable against the curated value sets with no model call.
 
 ## Decisions for the squad
 
 1. Do we accept the rubric's five questions and their yes/no scale, with the spec and trace checks as guards run first?
-2. Who labels the small hand set the judge is checked against, and how many samples?
+2. Who labels the small hand set the judge is checked against, how many samples, and what minimum agreement per criterion admits the judge's scores?
 3. Do we adopt CAFA's split of missed information against false information for the optional distance score, or keep hand-set weights?
 4. Which relation do we use for triad coherence: `part of` through Ubergraph, shared membership in a curated interface value set, or the GOLD ecosystem path?
 5. Which of the three orthogonal slots do we do first?
