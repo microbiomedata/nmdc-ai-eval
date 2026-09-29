@@ -1,4 +1,4 @@
-# Judge rubric for metadata suggester output. See docs/judge-rubric.md for why it is shaped
+# Judge rubric for metadata suggestor output. See docs/judge-rubric.md for why it is shaped
 # this way. Change `version` whenever any wording changes, because every score records the
 # version it was produced with. The schema is nmdc_ai_eval.rubric.Rubric.
 #
