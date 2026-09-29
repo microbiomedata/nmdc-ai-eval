@@ -8,7 +8,7 @@ The whole pipeline output, not only `env_broad_scale`, `env_local_scale` and `en
 
 ## What is in it, and what is not
 
-Five criteria, from the 2026-09-18 evals meeting: accuracy, factuality, relevancy, completeness and coherence. Each is one yes/no question, with a pass and a fail definition and one or two labelled examples. Three are asked once per suggestion and two once per output.
+Five criteria, from the 2026-09-18 evals meeting: accuracy, factuality, relevancy, completeness and coherence. Each is one yes/no question, with a pass and a fail definition and one or two labelled examples. Three are asked once per suggestion and two once per output. Coherence is judged within each sample, using the suggester's optional `id` on sample-level suggestions.
 
 The judge is given the schema's definition of each field in scope, so relevancy is judged against the definition rather than the judge's memory.
 
@@ -28,7 +28,7 @@ A pilot in https://github.com/turbomam/local-llm-evals on 2026-09-28 scored the 
 
 ## How it is meant to be run
 
-The rubric does not depend on a harness. It is not wired into `run_suite.py` or llm-matrix, which https://github.com/microbiomedata/nmdc-ai-eval/issues/118 plans to remove. A runner asks each question in its own judge call, because several criteria scored in one call share the judge's position and verbosity biases (https://arxiv.org/abs/2306.05685). It uses a judge from a different model family than the one that made the suggestions, and validates each reply as `JudgeAnswer`, where a pass with no quoted evidence counts as a fail.
+The rubric does not depend on a harness. It is not wired into `run_suite.py` or llm-matrix, which https://github.com/microbiomedata/nmdc-ai-eval/issues/118 plans to remove. A runner asks each question in its own judge call, because several criteria scored in one call share the judge's position and verbosity biases (https://arxiv.org/abs/2306.05685). It uses a judge from a different model family than the one that made the suggestions, and validates each reply as `JudgeAnswer`. A pass counts only when its evidence is found word for word in the input or output the judge was given.
 
 ## Next: calibrate against hand-graded outputs
 

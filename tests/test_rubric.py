@@ -59,7 +59,14 @@ def test_an_unknown_key_is_rejected() -> None:
         Rubric.model_validate(_rubric(scale="1-4"))
 
 
-def test_a_pass_without_evidence_does_not_count() -> None:
-    assert JudgeAnswer(verdict="pass", evidence="the input says lake").passed
-    assert not JudgeAnswer(verdict="pass", evidence="  ").passed
-    assert not JudgeAnswer(verdict="fail", evidence="quote").passed
+SOURCE = "Sediment cores were taken at 2 m water depth\nin a freshwater lake."
+
+
+def test_a_pass_counts_when_its_evidence_is_quoted() -> None:
+    assert JudgeAnswer(verdict="pass", evidence="water depth in a Freshwater lake").passed(SOURCE)
+
+
+def test_a_pass_without_a_real_quote_does_not_count() -> None:
+    assert not JudgeAnswer(verdict="pass", evidence="  ").passed(SOURCE)
+    assert not JudgeAnswer(verdict="pass", evidence="The value is appropriate").passed(SOURCE)
+    assert not JudgeAnswer(verdict="fail", evidence="freshwater lake").passed(SOURCE)

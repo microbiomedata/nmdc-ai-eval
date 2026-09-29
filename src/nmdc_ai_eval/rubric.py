@@ -64,15 +64,24 @@ class Rubric(BaseModel):
         return criteria
 
 
+def _normalize(text: str) -> str:
+    return " ".join(text.split()).casefold()
+
+
 class JudgeAnswer(BaseModel):
-    """What the judge returns for one question. A pass with no evidence counts as a fail."""
+    """What the judge returns for one question."""
 
     verdict: Verdict
     evidence: str = ""
 
-    @property
-    def passed(self) -> bool:
-        return self.verdict == "pass" and bool(self.evidence.strip())
+    def passed(self, *sources: str) -> bool:
+        """A pass counts only when its evidence is quoted from the text the judge was given.
+
+        Pass the input and the output as `sources`. Whitespace and case are ignored, so a quote
+        that wraps differently still matches; a paraphrase or an invented quote does not.
+        """
+        quote = _normalize(self.evidence)
+        return self.verdict == "pass" and bool(quote) and any(quote in _normalize(s) for s in sources)
 
 
 def load_rubric(path: Path) -> Rubric:
