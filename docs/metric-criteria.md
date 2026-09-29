@@ -72,7 +72,7 @@ Never the generator's family. The agentic path runs on Claude, so the judge is f
 
 ## Cheap guards: checks against a spec, no judge, yes or no
 
-These run on every suggestion before the judge does. They cost nothing, and a failure here makes the judge's verdict on that value moot.
+These run on every suggestion before the judge does, and cost nothing. A value that does not parse, or whose CURIE does not exist, is scored as failed and not sent to the judge. A label mismatch is not fatal: it is recorded as its own count, and the judge sees the value with the ontology's label for that CURIE, the way the validation gate repairs it. That keeps the two kinds of mismatch apart: a wording near-miss can still be judged accurate, while a label attached to the wrong term is judged against the term the CURIE actually names.
 
 | Check | Computation | Evidence it is needed |
 |---|---|---|
