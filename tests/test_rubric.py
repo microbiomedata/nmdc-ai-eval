@@ -1,4 +1,4 @@
-"""The judge rubrics in rubrics/ must load against their schema and stay versioned."""
+"""The judge rubrics in src/nmdc_ai_eval/rubrics/ must load against their schema and stay versioned."""
 
 import pytest
 from pydantic import ValidationError
@@ -53,10 +53,10 @@ def test_an_output_criterion_needs_a_whole_output_example() -> None:
         Rubric.model_validate(_rubric(unit="output"))
 
 
-def test_a_misspelled_key_is_rejected() -> None:
-    """extra='forbid', so a typo such as 'questoin' cannot silently drop the question."""
+def test_an_unknown_key_is_rejected() -> None:
+    """extra='forbid', so a key the schema does not know, such as a misspelling, is an error."""
     with pytest.raises(ValidationError):
-        Rubric.model_validate(_rubric(questoin="q"))
+        Rubric.model_validate(_rubric(scale="1-4"))
 
 
 def test_a_pass_without_evidence_does_not_count() -> None:

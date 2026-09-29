@@ -1,4 +1,4 @@
-"""Schema for judge rubrics in rubrics/, and for the verdict a judge returns.
+"""Schema for the judge rubrics in rubrics/ next to this module, and for a judge's verdict.
 
 A rubric is data, not code, so any harness can read it. See docs/judge-rubric.md for why.
 """
@@ -9,7 +9,7 @@ from typing import Any, Literal
 import yaml
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
-RUBRICS_DIR = Path(__file__).resolve().parents[2] / "rubrics"
+RUBRICS_DIR = Path(__file__).resolve().parent / "rubrics"
 
 Verdict = Literal["pass", "fail"]
 

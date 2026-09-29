@@ -1,6 +1,6 @@
 # Judge rubric for suggester output
 
-`rubrics/suggestion-judge-v1.yaml` is the set of questions an LLM judge answers about the metadata suggester's output. `src/nmdc_ai_eval/rubric.py` is its schema, and `tests/test_rubric.py` checks that every rubric file loads against it.
+`src/nmdc_ai_eval/rubrics/suggestion-judge-v1.yaml` is the set of questions an LLM judge answers about the metadata suggester's output. `src/nmdc_ai_eval/rubric.py` is its schema, and `tests/test_rubric.py` checks that every rubric file loads against it.
 
 ## Scope
 
@@ -9,6 +9,8 @@ The whole pipeline output, not only `env_broad_scale`, `env_local_scale` and `en
 ## What is in it, and what is not
 
 Five criteria, from the 2026-09-18 evals meeting: accuracy, factuality, relevancy, completeness and coherence. Each is one yes/no question, with a pass and a fail definition and one or two labelled examples. Three are asked once per suggestion and two once per output.
+
+The judge is given the schema's definition of each field in scope, so relevancy is judged against the definition rather than the judge's memory.
 
 Anything code can check is left out. Whether a value parses, whether its CURIE exists and whether its label matches the ontology are lookups (`envo_scorer.py`). Permission denials and ontology lookups during a run are trace counts (`trace_report.py`). A judge would only add noise to those.
 
