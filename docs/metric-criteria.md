@@ -124,7 +124,7 @@ Coherence is on the 2026-09-18 list of five, and Chris Mungall named it independ
 | the GOLD ecosystem path already on the record | `ecosystem_type: Plant-associated` against a marine biome |
 | the rest of the sample's metadata | `host_common_name: switchgrass` against an aquatic medium |
 
-The second is the cheapest and needs no judge, because the path is already on every biosample: `ecosystem`, `ecosystem_category`, `ecosystem_type`, `ecosystem_subtype`, `specific_ecosystem`.
+The second is the cheapest and needs no judge, where the path is on the record: `ecosystem`, `ecosystem_category`, `ecosystem_type`, `ecosystem_subtype`, `specific_ecosystem`. It is not always there. In the 5,052 rows of `datasets/submission-metadata-prediction/eval_input_target_pairs.tsv`, `ecosystem` is blank in 74 and `ecosystem_category` in 308 (counted 2026-09-29). So this check applies only where the fields it needs are present, and samples without them stay in the denominator, reported as not checkable rather than dropped.
 
 **What I tried, and why it did not work.** I tested whether `env_local_scale` sits under `env_broad_scale` by `rdfs:subClassOf` across the 306 complete triads in the recorded runs: zero nested, 14 inverted, 292 with no path at all. That is an artifact. `env_broad_scale` takes biome terms and `env_local_scale` takes landscape features, which live in different ENVO branches, so subsumption was never the right relation. `tropical moist broadleaf forest biome` with `tropical forest`, and `tundra biome` with `area of tundra`, both read as coherent to a person.
 
@@ -138,9 +138,9 @@ Fluency and helpfulness. Both are checked against nothing here and neither is on
 
 ## Slots orthogonal to the env triad
 
-The other half of the 2026-09-18 assignment. None needs a curated answer, so none waits on whether the curated triads can be trusted.
+The other half of the 2026-09-18 assignment. None needs a curated metadata value, so none waits on whether the curated triads can be trusted.
 
-1. **Value conversion correctness.** Apply `ValueConversion.expression` to sample rows and compare with expected output. This is the highest-risk suggestion the tool makes, because `type='custom'` emits Python that the executor runs. No judge needed.
+1. **Value conversion correctness.** Running a `ValueConversion.expression` only shows what it does, so this needs expected outputs: a small hand-written set of input and output pairs for each conversion type (a date format, a unit scale factor, a delimiter), independent of any submission. With those, apply the expression and compare. This is the highest-risk suggestion the tool makes, because `type='custom'` emits Python that the executor runs. No judge needed.
 2. **Confidence calibration.** The metadata mapper sorts each mapping into `high_confidence`, `needs_review` or `cant_place`. Whether `high_confidence` is right more often than `needs_review` needs an outcome for each mapping: a curator's accept or reject, which the planned thumbs-up signal in Langfuse would record, or the judge's accuracy verdict. Until one exists, report only how mappings are distributed across the three buckets.
 3. **Provenance tier correctness.** `tier: submission_enum` asserts a value came from a curated set. Both agentic call sites passed `interface_names=None`, so the label could claim grounding it did not have. Checkable against the curated value sets with no model call.
 
