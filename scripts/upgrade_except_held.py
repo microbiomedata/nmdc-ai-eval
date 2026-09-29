@@ -26,17 +26,20 @@ def held_patterns() -> list[str]:
 
 
 def locked_entries() -> dict[str, str]:
-    """Name to version plus source for every package in uv.lock except the project itself.
+    """Name to every locked variant of that package, except the project itself.
 
-    The source matters as much as the version: a git dependency can move to a new commit while
-    its declared version stays the same.
+    A universal lock can hold several records for one name, one per Python or platform marker,
+    so each name maps to the sorted set of its variants. Each variant is its version, its source
+    (a git dependency can move to a new commit with the same version) and its resolution markers.
     """
     lock = tomllib.loads((ROOT / "uv.lock").read_text())
-    return {
-        package["name"]: f"{package.get('version', '')} {json.dumps(package.get('source', {}), sort_keys=True)}"
-        for package in lock["package"]
-        if not {"editable", "virtual"} & set(package.get("source", {}))
-    }
+    variants: dict[str, list[str]] = {}
+    for package in lock["package"]:
+        if {"editable", "virtual"} & set(package.get("source", {})):
+            continue
+        variant = {k: package.get(k) for k in ("version", "source", "resolution-markers")}
+        variants.setdefault(package["name"], []).append(json.dumps(variant, sort_keys=True))
+    return {name: " | ".join(sorted(entries)) for name, entries in variants.items()}
 
 
 def moved(before: dict[str, str], after: dict[str, str], patterns: list[str]) -> list[str]:

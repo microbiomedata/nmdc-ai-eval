@@ -81,3 +81,19 @@ def test_main_fails_when_resolution_moves_a_held_package(monkeypatch) -> None:
     monkeypatch.setattr(upgrade.sys, "argv", ["upgrade_except_held.py"])
     with pytest.raises(SystemExit, match="llm: 0.35"):
         upgrade.main()
+
+
+def test_locked_entries_keep_every_variant_of_a_name(tmp_path, monkeypatch) -> None:
+    """A second locked version of a held package must change its entry."""
+    one = '[[package]]\nname = "llm"\nversion = "0.35"\nsource = { registry = "r" }\n'
+    two = (
+        one
+        + '\n[[package]]\nname = "llm"\nversion = "0.36"\nsource = { registry = "r" }\nresolution-markers = ["python_full_version >= \'3.13\'"]\n'
+    )
+    monkeypatch.setattr(upgrade, "ROOT", tmp_path)
+    (tmp_path / "uv.lock").write_text(one)
+    before = upgrade.locked_entries()
+    (tmp_path / "uv.lock").write_text(two)
+    after = upgrade.locked_entries()
+    assert "0.36" in after["llm"] and "0.35" in after["llm"]
+    assert upgrade.moved(before, after, ["llm"])
