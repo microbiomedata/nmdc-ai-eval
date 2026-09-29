@@ -2177,6 +2177,7 @@ dependencies = [
     { name = "pydantic" },
     { name = "python-dotenv" },
     { name = "pyyaml" },
+    { name = "rdflib" },
 ]
 
 [package.dev-dependencies]
@@ -2210,6 +2211,7 @@ requires-dist = [
     { name = "pydantic", specifier = ">=2.0" },
     { name = "python-dotenv", specifier = ">=1.0" },
     { name = "pyyaml", specifier = ">=6.0" },
+    { name = "rdflib", specifier = ">=6.3" },
 ]
 
 [package.metadata.requires-dev]
