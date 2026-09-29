@@ -41,9 +41,9 @@ class TestGetPricing:
         # Verify it's the mini price, not the gpt-4o price
         assert base != get_pricing("gpt-4o")
 
-    def test_pnnl_models_zero_cost(self) -> None:
-        assert get_pricing("gpt-5-project") == (0.0, 0.0)
-        assert get_pricing("o3-project") == (0.0, 0.0)
+    def test_pnnl_models_have_current_pricing(self) -> None:
+        assert get_pricing("gpt-5-project") == (1.25, 10.00)
+        assert get_pricing("o3-project") == (2.00, 8.00)
 
     def test_unknown_model_returns_none(self) -> None:
         assert get_pricing("unknown-model-xyz") is None
@@ -93,9 +93,9 @@ class TestEstimateCost:
     def test_unknown_model_returns_none(self) -> None:
         assert estimate_cost("unknown", input_tokens=1000, output_tokens=500) is None
 
-    def test_zero_cost_models(self) -> None:
+    def test_pnnl_model_cost(self) -> None:
         cost = estimate_cost("gpt-5-project", input_tokens=100000, output_tokens=50000)
-        assert cost == 0.0
+        assert cost == 0.625
 
     def test_zero_tokens(self) -> None:
         cost = estimate_cost("gpt-4o", input_tokens=0, output_tokens=0)

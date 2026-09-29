@@ -36,6 +36,7 @@ dependencies = [
   "pydantic>=2.0",
   "python-dotenv>=1.0",
   "pyyaml>=6.0",
+  "rdflib>=6.3",
 ]
 
 [dependency-groups]
@@ -62,6 +63,7 @@ dev = [
 ]
 
 [project.entry-points."llm"]
+pnnl = "nmdc_ai_eval.llm_plugin_pnnl"
 vertex = "nmdc_ai_eval.llm_plugin_vertex"
 
 [tool.hatch.build.targets.wheel]

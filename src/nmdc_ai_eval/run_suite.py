@@ -24,6 +24,7 @@ from typing import TYPE_CHECKING
 
 import click
 import llm
+from dotenv import load_dotenv
 from llm_matrix import LLMRunner  # type: ignore[import-untyped]
 from llm_matrix.schema import load_suite, results_to_dataframe  # type: ignore[import-untyped]
 
@@ -149,6 +150,33 @@ def _preflight(model_names: list[str]) -> list[str]:
                 f"You may need a plugin: llm-claude-3 (Anthropic), llm-gemini (Gemini)."
             )
     return errors
+
+
+def _models_with_credentials(model_names: list[str]) -> tuple[list[str], list[tuple[str, str]]]:
+    """Split registered models by whether their required llm key is configured.
+
+    Models with no ``needs_key`` are retained because they may authenticate by
+    another mechanism, such as Vertex service-account credentials.
+    """
+    available: list[str] = []
+    unavailable: list[tuple[str, str]] = []
+    for name in model_names:
+        model = llm.get_model(name)
+        key_alias = model.needs_key
+        if key_alias and not llm.get_key(key_alias=key_alias):
+            unavailable.append((name, key_alias))
+        else:
+            available.append(name)
+    return available, unavailable
+
+
+def _pnnl_models_if_configured() -> list[str]:
+    """Return repository-provided PNNL aliases when their llm key is stored."""
+    if not llm.get_key(key_alias="pnnl"):
+        return []
+    from nmdc_ai_eval.llm_plugin_pnnl import _load_pnnl_models
+
+    return [f"pnnl/{name}" for name in _load_pnnl_models()]
 
 
 def _open_llm_logs_db() -> sqlite3.Connection | None:
@@ -296,14 +324,29 @@ def main(suite_path: Path, output_dir: Path | None = None, scorer_model: str | N
     """Run an llm-matrix eval suite and write results to TSV."""
     import pandas as pd
 
+    load_dotenv()
     suite = load_suite(suite_path)
 
     model_names: list[str] = suite.matrix.hyperparameters.get("model", [])
+    model_names.extend(_pnnl_models_if_configured())
     errors = _preflight(model_names)
     if errors:
         for err in errors:
             click.echo(f"Error: {err}", err=True)
         sys.exit(1)
+
+    model_names, unavailable_models = _models_with_credentials(model_names)
+    for name, key_alias in unavailable_models:
+        click.echo(f"Skipping {name}: no credential configured for '{key_alias}'.", err=True)
+    if not model_names:
+        click.echo("Error: no suite models have configured credentials.", err=True)
+        click.echo(
+            "To use PNNL AI Incubator, set AI_INCUBATOR_BASE_URL in .env and "
+            "run `uv run llm keys set pnnl`. See docs/auth.md.",
+            err=True,
+        )
+        sys.exit(1)
+    suite.matrix.hyperparameters["model"] = model_names
 
     store_path = suite_path.parent / (suite_path.stem + ".db")
     if output_dir is None:
@@ -315,10 +358,27 @@ def main(suite_path: Path, output_dir: Path | None = None, scorer_model: str | N
     n_total = n_cases * n_models
     click.echo(f"Running {n_cases} cases × {n_models} models = {n_total} calls (~{n_total * 3}–{n_total * 5}s)")
 
-    # Configure scorer model if specified.
+    # Configure the scorer. llm-matrix defaults to gpt-4o, which may not be
+    # among the models for which this user has credentials.
     from llm_matrix.runner import LLMRunnerConfig  # type: ignore[import-untyped]
 
-    runner_config = LLMRunnerConfig(evaluation_model_name=scorer_model) if scorer_model else None
+    if scorer_model:
+        scorer_errors = _preflight([scorer_model])
+        scorer_available, scorer_unavailable = (
+            _models_with_credentials([scorer_model]) if not scorer_errors else ([], [])
+        )
+        if scorer_errors or scorer_unavailable or not scorer_available:
+            for err in scorer_errors:
+                click.echo(f"Error: scorer model: {err}", err=True)
+            for _, key_alias in scorer_unavailable:
+                click.echo(f"Error: scorer model '{scorer_model}' needs credential '{key_alias}'.", err=True)
+            sys.exit(1)
+    else:
+        scorer_model = model_names[0]
+
+    # llm-matrix 0.1.3 calls .get() on model_name_map whenever a config is
+    # supplied, despite its default being None.
+    runner_config = LLMRunnerConfig(evaluation_model_name=scorer_model, model_name_map={})
     if scorer_model:
         click.echo(f"  (scorer model: {scorer_model})")
 
