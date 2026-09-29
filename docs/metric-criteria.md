@@ -53,7 +53,7 @@ One yes/no question per criterion, CheckEval style (https://arxiv.org/abs/2403.1
 | accuracy | Is this value right for this sample, given everything the input says? | the input |
 | factuality | Is every claim in the suggestion's `reason` supported by the input text? | the input |
 | relevancy | Does the value answer the slot it was suggested for, rather than a neighbouring slot? | the slot definition |
-| completeness | Did the suggestion fill every slot the input gives evidence for? Asked once per sample. | the input |
+| completeness | Did the suggestion give every value the input gives evidence for, in every slot? A slot that takes several values, such as `env_medium` joined with `\|`, counts as incomplete if any supported value is missing. Asked once per sample. | the input |
 | coherence | Can this value and the other two env triad values describe one sample? Asked once per triad. | the other suggested values |
 
 The three questions an earlier draft listed as needing a judge fit inside these: evidence support is factuality, slot selection is completeness, and citation placement is relevancy for the slot the citation sits on.
@@ -82,7 +82,7 @@ These run on every suggestion before the judge does, and cost nothing. A value t
 | value is in the slot's enum where one exists | schema lookup | the env triad slots use `any_of: [enum, pattern]`, so LinkML alone never enforces membership |
 | a value conversion produces the expected output | apply the expression to sample rows | https://github.com/microbiomedata/nmdc-metadata-suggestor-ai-tool/pull/167 emits executable Python and nothing checks it |
 
-There is no middle state for whether a CURIE exists.
+A CURIE either exists or it does not, but the lookup can fail. When the ontology cannot be consulted (an unreadable database, a network error), the check is reported as unknown, the way `LookupUnavailable` in `src/nmdc_ai_eval/trace_report.py` already does. The value is neither failed nor sent to the judge, and a run with any unknown lookups is rerun before its scores are compared.
 
 ## Cheap guards: counts from the trace, no judge
 
