@@ -41,3 +41,13 @@ Before its scores compare anything, the judge is checked against about 30 output
 3. Graders the squad agrees on grade each criterion pass or fail with a one-line reason, before seeing any judge answer.
 4. Run the judge on the same outputs and report its agreement with the grades for each criterion. The statistic and its minimum are open in https://github.com/microbiomedata/nmdc-ai-eval/issues/123.
 5. Where the graders could not decide, or the judge disagrees for one reason again and again, rewrite the question and bump the version.
+
+## Sources
+
+- Shankar et al., "Who Validates the Validators?", https://arxiv.org/abs/2404.12272: criteria settle only after grading real outputs, which is why grading comes before trusting the judge.
+- CheckEval, https://arxiv.org/abs/2403.18771: breaking criteria into yes/no questions "improves the average agreement across evaluator models by 0.45" over Likert scales.
+- Husain, https://hamel.dev/blog/posts/llm-judge/: binary pass/fail judgments, and "around 30 examples" to start finding failure modes. The same post warns that "Below 60 examples, the confidence intervals are often too wide", so 30 outputs are enough to revise the questions, not to validate the judge.
+- Zheng et al., https://arxiv.org/abs/2306.05685: position and verbosity biases in LLM judges, the reason for one call per question.
+- Gu et al., "A survey on LLM-as-a-judge", The Innovation 2025, doi:10.1016/j.xinn.2025.101253: the survey circulated in the squad.
+- https://github.com/turbomam/local-llm-evals/blob/main/judges/explainer-v3.yaml: the judge file this rubric is modelled on (untrusted input handled as data, quoted evidence, a version in every score).
+- OpenAI Evals' model-graded templates, https://github.com/openai/evals/blob/main/docs/eval-templates.md, and DeepEval's DAG metric, https://deepeval.com/docs/metrics-dag: other rubrics kept as data.
