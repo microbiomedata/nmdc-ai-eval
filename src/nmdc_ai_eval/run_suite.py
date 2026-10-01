@@ -1,12 +1,11 @@
-"""Run an llm-matrix eval suite and write results with inline cost/timing.
+"""Run an evaluation suite and write results with inline cost/timing.
 
 Usage:
     uv run python -m nmdc_ai_eval.run_suite datasets/ebs-prediction/ebs-suite.yaml
 
-Token counts and wall-clock timing are captured from the llm library's logs
-database (~/.config/io.datasette.llm/logs.db) after each LLM call. Cost is
-estimated using the pricing table in nmdc_ai_eval.pricing. All three appear
-as columns in the output TSV alongside accuracy scores.
+Models and scoring calls use the llm library. Token counts and wall-clock
+timing are collected from each llm response. Cost is estimated using the
+pricing table in nmdc_ai_eval.pricing.
 
 For env-triad-style evals where ``case_ideal`` is a JSON string of shape
 ``{"metadata_fields": [{field_name, value, ...}, ...]}``, the output TSV
@@ -15,25 +14,22 @@ also gets per-field columns (``expected_broad``/``got_broad``/
 Non-env-triad evals see those columns as ``None`` — harmless.
 """
 
+import itertools
 import json
 import re
-import sqlite3
 import sys
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import click
 import llm
 from dotenv import load_dotenv
-from llm_matrix import LLMRunner  # type: ignore[import-untyped]
-from llm_matrix.schema import load_suite, results_to_dataframe  # type: ignore[import-untyped]
 
 from nmdc_ai_eval.pricing import estimate_cost
+from nmdc_ai_eval.suite import Suite, Template, TestCase
 
 if TYPE_CHECKING:
     import pandas as pd
-
-_LLM_LOGS_DB = Path.home() / ".config" / "io.datasette.llm" / "logs.db"
 
 # Slot names for env-triad extraction. Used by _try_parse_env_triad below.
 _ENV_TRIAD_SLOTS = ("env_broad_scale", "env_local_scale", "env_medium")
@@ -179,49 +175,114 @@ def _pnnl_models_if_configured() -> list[str]:
     return [f"pnnl/{name}" for name in _load_pnnl_models()]
 
 
-def _open_llm_logs_db() -> sqlite3.Connection | None:
-    """Open the llm library's logs database, if it exists."""
-    if not _LLM_LOGS_DB.exists():
+def _template_for(case: TestCase, suite: Suite) -> Template | None:
+    template_name = case.template or suite.template
+    if not template_name:
         return None
+    if not suite.templates or template_name not in suite.templates:
+        raise ValueError(f"Template '{template_name}' is not defined in suite '{suite.name}'.")
+    return suite.templates[template_name]
+
+
+def _format_case(case: TestCase, template: Template | None) -> tuple[str, str | None]:
+    if template is None:
+        return case.input, None
+    params: dict[str, Any] = {"input": case.input}
+    params.update(case.original_input or {})
+    prompt = template.prompt.format(**params) if template.prompt else case.input
+    system = template.system.format(**params) if template.system else None
+    return prompt, system
+
+
+def _matrix_parameters(suite: Suite) -> list[dict[str, Any]]:
+    names = list(suite.matrix.hyperparameters)
+    values = list(suite.matrix.hyperparameters.values())
+    return [dict(zip(names, combination, strict=True)) for combination in itertools.product(*values)]
+
+
+def _model_call_config(
+    suite: Suite, model_name: str, params: dict[str, Any]
+) -> tuple[str, dict[str, Any], dict[str, Any]]:
+    model_info = suite.models.get(model_name)
+    if model_info and model_info.plugins:
+        raise ValueError(
+            f"Suite model '{model_name}' declares llm-matrix plugin(s) {model_info.plugins}; "
+            "suite plugins are not supported by the llm-based runner."
+        )
+    configured = {**params, **(model_info.parameters if model_info else {})}
+    effective_model = str(configured.pop("model", model_name))
+    configured.pop("key", None)
+    configured.pop("plugins", None)
+    call_params = {key: value for key, value in configured.items() if key != "model" and value is not None}
+    effective_params = {"model": effective_model, **call_params}
+    return effective_model, call_params, effective_params
+
+
+def _score_simple_question(scorer: llm.Model, ideal: str | None, output: str) -> tuple[float | None, str | None, Any]:
+    """Ask the configured judge for a score; keep unparsable replies for reporting."""
+    response = scorer.prompt(
+        "The expected answer is: {ideal}. The output to score is: {output}.".format(ideal=ideal or "", output=output),
+        system=(
+            "Compare the answer given to the expected output. "
+            "The response should be a score between 0 and 1. "
+            "The answer should be provided first, explanations may follow "
+            "A precise correct answer is 1, a wrong answer is 0. "
+            "You can use values in between for imprecise answers"
+        ),
+    )
+    message = response.text().strip()
+    match = re.match(r"(\d+(?:\.\d+)?)", message)
+    score = float(match.group(1)) if match else None
+    if score is not None and not 0.0 <= score <= 1.0:
+        score = None
+    return score, message, response
+
+
+def _usage(response: Any) -> tuple[int | None, int | None, int | None]:
+    input_tokens = getattr(response, "input_tokens", None)
+    output_tokens = getattr(response, "output_tokens", None)
     try:
-        return sqlite3.connect(str(_LLM_LOGS_DB))
-    except sqlite3.Error:
-        return None
+        duration_ms = response.duration_ms()
+    except Exception:
+        duration_ms = None
+    return input_tokens, output_tokens, duration_ms
 
 
-def _get_max_rowid(db: sqlite3.Connection) -> int:
-    """Get the current max rowid in the responses table."""
-    row = db.execute("SELECT COALESCE(MAX(rowid), 0) FROM responses").fetchone()
-    return int(row[0]) if row else 0
-
-
-def _capture_log_entry(db: sqlite3.Connection, after_rowid: int) -> tuple[int, dict[str, int | None]]:
-    """Get the most recent log entry after the given rowid.
-
-    Returns (new_last_rowid, {input_tokens, output_tokens, duration_ms}).
-    """
-    row = db.execute(
-        "SELECT rowid, input_tokens, output_tokens, duration_ms "
-        "FROM responses WHERE rowid > ? ORDER BY rowid DESC LIMIT 1",
-        (after_rowid,),
-    ).fetchone()
-    if row is not None:
-        return int(row[0]), {
-            "input_tokens": row[1],
-            "output_tokens": row[2],
-            "duration_ms": row[3],
-        }
-    return after_rowid, {"input_tokens": None, "output_tokens": None, "duration_ms": None}
+def _flat_result(
+    case: TestCase,
+    params: dict[str, Any],
+    template: Template | None,
+    prompt: str,
+    system: str | None,
+    response_text: str,
+    score: float | None,
+    evaluation_message: str | None,
+) -> dict[str, Any]:
+    row: dict[str, Any] = {
+        "hyperparameters": "_".join(f"{key}={value}" for key, value in params.items()),
+        "metrics": template.metrics if template else None,
+        "score": score,
+        "evaluation_message": evaluation_message,
+        "case_input": case.input,
+        "case_ideal": case.ideal,
+        "case_template": case.template,
+        "case_tags": case.tags,
+        "case_comments": case.comments,
+        "response_text": response_text,
+        "response_prompt": prompt,
+        "response_system": system,
+    }
+    row.update(case.original_input or {})
+    row.update({key: str(value) for key, value in params.items()})
+    return row
 
 
 def _print_summary(df: "pd.DataFrame") -> None:
     """Print a human-readable summary: per-model scores, cost, and misses."""
-    # Drop rows lost to scorer parse errors. Those have NaN in case_ideal,
-    # response_text, and score — nothing in the summary can be computed from
-    # them, and they'd crash helpers that expect strings.
+    # Rows without ideals cannot contribute to score or category summaries.
     lost = df["case_ideal"].isna().sum() if "case_ideal" in df.columns else 0
     if lost:
-        click.echo(f"\n  (skipping {lost} lost row(s) from scorer parse errors)")
+        click.echo(f"\n  (skipping {lost} row(s) without an ideal answer)")
         df = df[df["case_ideal"].notna()].reset_index(drop=True)
     if df.empty:
         click.echo("\nNo scorable rows — nothing to summarize.")
@@ -321,14 +382,22 @@ def _print_summary(df: "pd.DataFrame") -> None:
     ),
 )
 def main(suite_path: Path, output_dir: Path | None = None, scorer_model: str | None = None) -> None:
-    """Run an llm-matrix eval suite and write results to TSV."""
+    """Run an evaluation suite and write results to TSV."""
     import pandas as pd
 
     load_dotenv()
-    suite = load_suite(suite_path)
+    suite = Suite.load(suite_path)
+    unsupported_plugins = {name: model_info.plugins for name, model_info in suite.models.items() if model_info.plugins}
+    if unsupported_plugins:
+        for name, plugins in unsupported_plugins.items():
+            click.echo(
+                f"Error: suite model '{name}' declares unsupported llm-matrix plugin(s): {', '.join(plugins or [])}.",
+                err=True,
+            )
+        sys.exit(1)
 
-    model_names: list[str] = suite.matrix.hyperparameters.get("model", [])
-    model_names.extend(_pnnl_models_if_configured())
+    model_names: list[str] = list(suite.matrix.hyperparameters.get("model", []))
+    model_names.extend(name for name in _pnnl_models_if_configured() if name not in model_names)
     errors = _preflight(model_names)
     if errors:
         for err in errors:
@@ -346,21 +415,23 @@ def main(suite_path: Path, output_dir: Path | None = None, scorer_model: str | N
             err=True,
         )
         sys.exit(1)
-    suite.matrix.hyperparameters["model"] = model_names
-
-    store_path = suite_path.parent / (suite_path.stem + ".db")
     if output_dir is None:
         output_dir = suite_path.parent / (suite_path.stem + "-output")
     output_dir.mkdir(parents=True, exist_ok=True)
 
     n_cases = len(suite.cases)
-    n_models = len(model_names)
-    n_total = n_cases * n_models
-    click.echo(f"Running {n_cases} cases × {n_models} models = {n_total} calls (~{n_total * 3}–{n_total * 5}s)")
-
-    # Configure the scorer. llm-matrix defaults to gpt-4o, which may not be
-    # among the models for which this user has credentials.
-    from llm_matrix.runner import LLMRunnerConfig  # type: ignore[import-untyped]
+    matrix = suite.matrix.hyperparameters
+    if "model" not in matrix:
+        matrix["model"] = model_names
+    else:
+        matrix["model"] = [name for name in matrix["model"] if name in model_names]
+        matrix["model"].extend(name for name in model_names if name not in matrix["model"])
+    parameter_sets = _matrix_parameters(suite)
+    n_total = n_cases * len(parameter_sets)
+    click.echo(
+        f"Running {n_cases} cases × {len(parameter_sets)} model/settings combinations = "
+        f"{n_total} results (~{n_total * 3}–{n_total * 5}s)"
+    )
 
     if scorer_model:
         scorer_errors = _preflight([scorer_model])
@@ -376,104 +447,95 @@ def main(suite_path: Path, output_dir: Path | None = None, scorer_model: str | N
     else:
         scorer_model = model_names[0]
 
-    # llm-matrix 0.1.3 calls .get() on model_name_map whenever a config is
-    # supplied, despite its default being None.
-    runner_config = LLMRunnerConfig(evaluation_model_name=scorer_model, model_name_map={})
-    if scorer_model:
-        click.echo(f"  (scorer model: {scorer_model})")
+    scoring_models = {
+        template_name: template.metrics or [] for template_name, template in (suite.templates or {}).items()
+    }
+    unsupported_metrics = sorted(
+        {metric for metrics in scoring_models.values() for metric in metrics if metric != "simple_question"}
+    )
+    if unsupported_metrics:
+        click.echo(
+            f"Error: unsupported suite metric(s): {', '.join(unsupported_metrics)}. "
+            "This runner currently supports only 'simple_question'.",
+            err=True,
+        )
+        sys.exit(1)
 
-    # Open llm logs DB for inline token/timing capture
-    logs_db = _open_llm_logs_db()
-    last_rowid = _get_max_rowid(logs_db) if logs_db else 0
-    if logs_db:
-        click.echo("  (token/timing capture enabled via llm logs DB)")
-    else:
-        click.echo("  (llm logs DB not found — token/timing will not be captured)")
-
-    runner = LLMRunner(store_path=store_path, config=runner_config)
-    results = []
-    token_data: list[dict[str, float | None]] = []
+    scorer = llm.get_model(scorer_model)
+    click.echo(f"  (scorer model: {scorer_model})")
+    model_cache: dict[str, llm.Model] = {}
+    rows: list[dict[str, Any]] = []
     score_parse_failures = 0
-    run_iter = runner.run_iter(suite)
-    i = 0
-    while True:
-        i += 1
+    for i, (case, params) in enumerate(((case, params) for params in parameter_sets for case in suite.cases), start=1):
+        model_name = str(params["model"])
+        template = _template_for(case, suite)
+        metrics = template.metrics or [] if template else []
         try:
-            r = next(run_iter)
-        except StopIteration:
-            break
-        except ValueError as exc:
-            # llm-matrix raises ValueError("Could not parse score from <scorer response>")
-            # when the scorer model returns prose before the numeric score. The result
-            # that triggered this is lost (never yielded). Log the error with full
-            # context and continue — the run keeps going from the next case.
-            score_parse_failures += 1
-            click.echo(
-                f"\n  ! {i:>3d}/{n_total} [score=None] scorer parse error — result lost:\n    {exc}",
-                err=True,
-            )
-            token_data.append({"input_tokens": None, "output_tokens": None, "duration_ms": None, "est_cost_usd": None})
-            continue
+            effective_model_name, call_params, effective_params = _model_call_config(suite, model_name, params)
+            if effective_model_name not in model_cache:
+                model_cache[effective_model_name] = llm.get_model(effective_model_name)
+            model = model_cache[effective_model_name]
+            prompt, system = _format_case(case, template)
+            response = model.prompt(prompt, system=system, **call_params)
+            response_text = response.text()
+            input_tokens, output_tokens, duration_ms = _usage(response)
+            judge_input_tokens = judge_output_tokens = judge_duration_ms = None
+            evaluation_message = None
+            score: float | None = None
+            judge_response = None
+            if "simple_question" in metrics:
+                score, evaluation_message, judge_response = _score_simple_question(scorer, case.ideal, response_text)
+                judge_input_tokens, judge_output_tokens, judge_duration_ms = _usage(judge_response)
+                if score is None:
+                    score_parse_failures += 1
+                    click.echo(
+                        f"\n  ! {i:>3d}/{n_total} [score=None] unusable judge response: {evaluation_message}",
+                        err=True,
+                    )
+            direct = _env_triad_score(case.ideal, response_text)
+            if direct is not None:
+                score = direct
         except Exception as exc:  # noqa: BLE001
             click.echo(f"\nError during eval: {exc}", err=True)
             click.echo("Check model names and API keys. Run: uv run llm models list", err=True)
             break
 
-        # Override the LLM-as-judge score with direct per-field comparison for
-        # env-triad evals. Falls back to the original score for other evals.
-        direct = _env_triad_score(r.case.ideal, r.response.text)
-        if direct is not None:
-            r.score = direct
+        row = _flat_result(case, effective_params, template, prompt, system, response_text, score, evaluation_message)
+        row["input_tokens"] = sum(x for x in (input_tokens, judge_input_tokens) if x is not None) or None
+        row["output_tokens"] = sum(x for x in (output_tokens, judge_output_tokens) if x is not None) or None
+        row["duration_ms"] = sum(x for x in (duration_ms, judge_duration_ms) if x is not None) or None
+        generation_cost = estimate_cost(effective_model_name, input_tokens, output_tokens)
+        judge_cost = estimate_cost(scorer_model, judge_input_tokens, judge_output_tokens)
+        costs = [cost for cost in (generation_cost, judge_cost) if cost is not None]
+        row["est_cost_usd"] = round(sum(costs), 6) if costs else None
+        rows.append(row)
 
-        results.append(r)
-
-        # Capture tokens/timing from llm logs
-        entry: dict[str, float | None] = {
-            "input_tokens": None,
-            "output_tokens": None,
-            "duration_ms": None,
-            "est_cost_usd": None,
-        }
-        if logs_db:
-            last_rowid, log_entry = _capture_log_entry(logs_db, last_rowid)
-            entry.update(log_entry)
-            model_name = str(r.hyperparameters.get("model", ""))
-            cost = estimate_cost(model_name, log_entry["input_tokens"], log_entry["output_tokens"])
-            if cost is not None:
-                entry["est_cost_usd"] = round(cost, 6)
-        token_data.append(entry)
-
-        score_str = f"{r.score:.2f}" if r.score is not None else "N/A"
-        mark = "+" if r.score and r.score >= 1.0 else "-"
-        model_short = str(r.hyperparameters.get("model", "?")).split("/")[-1][:15]
-        study = r.case.original_input.get("study_name", "")[:30] if r.case.original_input else ""
-        cost_str = f" ${entry['est_cost_usd']:.4f}" if entry.get("est_cost_usd") else ""
+        score_str = f"{score:.2f}" if score is not None else "N/A"
+        mark = "+" if score is not None and score >= 1.0 else "-"
+        model_short = model_name.split("/")[-1][:15]
+        study = str((case.original_input or {}).get("study_name", ""))[:30]
+        cost_str = f" ${row['est_cost_usd']:.4f}" if row.get("est_cost_usd") else ""
         tok_str = ""
-        if entry.get("input_tokens") is not None:
-            tok_str = f" {entry['input_tokens']}+{entry['output_tokens']}tok"
+        if row["input_tokens"] is not None:
+            tok_str = f" {row['input_tokens']}+{row['output_tokens']}tok"
         click.echo(
             f"  {mark} {i:>3d}/{n_total} [{score_str}] {model_short:<15s} {study:<30s}"
-            f"  expected={_short_label(r.case.ideal)}  got={_short_label(r.response.text, 200)}"
-            f"{tok_str}{cost_str}"
+            f"  expected={_short_label(case.ideal)}  got={_short_label(response_text, 200)}{tok_str}{cost_str}"
         )
     if score_parse_failures:
         click.echo(
-            f"\n  Note: {score_parse_failures} scorer parse error(s) — those results have "
-            f"score=None and no response_text in the TSV (the result was lost when the "
-            f"exception interrupted the iterator). The full scorer response is in the "
-            f"error lines above. To prevent this, set LLM_SCORER_MODEL=gpt-4o-mini "
+            f"\n  Note: {score_parse_failures} unusable judge response(s) — those results have "
+            f"score=None in the TSV. The full scorer response is in the "
+            f"evaluation_message column. To prevent this, set LLM_SCORER_MODEL=gpt-4o-mini "
             f"(or --scorer-model gpt-4o-mini) to pin the scorer to a reliable model.",
             err=True,
         )
 
-    if not results:
+    if not rows:
         click.echo("No results generated.", err=True)
         sys.exit(1)
 
-    # Merge accuracy results with token/timing/cost data
-    df = results_to_dataframe(results)
-    token_df = pd.DataFrame(token_data)
-    df = pd.concat([df, token_df], axis=1)
+    df = pd.DataFrame(rows)
 
     # Add per-field env-triad columns for downstream analysis. For evals whose
     # ideal isn't env-triad-shaped, these come out as None — harmless.
@@ -495,12 +557,9 @@ def main(suite_path: Path, output_dir: Path | None = None, scorer_model: str | N
 
     tsv_path = output_dir / "results.tsv"
     df.to_csv(tsv_path, sep="\t", index=False)
-    click.echo(f"\nResults: {tsv_path} ({len(results)} rows)")
+    click.echo(f"\nResults: {tsv_path} ({len(rows)} rows)")
 
     _print_summary(df)
-
-    if logs_db:
-        logs_db.close()
 
 
 if __name__ == "__main__":

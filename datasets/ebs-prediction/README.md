@@ -21,7 +21,7 @@ Unlike the sampleData classification task (8 discrete labels), env_broad_scale i
 
 ### The software engineering
 
-The eval is designed as a **post-hoc scorer** that enriches llm-matrix output with ontology-aware metrics. This avoids coupling to llm-matrix's limited built-in metrics and lets us iterate on scoring without re-running expensive LLM calls.
+The eval is designed as a **post-hoc scorer** that enriches suite-runner output with ontology-aware metrics. This keeps ontology scoring independent so it can be iterated without re-running expensive LLM calls.
 
 ## Setup
 
@@ -173,11 +173,10 @@ Running an eval suite (`just run-ebs-openai`) produces:
 
 | File | Description |
 |---|---|
-| `ebs-suite-{provider}.db` | DuckDB database created by llm-matrix. Caches results — **must be deleted before re-running with a regenerated suite**, otherwise llm-matrix reuses cached responses for matching cases. Use `just clean-outputs` to clear. |
-| `ebs-suite-{provider}-output/results.tsv` | Tabular results extracted from the .db — one row per (case × model) combination. |
+| `ebs-suite-output/results.tsv` | Tabular results — one row per case and model/settings combination. |
 | `ebs-suite-{provider}-output/results_envo_scored.tsv` | Enriched results after `just score-ebs {provider}` — adds ontology-aware scoring columns. |
 
-The `.db` files can be explored with DuckDB CLI or any DuckDB client. Use `just clean-outputs` to remove all eval artifacts.
+Use `just clean-outputs` to remove generated eval results.
 
 ## Eval Controls
 
@@ -204,11 +203,7 @@ To include rare categories at the cost of statistical reliability, pass `--min-p
 
 ## Response Time & Cost Tracking
 
-Not yet implemented. llm-matrix does not expose per-request timing or token counts. The scored TSV includes stub columns (`response_time_s`, `prompt_tokens`, `completion_tokens`, `est_cost_usd`) so the output schema is stable for downstream consumers. Implementation options:
-
-1. **Wrapper timing**: time `run_suite.py` calls and join on case ID
-2. **Provider API logs**: extract from Anthropic/OpenAI usage dashboards
-3. **llm-matrix enhancement**: contribute timing to upstream
+The runner records generator and judge token counts, elapsed milliseconds, and estimated cost in `results.tsv`. Usage is read from each `llm.Response`; cost is estimated from `datasets/models.yaml` pricing data.
 
 ## Next Slots
 

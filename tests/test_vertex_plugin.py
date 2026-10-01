@@ -71,7 +71,7 @@ def test_vertex_unknown_model_raises() -> None:
 def test_vertex_options_accept_temperature() -> None:
     """Vertex models accept temperature=0.0 without pydantic rejecting it.
 
-    Regression: llm-matrix passes temperature through Options; earlier
+    Regression: suite runs pass temperature through Options; earlier
     the Options class inherited llm.Options with no temperature field
     and raised `extra_forbidden`, aborting every eval call.
     """

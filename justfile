@@ -99,11 +99,11 @@ score-traces *args="":
 score-ebs:
     uv run python -m nmdc_ai_eval.envo_scorer datasets/ebs-prediction/ebs-suite-output/results.tsv
 
-# Run field-guidance eval via llm-matrix (no DOI/PDF, uses models.yaml list)
+# Run field-guidance eval (no DOI/PDF, uses models.yaml list)
 run-field-guidance:
     just run datasets/field-guidance/field-guidance-suite.yaml
 
-# Run env-triad eval via llm-matrix
+# Run env-triad eval
 run-env-triad:
     just run datasets/env-triad-prediction/env-triad-suite.yaml
 
@@ -115,7 +115,7 @@ full-eval *args="":
 compare-pipeline-results *args="":
     uv run python datasets/field-guidance/compare_pipeline_results.py {{ args }}
 
-# End-to-end value prediction evals (llm-matrix, no DOI/PDF)
+# End-to-end value prediction evals (no DOI/PDF)
 eval-sampledata: clean-sampledata-outputs generate-sampledata run-sampledata
 eval-ebs: clean-ebs-outputs generate-ebs run-ebs score-ebs
 eval-env-triad: clean-env-triad-outputs generate-env-triad run-env-triad
@@ -140,21 +140,17 @@ clean-suites:
 
 clean-sampledata-outputs:
     rm -rf datasets/submission-metadata-prediction/sampledata-suite-output/
-    rm -f datasets/submission-metadata-prediction/sampledata-suite.db
 
 clean-ebs-outputs:
     rm -rf datasets/ebs-prediction/ebs-suite-output/
-    rm -f datasets/ebs-prediction/ebs-suite.db
     rm -f datasets/ebs-prediction/results_envo_scored.tsv
 
 clean-field-guidance-outputs:
     rm -rf datasets/field-guidance/field-guidance-suite-output/
-    rm -f datasets/field-guidance/field-guidance-suite.db
     rm -rf datasets/field-guidance/pipeline-results/
 
 clean-env-triad-outputs:
     rm -rf datasets/env-triad-prediction/env-triad-suite-output/
-    rm -f datasets/env-triad-prediction/env-triad-suite.db
 
 clean-outputs: clean-sampledata-outputs clean-ebs-outputs clean-field-guidance-outputs clean-env-triad-outputs
 

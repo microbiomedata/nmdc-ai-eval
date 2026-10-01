@@ -2,6 +2,8 @@
 
 Framework and data for performing evaluations for AI-powered NMDC tools.
 
+Third-party attributions and notices are listed in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+
 ## Prerequisites
 
 These must be installed before you start. Everything else is handled by `uv sync`.
@@ -82,7 +84,7 @@ just compare-pipeline-results --detail   # per-submission breakdown
 
 ### Value prediction evals (env_broad_scale, sampleData)
 
-These use llm-matrix suites with the models listed in `datasets/models.yaml`. No MongoDB needed.
+These use evaluation suite YAMLs with models called through the `llm` library and the plugins listed in `datasets/models.yaml`. No MongoDB needed.
 
 ```bash
 just eval-ebs            # env_broad_scale: 100 cases × 5 models, ontology-scored
@@ -119,15 +121,15 @@ just eval-sampledata     # sampleData smoke test
 | `just compare-pipeline-results` | Compare field guidance results (no LLM calls) | No |
 | `just eval-ebs` | env_broad_scale: generate + run + ontology score | ~$0.10 |
 | `just eval-sampledata` | sampleData: generate + run (smoke test) | ~$0.01 |
-| `just generate` | Regenerate llm-matrix suite YAMLs | No |
+| `just generate` | Regenerate evaluation suite YAMLs | No |
 | `just clean-outputs` | Delete all eval outputs | No |
-| `just clean-all` | Delete outputs + suites + caches | No |
+| `just clean-all` | Delete outputs + generated suites + and Python caches | No |
 
 ## Model configuration
 
 [`datasets/models.yaml`](datasets/models.yaml) is the single config file for models. It has three sections:
 
-- **`models:`** — which models go in llm-matrix suites (`just eval-ebs`, `just eval-sampledata`). Edit and run `just generate`.
+- **`models:`** — which models go in evaluation suites (`just eval-ebs`, `just eval-sampledata`). Edit and run `just generate`.
 - **`tiers:`** — which models run at each cost level in `just full-eval` (cheap/standard/full). Update when providers release new flagship or budget models.
 - **`pricing:`** — cost per 1M tokens for cost estimation. Update when prices change.
 

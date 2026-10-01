@@ -3,8 +3,12 @@
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
+import pandas as pd
+import pytest
+from click.testing import CliRunner
+
 from nmdc_ai_eval.llm_plugin_pnnl import PNNLChatModel, _load_pnnl_models
-from nmdc_ai_eval.run_suite import _models_with_credentials, _pnnl_models_if_configured
+from nmdc_ai_eval.run_suite import _models_with_credentials, _pnnl_models_if_configured, main
 
 
 @patch("nmdc_ai_eval.run_suite.llm")
@@ -54,9 +58,108 @@ def test_pnnl_model_omits_temperature() -> None:
     assert "temperature" not in model.build_kwargs(prompt, stream=False)
 
 
-def test_runner_config_has_empty_model_name_map() -> None:
-    from llm_matrix.runner import LLMRunnerConfig
+@pytest.mark.parametrize(
+    ("judge_text", "expected_score"), [("1 Correct", 1.0), ("Score: 1", None), ("1.5 Too high", None)]
+)
+def test_main_runs_models_and_writes_usage_and_score(tmp_path, judge_text: str, expected_score: float | None) -> None:
+    suite_path = tmp_path / "suite.yaml"
+    suite_path.write_text(
+        """name: test-suite
+template: basic
+templates:
+  basic:
+    system: "Be exact, {study_name}."
+    prompt: "Answer: {input}"
+    metrics: [simple_question]
+models:
+  gpt-4o-mini:
+    parameters:
+      temperature: 0.4
+      max_tokens: 64
+matrix:
+  hyperparameters:
+    model: [gpt-4o-mini]
+    temperature: [0.0]
+    top_p: [0.8, 0.9]
+cases:
+  - input: "What is 2+2?"
+    ideal: "4"
+    original_input:
+      study_name: "Example study"
+      sampleData: soil_data
+"""
+    )
+    generation_response = MagicMock(spec=["text", "input_tokens", "output_tokens", "duration_ms"])
+    generation_response.text.return_value = "4"
+    generation_response.input_tokens = 10
+    generation_response.output_tokens = 2
+    generation_response.duration_ms.return_value = 100
+    judge_response = MagicMock(spec=["text", "input_tokens", "output_tokens", "duration_ms"])
+    judge_response.text.return_value = judge_text
+    judge_response.input_tokens = 20
+    judge_response.output_tokens = 1
+    judge_response.duration_ms.return_value = 50
+    generator_model = MagicMock(spec=["prompt"])
+    generator_model.prompt.return_value = generation_response
+    judge_model = MagicMock(spec=["prompt"])
+    judge_model.prompt.return_value = judge_response
 
-    config = LLMRunnerConfig(evaluation_model_name="pnnl/gpt-5-project", model_name_map={})
+    with (
+        patch("nmdc_ai_eval.run_suite._preflight", return_value=[]),
+        patch("nmdc_ai_eval.run_suite._models_with_credentials", return_value=(["gpt-4o-mini"], [])),
+        patch("nmdc_ai_eval.run_suite._pnnl_models_if_configured", return_value=[]),
+        patch("nmdc_ai_eval.run_suite.llm.get_model", side_effect=[judge_model, generator_model]),
+        patch("nmdc_ai_eval.run_suite.estimate_cost", return_value=0.001),
+    ):
+        result = CliRunner().invoke(main, [str(suite_path), "--output-dir", str(tmp_path / "out")])
 
-    assert config.model_name_map == {}
+    assert result.exit_code == 0, result.output
+    rows = pd.read_csv(tmp_path / "out" / "results.tsv", sep="\t")
+    assert rows.loc[0, "model"] == "gpt-4o-mini"
+    assert len(rows) == 2
+    assert rows["temperature"].tolist() == [0.4, 0.4]
+    assert rows["top_p"].tolist() == [0.8, 0.9]
+    assert rows.loc[0, "study_name"] == "Example study"
+    assert rows.loc[0, "sampleData"] == "soil_data"
+    assert str(rows.loc[0, "response_text"]) == "4"
+    if expected_score is None:
+        assert pd.isna(rows.loc[0, "score"])
+    else:
+        assert rows.loc[0, "score"] == expected_score
+    assert rows.loc[0, "evaluation_message"] == judge_text
+    assert rows.loc[0, "input_tokens"] == 30
+    assert rows.loc[0, "output_tokens"] == 3
+    assert rows.loc[0, "duration_ms"] == 150
+    assert rows["est_cost_usd"].tolist() == [0.002, 0.002]
+    assert generator_model.prompt.call_args_list[0].args == ("Answer: What is 2+2?",)
+    assert generator_model.prompt.call_args_list[0].kwargs == {
+        "system": "Be exact, Example study.",
+        "temperature": 0.4,
+        "max_tokens": 64,
+        "top_p": 0.8,
+    }
+    assert judge_model.prompt.call_args_list[0].args == ("The expected answer is: 4. The output to score is: 4.",)
+    assert "score between 0 and 1" in judge_model.prompt.call_args_list[0].kwargs["system"]
+
+
+def test_main_rejects_suite_plugins_before_model_calls(tmp_path) -> None:
+    suite_path = tmp_path / "suite.yaml"
+    suite_path.write_text(
+        """name: test-suite
+models:
+  gpt-4o-mini:
+    plugins: [citeseek]
+matrix:
+  hyperparameters:
+    model: [gpt-4o-mini]
+cases:
+  - input: "question"
+    ideal: "answer"
+"""
+    )
+    with patch("nmdc_ai_eval.run_suite.llm.get_model") as get_model:
+        result = CliRunner().invoke(main, [str(suite_path), "--output-dir", str(tmp_path / "out")])
+
+    assert result.exit_code == 1
+    assert "unsupported llm-matrix plugin" in result.output
+    get_model.assert_not_called()

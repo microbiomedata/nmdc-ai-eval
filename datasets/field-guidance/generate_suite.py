@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Generate an llm-matrix suite YAML for Metadata Field Guidance evaluation.
+"""Generate an evaluation suite YAML for Metadata Field Guidance.
 
 Reads ground_truth.yaml and fetches full submission documents from MongoDB
 (nmdc_data_dev.nmdc_submissions). Uses the production suggestor's own system
-prompt, submission field extraction, and schema context — the only difference
-from the real pipeline is the LLM provider (llm-matrix vs Vertex/PNNL).
+prompt, submission field extraction, and schema context, with models routed
+through the repository's llm plugins.
 
 For testing the real end-to-end pipeline, see run_pipeline_eval.py.
 
@@ -88,7 +88,7 @@ def make_ideal(expected_slots: list[dict]) -> str:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Generate field-guidance llm-matrix suite")
+    parser = argparse.ArgumentParser(description="Generate field-guidance evaluation suite")
     parser.add_argument(
         "--mongo-uri",
         default="mongodb://localhost:27017/nmdc_data_dev",

@@ -1,4 +1,4 @@
-"""Register PNNL AI Incubator models for llm-matrix suite evaluations."""
+"""Register PNNL AI Incubator models for evaluation suite runs."""
 
 from __future__ import annotations
 

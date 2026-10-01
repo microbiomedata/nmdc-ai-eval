@@ -38,8 +38,8 @@ Each row in the eval TSV pairs **submission-level text** (input) with **biosampl
 ## Files
 
 - **`eval_input_target_pairs.tsv`** — Materialized join of `nmdc_submissions` × `flattened_submission_biosamples`, filtered to `status = 'Released'`.
-- **`generate_suite.py`** — Samples N rows per `sampleData` value and generates per-provider [llm-matrix](https://github.com/monarch-initiative/llm-matrix) suite YAMLs. Run `python generate_suite.py --help` for options.
-- **`sampledata-suite.yaml`** — Generated llm-matrix suite with all models from `datasets/models.yaml`.
+- **`generate_suite.py`** — Samples N rows per `sampleData` value and generates evaluation suite YAML. Run `python generate_suite.py --help` for options.
+- **`sampledata-suite.yaml`** — Generated suite with all models from `datasets/models.yaml`.
 
 ## Setup
 
@@ -97,10 +97,9 @@ Running an eval suite (`just run-sampledata-openai`) produces:
 
 | File | Description |
 |---|---|
-| `sampledata-suite.db` | DuckDB database created by llm-matrix. Caches results — **must be deleted before re-running with a regenerated suite**, otherwise llm-matrix reuses cached responses for matching cases. Use `just clean-outputs` to clear. |
-| `sampledata-suite-output/results.tsv` | Tabular results extracted from the .db — one row per (case × model) combination. |
+| `sampledata-suite-output/results.tsv` | Tabular results — one row per case and model/settings combination. |
 
-The `.db` files can be explored with DuckDB CLI or any DuckDB client. Use `just clean-outputs` to remove all eval artifacts.
+Use `just clean-outputs` to remove generated eval results.
 
 ## Data Coverage
 
