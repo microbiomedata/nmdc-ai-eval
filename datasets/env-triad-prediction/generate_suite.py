@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate an llm-matrix suite YAML for env triad prediction.
+"""Generate an evaluation suite YAML for env triad prediction.
 
 Pulls biosamples from NMDC studies via the public API and builds a suite
 where each case asks the model to predict ``env_broad_scale``,
@@ -36,7 +36,8 @@ from pathlib import Path
 from typing import Any
 
 import yaml
-from nmdc_api_utilities.study_search import StudySearch
+from nmdc_client import StudySearch
+from nmdc_client.config import get_api_base_url
 from nmdc_metadata_suggestor_ai_tool.schema_context import SchemaContextBuilder, format_slot
 
 HERE = Path(__file__).parent
@@ -96,8 +97,8 @@ def build_env_triad_schema_context() -> str:
 def build_system_prompt() -> str:
     """Build the full system prompt, with braces escaped for ``str.format``.
 
-    llm-matrix runs ``template.system.format(**template_params)`` on the
-    system string at inference time (see ``llm_matrix.aimodel.AIModel.prompt``).
+    The suite runner formats ``template.system`` with the case parameters
+    before calling the selected llm model.
     Any literal ``{`` / ``}`` in the prompt — the JSON schema example,
     regex patterns in the MIxS schema context like ``{7,8}`` — would be
     treated as format placeholders and fail with KeyError. Doubling them
@@ -125,8 +126,8 @@ def get_study_with_biosamples(study_id: str, env: str = "prod") -> dict[str, Any
     ``env`` is passed through to ``StudySearch`` — use ``"dev"`` to hit
     ``api-dev.microbiomedata.org`` when the prod API is unavailable.
     """
-    search = StudySearch(env=env)
-    study = search.get_record_by_id(collection_id=study_id)
+    search = StudySearch(api_base_url=get_api_base_url(env=env))
+    study = search.get_record_by_id(record_id=study_id)
     biosamples = search.get_linked_instances(
         ids=[study_id],
         types="nmdc:Biosample",
@@ -182,7 +183,7 @@ def make_ideal(biosample: dict) -> str | None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Generate env-triad llm-matrix suite")
+    parser = argparse.ArgumentParser(description="Generate env-triad evaluation suite")
     parser.add_argument("--output", type=Path, default=OUTPUT_YAML)
     parser.add_argument(
         "--study-id",
@@ -270,7 +271,7 @@ def main() -> None:
                 # run_suite.py, which compares ideal/response per field
                 # exactly. Using simple_question here would just add a
                 # second LLM call per result whose score we discard, and
-                # its parse errors permanently kill llm-matrix's iterator.
+                # its parse errors should not discard the model response.
             }
         },
         "matrix": {

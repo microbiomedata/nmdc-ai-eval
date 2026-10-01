@@ -6,7 +6,8 @@ import sys
 from pathlib import Path
 
 import pytest
-from llm_matrix.schema import load_suite  # type: ignore[import-untyped]
+
+from nmdc_ai_eval.suite import Suite
 
 DATASETS_DIR = Path(__file__).parent.parent / "datasets"
 EBS_DIR = DATASETS_DIR / "ebs-prediction"
@@ -42,21 +43,21 @@ def test_suite_created(generated_suite: Path) -> None:
 
 
 def test_suite_parses(generated_suite: Path) -> None:
-    suite = load_suite(generated_suite)
+    suite = Suite.load(generated_suite)
     assert suite.name
     assert suite.cases
     assert suite.matrix.hyperparameters
 
 
 def test_cases_have_envo_ideals(generated_suite: Path) -> None:
-    suite = load_suite(generated_suite)
+    suite = Suite.load(generated_suite)
     for i, case in enumerate(suite.cases):
         assert case.ideal, f"Case {i} missing ideal"
         assert "ENVO:" in case.ideal, f"Case {i} ideal '{case.ideal}' not an ENVO term"
 
 
 def test_original_input_has_required_fields(generated_suite: Path) -> None:
-    suite = load_suite(generated_suite)
+    suite = Suite.load(generated_suite)
     for i, case in enumerate(suite.cases):
         assert case.original_input, f"Case {i} missing original_input"
         assert "sampleData" in case.original_input, f"Case {i} missing sampleData"
@@ -70,7 +71,7 @@ def test_ideals_match_tsv_values(generated_suite: Path) -> None:
             val = row["env_broad_scale"].strip().lstrip("_")
             if val:
                 tsv_values.add(val)
-    suite = load_suite(generated_suite)
+    suite = Suite.load(generated_suite)
     for i, case in enumerate(suite.cases):
         assert case.ideal in tsv_values, (
             f"ebs-suite.yaml case {i}: ideal '{case.ideal}' not in TSV env_broad_scale values"

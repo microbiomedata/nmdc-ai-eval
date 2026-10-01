@@ -30,7 +30,7 @@ uv run llm keys list                # which providers have store entries
 uv run llm keys path                # path to the JSON file
 ```
 
-Suite runs will automatically skip configured models that lack their required `llm` credential. When `--scorer-model` is omitted, the runner uses the first available suite model as the scorer instead of `llm-matrix`'s OpenAI default. An explicitly selected scorer must have credentials.
+Suite runs will automatically skip configured models that lack their required `llm` credential. When `--scorer-model` is omitted, the runner uses the first available suite model as the scorer. An explicitly selected scorer must have credentials.
 
 ## Provider comparison
 
@@ -47,7 +47,7 @@ Suite runs will automatically skip configured models that lack their required `l
 
 ## Model-name routing
 
-`llm-matrix` dispatches to a provider based on the model-name prefix. Knowing the routing helps debug "why won't this model run":
+The `llm` library dispatches to a provider based on the model-name prefix. Knowing the routing helps debug "why won't this model run":
 
 | Name pattern | Routes through | Backend |
 |---|---|---|
@@ -57,11 +57,11 @@ Suite runs will automatically skip configured models that lack their required `l
 | `vertex/gemini-*` | local `llm_plugin_vertex` | **Vertex AI** (Gemini via generateContent) |
 | `vertex/claude-*` | local `llm_plugin_vertex` | **Vertex AI** (Claude via rawPredict) |
 | `*-project` suffix | Pipeline backend | PNNL AI Incubator |
-| (CBORG) | Not via `llm-matrix` — see notes below | |
+| (CBORG) | Not via the suite runner — see notes below | |
 
-**CBORG** fronts OpenAI, Anthropic, and Gemini model families through one OpenAI-compatible endpoint. It is *not* currently wired into `llm-matrix`; `just verify-auth` checks CBORG with a direct `openai` SDK call against `CBORG_BASE_URL`. Evals that want to use CBORG need a dedicated code path (see issue #62).
+**CBORG** fronts OpenAI, Anthropic, and Gemini model families through one OpenAI-compatible endpoint. It is *not* currently wired into the suite runner; `just verify-auth` checks CBORG with a direct `openai` SDK call against `CBORG_BASE_URL`. Evals that want to use CBORG need a dedicated code path (see issue #62).
 
-**Vertex** models are now reachable from `llm-matrix` via the in-repo `llm_plugin_vertex` — use `vertex/gemini-*` or `vertex/claude-*` anywhere a model name is accepted. Auth reuses the existing `GOOGLE_APPLICATION_CREDENTIALS` + `VERTEX_PROJECT_ID` setup below. Region defaults to `us-east5`; override with `CLOUD_ML_REGION` (or `GEMINI_REGION`) if your project uses a different Vertex location.
+**Vertex** models are reachable from the suite runner via the in-repo `llm_plugin_vertex` — use `vertex/gemini-*` or `vertex/claude-*` anywhere a model name is accepted. Auth reuses the existing `GOOGLE_APPLICATION_CREDENTIALS` + `VERTEX_PROJECT_ID` setup below. Region defaults to `us-east5`; override with `CLOUD_ML_REGION` (or `GEMINI_REGION`) if your project uses a different Vertex location.
 
 ## Direct LLM APIs (personal keys)
 
@@ -123,7 +123,7 @@ Pick names you want and add new entries to `extra-openai-models.yaml` following 
 
 ### Known limitation: key duplication
 
-Right now CBORG credentials have to live in **both** `.env` (as `CBORG_API_KEY` — for `verify-auth` and `probe-tiers`, which use the `openai` SDK directly) **and** the `llm` key store (as `cborg` — for suite evals that route through `llm-matrix`). Changing CBORG's key means updating both places.
+Right now CBORG credentials have to live in **both** `.env` (as `CBORG_API_KEY` — for `verify-auth` and `probe-tiers`, which use the `openai` SDK directly) **and** the `llm` key store (as `cborg` — for suite evals that route through `llm`). Changing CBORG's key means updating both places.
 
 Tracked as [#71](https://github.com/microbiomedata/nmdc-ai-eval/issues/71); low priority given the friction is a one-time setup per dev.
 
@@ -152,7 +152,7 @@ just pilot-env-triad 50 "gpt-4o-mini,gemini/gemini-2.5-pro,gemini/gemini-2.0-fla
 
 The `llm-gemini` plugin only supports [Google AI Studio](https://aistudio.google.com/) API keys. It does **not** support Vertex AI authentication.
 
-For Vertex-backed Gemini (and Claude) via `llm` / `llm-matrix`, use the in-repo `llm_plugin_vertex` with model names like `vertex/gemini-2.5-flash` or `vertex/claude-haiku-4-5`. See the [Vertex AI section below](#vertex-ai-gcp).
+For Vertex-backed Gemini (and Claude) via `llm`, use the in-repo `llm_plugin_vertex` with model names like `vertex/gemini-2.5-flash` or `vertex/claude-haiku-4-5`. See the [Vertex AI section below](#vertex-ai-gcp).
 
 For Gemini with the `llm` backend (AI Studio, not Vertex): generate a free Google AI Studio key at <https://aistudio.google.com/apikey> and run `uv run llm keys set gemini`. The free tier provides 1,500 requests/day — sufficient for eval runs.
 
@@ -181,7 +181,7 @@ However, Vertex exposes each publisher through a **different API endpoint**:
 
 The suggestor's `LLMClient(access_provider="gcp")` currently only dispatches via `generateContent` (see [`llm_client.py:229`](https://github.com/microbiomedata/nmdc-metadata-suggestor-ai-tool/blob/main/src/nmdc_metadata_suggestor_ai_tool/llm_client.py#L229)), which means Gemini works but Claude calls return `400 "not supported in the generateContent API"` even though the project has Claude enabled. This is a **dispatcher gap, not an access restriction.**
 
-The in-repo `llm_plugin_vertex` routes each publisher through the correct SDK, so `vertex/gemini-*` and `vertex/claude-*` both work from `llm-matrix` eval suites. Run `just probe-vertex-garden` to see which specific model names the SA can reach on your project.
+The in-repo `llm_plugin_vertex` routes each publisher through the correct SDK, so `vertex/gemini-*` and `vertex/claude-*` both work from evaluation suites. Run `just probe-vertex-garden` to see which specific model names the SA can reach on your project.
 
 > **Budget reminder:** The `nmdc-llm` GCP project has a shared $500 total budget. Claude Opus is ~$15/$75 per 1M tokens — use it sparingly. Prefer personal or CBORG keys for iterative dev.
 
@@ -198,7 +198,7 @@ Contact Olivia Hess for the endpoint URL and key. Model names use a `-project` s
 
 ### Using PNNL models in eval suites
 
-`just run-ebs`, `just pilot-env-triad`, and other llm-matrix suite commands resolve models through `llm`, not through the suggestor's PNNL client. This repository registers the configured `pnnl/*` aliases automatically; no files are needed in llm's user directory. Set `AI_INCUBATOR_BASE_URL` in `.env`, then store the same key used by `AI_INCUBATOR_KEY` in llm's key store:
+`just run-ebs`, `just pilot-env-triad`, and other suite commands resolve models through `llm`, not through the suggestor's PNNL client. This repository registers the configured `pnnl/*` aliases automatically; no files are needed in llm's user directory. Set `AI_INCUBATOR_BASE_URL` in `.env`, then store the same key used by `AI_INCUBATOR_KEY` in llm's key store:
 
 ```bash
 uv run llm keys set pnnl
