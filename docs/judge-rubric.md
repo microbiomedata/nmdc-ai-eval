@@ -30,7 +30,7 @@ A pilot in https://github.com/turbomam/local-llm-evals on 2026-09-28 scored the 
 
 ## How it is meant to be run
 
-The rubric does not depend on a harness. It is not wired into `run_suite.py` or llm-matrix, which https://github.com/microbiomedata/nmdc-ai-eval/issues/118 plans to remove. A runner asks each question in its own judge call, because several criteria scored in one call share the judge's position and verbosity biases (https://arxiv.org/abs/2306.05685). It uses a judge from a different model family than the one that made the suggestions, and validates each reply as `JudgeAnswer`. A pass counts only when its evidence is found word for word in the input or output the judge was given.
+The rubric does not depend on a harness. It is not wired into `run_suite.py` or llm-matrix, which https://github.com/microbiomedata/nmdc-ai-eval/issues/118 plans to remove. A runner asks each question in its own judge call. That is a design choice, not a tested result: Zheng et al. (https://arxiv.org/abs/2306.05685) combined accuracy, relevance and other dimensions into one score and suggest separating them, but did not compare the two. It uses a judge from a different model family than the one that made the suggestions, and validates each reply as `JudgeAnswer`. A pass counts only when its evidence is found word for word in the input or output the judge was given.
 
 ## Next: calibrate against hand-graded outputs
 
@@ -47,7 +47,7 @@ Before its scores compare anything, the judge is checked against about 30 output
 - Shankar et al., "Who Validates the Validators?", https://arxiv.org/abs/2404.12272: criteria settle only after grading real outputs, which is why grading comes before trusting the judge.
 - CheckEval, https://arxiv.org/abs/2403.18771: breaking criteria into yes/no questions "improves the average agreement across evaluator models by 0.45" over Likert scales.
 - Husain, https://hamel.dev/blog/posts/llm-judge/: binary pass/fail judgments, and "around 30 examples" to start finding failure modes. The same post warns that "Below 60 examples, the confidence intervals are often too wide", so 30 outputs are enough to revise the questions, not to validate the judge.
-- Zheng et al., https://arxiv.org/abs/2306.05685: position and verbosity biases in LLM judges, the reason for one call per question.
+- Zheng et al., https://arxiv.org/abs/2306.05685: position and verbosity biases in LLM judges. Their study combined accuracy, relevance and creativity into one score and names separating them as a way to a fuller evaluation; it does not test one call per criterion.
 - Gu et al., "A survey on LLM-as-a-judge", The Innovation 2025, doi:10.1016/j.xinn.2025.101253: the survey circulated in the squad.
 - https://github.com/turbomam/local-llm-evals/blob/main/judges/explainer-v3.yaml: the judge file this rubric is modelled on (untrusted input handled as data, quoted evidence, a version in every score).
 - OpenAI Evals' model-graded templates, https://github.com/openai/evals/blob/main/docs/eval-templates.md, and DeepEval's DAG metric, https://deepeval.com/docs/metrics-dag: other rubrics kept as data.
