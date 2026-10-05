@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Run the suggestor's env triad pipeline with and without supplements, and score both.
 
-The test case (study, snapshot, submission object, references) is imported from
-the suggestor package; see README.md in this directory for the design.
+The test case (study, snapshot, submission object, references) is defined in
+phyllosphere.py beside this file; see README.md in this directory for the design.
 
 Usage:
     uv run python datasets/supplement-triad/run_supplement_eval.py --provider gcp
@@ -23,23 +23,21 @@ import time
 from pathlib import Path
 from typing import Any
 
+import phyllosphere  # beside this script, on sys.path when run as one
 import yaml
 from nmdc_metadata_suggestor_ai_tool.env_triad_recommendation import get_env_triad_recommendation
-from nmdc_metadata_suggestor_ai_tool.evaluation import phyllosphere
-from nmdc_metadata_suggestor_ai_tool.evaluation.env_triad_scoring import (
+from nmdc_metadata_suggestor_ai_tool.llm_client import LLMClient
+from nmdc_metadata_suggestor_ai_tool.models.llm_output import LLMOutput
+from nmdc_metadata_suggestor_ai_tool.publication_ingestion.download_pdf import remove_temp_files
+from nmdc_metadata_suggestor_ai_tool.publication_ingestion.supplements import retrieve_supplements
+
+from nmdc_ai_eval.env_triad_scoring import (
     Reference,
     compare_outputs,
     coverage,
 )
-from nmdc_metadata_suggestor_ai_tool.llm_client import LLMClient
-from nmdc_metadata_suggestor_ai_tool.models.llm_output import LLMOutput
-from nmdc_metadata_suggestor_ai_tool.publication_ingestion.download_pdf import remove_temp_files
-from nmdc_metadata_suggestor_ai_tool.publication_ingestion.supplements import (
-    format_supplement_context,
-    retrieve_supplements,
-)
-
 from nmdc_ai_eval.envo_scorer import get_envo_adapter
+from nmdc_ai_eval.supplement_context import format_supplement_context
 from nmdc_ai_eval.triad_output_scorer import ENV_TRIAD_SLOTS, hierarchy_scorer, score_output, summarize
 
 HERE = Path(__file__).parent

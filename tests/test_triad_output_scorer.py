@@ -1,16 +1,16 @@
 """Unit tests for triad_output_scorer — a toy ENVO graph, no oaklib download."""
 
-from nmdc_metadata_suggestor_ai_tool.evaluation.env_triad_scoring import (
-    TriadTerm,
-    compare_outputs,
-    reference_from_rows,
-)
 from nmdc_metadata_suggestor_ai_tool.models.llm_output import (
     LLMOutput,
     MetadataFieldSuggestion,
     TriadProvenance,
 )
 
+from nmdc_ai_eval.env_triad_scoring import (
+    TriadTerm,
+    compare_outputs,
+    reference_from_rows,
+)
 from nmdc_ai_eval.envo_scorer import ANCESTOR_DECAY, DESCENDANT_DECAY, W_ENUM, W_LABEL, W_PARSE
 from nmdc_ai_eval.triad_output_scorer import (
     closest_reference,

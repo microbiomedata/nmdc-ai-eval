@@ -8,8 +8,8 @@ composite formula as :mod:`nmdc_ai_eval.envo_scorer`, and summarizes per slot.
 
 What comes from where:
 
-* Reference parsing, sample joining, and arm comparison come from the suggestor's
-  ``evaluation.env_triad_scoring`` (it knows the dialects references arrive in).
+* Reference parsing, sample joining, and arm comparison come from
+  :mod:`nmdc_ai_eval.env_triad_scoring` (it knows the dialects references arrive in).
 * Relationship, hop distance, label validation, and the score formula come from
   ``envo_scorer`` (it knows ENVO).
 * The enum term of the score comes from the gate's provenance: ``submission_enum``
@@ -28,15 +28,15 @@ from collections.abc import Iterable
 from dataclasses import asdict, dataclass
 from typing import TYPE_CHECKING, Any
 
-from nmdc_metadata_suggestor_ai_tool.evaluation.env_triad_scoring import (
+from nmdc_metadata_suggestor_ai_tool.models.llm_output import LLMOutput, TriadProvenance
+
+from nmdc_ai_eval.env_triad_scoring import (
     Reference,
     Scorer,
     TriadTerm,
     suggested_term,
     triad_suggestions,
 )
-from nmdc_metadata_suggestor_ai_tool.models.llm_output import LLMOutput, TriadProvenance
-
 from nmdc_ai_eval.envo_scorer import (
     check_relationship,
     compute_hierarchy_score,
