@@ -1,12 +1,9 @@
 """Turn a supplement-retrieval result into LLM context messages.
 
 This builds the ``publication+supplements`` arm's ``study_context`` for
-``datasets/supplement-triad``. The same function is proposed for the suggestor
-in microbiomedata/nmdc-metadata-suggestor-ai-tool#171; it lives here too so the
-eval runs against the suggestor's ``main`` without waiting for that PR. Once
-the suggestor ships it, import it from
-``nmdc_metadata_suggestor_ai_tool.publication_ingestion.supplements`` instead,
-so the eval measures the tool's own formatting.
+``datasets/supplement-triad``. The suggestor's env triad pipeline takes context
+as plain strings and has no formatter of its own for supplements, so how they
+are presented is part of the eval's input, not the tool under test.
 
 The retriever hands back files in two shapes: text-like files (csv/tsv/txt)
 arrive inlined as ``text``, and everything else (xlsx/pdf/docx) is written to

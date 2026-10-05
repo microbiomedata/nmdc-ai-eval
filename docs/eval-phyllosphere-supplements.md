@@ -20,10 +20,9 @@ is installed from its `main` branch and called through its public API
 | `src/nmdc_ai_eval/supplement_context.py` | `format_supplement_context`: builds the supplement arm's context from a retrieval result |
 | `datasets/supplement-triad/pipeline-results/` | the runs |
 
-`format_supplement_context` is also proposed for the suggestor itself
-(microbiomedata/nmdc-metadata-suggestor-ai-tool#171). The copy here keeps the eval runnable
-against suggestor `main` in the meantime. Once the suggestor ships it, the runner should import
-the suggestor's version so the eval measures the tool's own formatting.
+`format_supplement_context` belongs to the eval, not the tool. The pipeline accepts
+`study_context` as plain strings and has no supplement formatter of its own, so how the
+supplements are presented is an input this eval chooses.
 
 Run it:
 
