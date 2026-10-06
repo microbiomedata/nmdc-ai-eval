@@ -191,7 +191,7 @@ def write_term_scores(path: Path, rows: list[dict[str, Any]]) -> None:
     """One row per scored suggestion, per arm and reference; lists joined with ' | '."""
     if not rows:
         return
-    with open(path, "w", newline="") as f:
+    with open(path, "x", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=list(rows[0]), delimiter="\t")
         writer.writeheader()
         for row in rows:
@@ -312,7 +312,9 @@ def main() -> None:
     RESULTS_DIR.mkdir(exist_ok=True)
     model_slug = str(llm_client.model).replace("/", "-").replace("@", "-")
     result_path = RESULTS_DIR / f"{model_slug}_{llm_client.access_provider}_{timestamp}.yaml"
-    with open(result_path, "w") as f:
+    # A result file is the record of one run: "x" fails on a same-second collision
+    # instead of overwriting, matching the convention in .gitignore and trace_report.
+    with open(result_path, "x") as f:
         yaml.dump(run, f, default_flow_style=False, sort_keys=False, allow_unicode=True)
     write_term_scores(result_path.with_name(result_path.stem + "_scores.tsv"), term_rows)
     report = render_report(run)
