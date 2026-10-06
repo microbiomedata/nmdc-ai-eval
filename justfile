@@ -35,6 +35,11 @@ audit:
 verify-auth:
     uv run python scripts/verify_auth.py
 
+# Make cborg/* model names work in suite runs: merge config/cborg-models.yaml into llm's
+# extra-openai-models.yaml and store CBORG_API_KEY from .env as llm's `cborg` key. Safe to rerun.
+setup-cborg:
+    uv run python scripts/setup_cborg.py
+
 # Probe which model names our Vertex SA+project can actually reach
 probe-vertex-garden:
     uv run python scripts/probe_vertex_garden.py
