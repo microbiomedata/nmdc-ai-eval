@@ -13,7 +13,8 @@ What comes from where:
 * Relationship, hop distance, label validation, and the score formula come from
   ``envo_scorer`` (it knows ENVO).
 * The enum term of the score comes from the gate's provenance: ``submission_enum``
-  means the value is in the extension's curated set. The TSV enum snapshots in
+  means the value is in the extension's curated set, when the gate was scoped to
+  that extension; unscoped provenance leaves the enum term neutral. The TSV enum snapshots in
   ``datasets/ebs-prediction/enum_data`` cover ``env_broad_scale`` only, and the
   gate already checked all three slots against the live schema.
 
@@ -100,8 +101,12 @@ def closest_reference(
 
 
 def enum_membership(provenance: Any) -> bool | None:
-    """Whether the gate found the value in the extension's curated set; None when unknown."""
-    if isinstance(provenance, TriadProvenance):
+    """Whether the gate found the value in the extension's curated set; None when unknown.
+
+    Unscoped provenance counts as unknown: the gate scanned every extension, so
+    ``submission_enum`` there means curated somewhere, not for this sample's extension.
+    """
+    if isinstance(provenance, TriadProvenance) and provenance.scoped:
         return bool(provenance.tier == "submission_enum")
     return None
 

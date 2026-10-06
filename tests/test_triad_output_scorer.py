@@ -68,7 +68,7 @@ def suggestion(sample_id: str, slot: str, value: str, tier: str = "submission_en
         field_name=slot,
         reason="",
         value=value,
-        provenance=TriadProvenance(tier=tier, outcome="accepted"),  # type: ignore[arg-type]
+        provenance=TriadProvenance(tier=tier, outcome="accepted", scoped=True),  # type: ignore[arg-type]
     )
 
 
@@ -91,7 +91,7 @@ def test_score_term_exact_descendant_ancestor_and_unrelated() -> None:
         "env_broad_scale",
         TriadTerm("cropland biome", "ENVO:01000245"),
         ref,
-        TriadProvenance(tier="submission_enum", outcome="accepted"),
+        TriadProvenance(tier="submission_enum", outcome="accepted", scoped=True),
     )
     assert (descendant.relationship, descendant.hop_distance, descendant.in_enum) == ("descendant", 2, True)
     assert descendant.hierarchy_score == 1.0 - 2 * DESCENDANT_DECAY
@@ -101,6 +101,15 @@ def test_score_term_exact_descendant_ancestor_and_unrelated() -> None:
 
     unrelated = score_term(ADAPTER, "s", "env_broad_scale", TriadTerm("soil", "ENVO:00001998"), ref)
     assert unrelated.relationship == "unrelated" and unrelated.hierarchy_score == 0.0
+
+
+def test_unscoped_submission_enum_leaves_enum_term_neutral() -> None:
+    ref = [TriadTerm("terrestrial biome", "ENVO:00000446")]
+    term = TriadTerm("terrestrial biome", "ENVO:00000446")
+    unscoped = TriadProvenance(tier="submission_enum", outcome="accepted", scoped=False)
+    scored = score_term(ADAPTER, "s", "env_broad_scale", term, ref, unscoped)
+    assert scored.in_enum is None
+    assert scored.ontology_score == W_PARSE + W_LABEL + 0.5 + W_ENUM * 0.5
 
 
 def test_score_term_flags_label_mismatch_and_unparsable_values() -> None:

@@ -91,7 +91,7 @@ def suggestion(sample_id: str, slot: str, value: str, tier: str = "submission_en
         field_name=slot,
         reason="test",
         value=value,
-        provenance=TriadProvenance(tier=tier, outcome="accepted"),  # type: ignore[arg-type]
+        provenance=TriadProvenance(tier=tier, outcome="accepted", scoped=True),  # type: ignore[arg-type]
     )
 
 
