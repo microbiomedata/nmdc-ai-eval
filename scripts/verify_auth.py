@@ -17,7 +17,9 @@ import yaml
 from dotenv import load_dotenv
 
 MODELS_YAML = Path(__file__).parent.parent / "datasets" / "models.yaml"
-LLM_KEYS_PATH = Path.home() / ".config" / "io.datasette.llm" / "keys.json"
+# llm's own directory: ~/Library/Application Support/io.datasette.llm on macOS,
+# ~/.config/io.datasette.llm on Linux, or $LLM_USER_PATH. `uv run llm keys path` shows it.
+LLM_KEYS_PATH = llm.user_dir() / "keys.json"  # type: ignore[no-untyped-call]
 
 # Env vars the llm-* plugins typically read when the key store is empty.
 _LLM_ENV_VARS = {
@@ -106,6 +108,26 @@ def test_cborg_credentials() -> list[str]:
     return failures
 
 
+def test_cborg_llm_route() -> list[str]:
+    """Test one cborg/* alias through llm, the route suite runs use. Returns list of failures."""
+    name = "cborg/" + os.environ.get("CBORG_TEST_MODEL", "gpt-4o-mini")
+    try:
+        model = llm.get_model(name)
+    except llm.UnknownModelError:
+        print(f"  SKIP  {name:45s} -> alias not registered; run `just setup-cborg`")
+        return []
+    if _llm_key_source("cborg") != "llm-store":
+        print(f"  SKIP  {name:45s} -> no `cborg` key in the llm key store; run `just setup-cborg`")
+        return []
+    try:
+        text = str(model.prompt("Reply with only: OK")).strip()[:20]
+        print(f"  OK    {name:45s} [key: llm-store] -> {text}")
+        return []
+    except Exception as e:
+        print(f"  FAIL  {name:45s} [key: llm-store] -> {str(e)[:200]}")
+        return [name]
+
+
 def test_gcp_credentials() -> list[str]:
     """Test GCP Vertex AI credentials from .env. Returns list of failures."""
     failures: list[str] = []
@@ -172,6 +194,7 @@ def main() -> int:
 
     print("\nInstitutional providers (.env credentials):")
     failures += test_cborg_credentials()
+    failures += test_cborg_llm_route()
     failures += test_gcp_credentials()
     failures += test_pnnl_credentials()
 
