@@ -107,8 +107,9 @@ ground truth, and by that standard it is.
 `agricultural soil | plant matter` for a leaf-surface sample. In 124 of 191 cases the model kept
 `leaf [PO:0025034]` and said why: *"'agricultural soil' is incorrect for a leaf sample, and
 'plant matter' is too broad"*. `leaf` is in the curated plant-associated set; neither supplement
-term is. Scoring is ENVO-only, so a PO term earns parse and enum credit and nothing for
-proximity, which is why the nmdc column drops when the model switches to `plant matter`.
+term is. Hierarchy proximity is ENVO-only, so a PO term earns parse, label and enum credit
+(0.1 + 0.1 + 0.3 = 0.5) and nothing for proximity, which is why the nmdc column drops when the
+model switches to `plant matter`.
 
 **The NMDC reference cannot exact-match anything.** All 192 biosamples carry the same three
 values and each pairs a label with a CURIE for a different term (`agricultural biome
