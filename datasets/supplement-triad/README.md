@@ -36,8 +36,9 @@ comes from the suggestor's validation gate: `submission_enum` provenance means t
 extension's curated set. Arm comparison (`changed` / `toward` / `away` per slot) comes from
 `env_triad_scoring.compare_outputs`, graded by ENVO proximity rather than exact match.
 
-Scoring is ENVO-only. A PO term such as `leaf [PO:0025034]` has no ENVO label or ancestors, so
-against an ENVO reference it scores parse + enum only. Read `env_medium` numbers with that in mind.
+Hierarchy proximity is ENVO-only. A PO term such as `leaf [PO:0025034]` shares no ancestors with
+an ENVO reference, so it gets zero proximity; it still earns parse, label and enum credit, which is
+where its 0.5 comes from. Read `env_medium` numbers with that in mind.
 
 ## Running
 
