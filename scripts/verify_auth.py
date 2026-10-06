@@ -120,14 +120,18 @@ def test_cborg_llm_route() -> list[str]:
     # An llm alias, which can differ from the CBORG server name in CBORG_TEST_MODEL
     # (cborg/llama-4-scout is meta/llama-4-scout on the server).
     name = os.environ.get("CBORG_TEST_ALIAS", "cborg/gpt-4o-mini")
+    # With CBORG_API_KEY set, a missing setup is a failure: suite runs would not find cborg/* names.
+    status = "FAIL" if os.environ.get("CBORG_API_KEY") else "SKIP"
+    problem = None
     try:
         model = llm.get_model(name)
     except llm.UnknownModelError:
-        print(f"  SKIP  {name:45s} -> alias not registered; run `just setup-cborg`")
-        return []
-    if _llm_key_source("cborg") != "llm-store":
-        print(f"  SKIP  {name:45s} -> no `cborg` key in the llm key store; run `just setup-cborg`")
-        return []
+        problem = "alias not registered"
+    if problem is None and _llm_key_source("cborg") != "llm-store":
+        problem = "no `cborg` key in the llm key store"
+    if problem:
+        print(f"  {status:4s}  {name:45s} -> {problem}; run `just setup-cborg`")
+        return [name] if status == "FAIL" else []
     try:
         text = str(model.prompt("Reply with only: OK")).strip()[:20]
         print(f"  OK    {name:45s} [key: llm-store] -> {text}")
