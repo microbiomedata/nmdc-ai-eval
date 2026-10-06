@@ -40,6 +40,21 @@ def test_other_entries_are_kept_and_a_rerun_changes_nothing(tmp_path) -> None:
     assert target.read_text() == before
 
 
+def test_a_target_that_is_not_a_list_is_left_alone(tmp_path) -> None:
+    target = tmp_path / "extra-openai-models.yaml"
+    target.write_text("{}\n")
+    with pytest.raises(SystemExit):
+        setup.merge_aliases(setup.ALIASES, target)
+    assert target.read_text() == "{}\n"
+
+
+def test_an_empty_target_gets_the_aliases(tmp_path) -> None:
+    target = tmp_path / "extra-openai-models.yaml"
+    target.write_text("")
+    setup.merge_aliases(setup.ALIASES, target)
+    assert len(yaml.safe_load(target.read_text())) == len(yaml.safe_load(setup.ALIASES.read_text()))
+
+
 def test_a_stale_cborg_entry_is_updated_in_place(tmp_path) -> None:
     target = tmp_path / "extra-openai-models.yaml"
     stale = dict(yaml.safe_load(setup.ALIASES.read_text())[0], api_base="https://old.example/v1")

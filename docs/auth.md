@@ -114,9 +114,9 @@ just verify-auth
 1. Merges the aliases in [`config/cborg-models.yaml`](../config/cborg-models.yaml) into `extra-openai-models.yaml` in `llm`'s directory. Entries already there for other model IDs are left alone.
 2. Stores `CBORG_API_KEY` in `llm`'s key store as `cborg`, without printing it. Rerun it after rotating the key in `.env`.
 
-`llm`'s directory is the one `uv run llm keys path` prints: `~/Library/Application Support/io.datasette.llm/` on macOS, `~/.config/io.datasette.llm/` on Linux, or `$LLM_USER_PATH` if set.
+`llm`'s directory is the one holding the `keys.json` that `uv run llm keys path` prints: `~/Library/Application Support/io.datasette.llm/` on macOS, `~/.config/io.datasette.llm/` on Linux, or `$LLM_USER_PATH` if set.
 
-`just verify-auth` then checks one alias (`cborg/gpt-4o-mini`, or `cborg/$CBORG_TEST_MODEL`) through `llm`, so an `OK` there means suite runs can use `cborg/*` names, for example in `just pilot-env-triad`.
+`just verify-auth` then checks one alias (`cborg/gpt-4o-mini`, or `$CBORG_TEST_ALIAS`) through `llm`, so an `OK` there means suite runs can use `cborg/*` names, for example in `just pilot-env-triad`.
 
 **Discover the full CBORG catalog** (~200 models) with:
 

@@ -29,7 +29,9 @@ def merge_aliases(source: Path, target: Path) -> str:
     if not target.exists():
         shutil.copyfile(source, target)
         return f"created {target} with {len(ours)} cborg aliases"
-    existing = yaml.safe_load(target.read_text()) or []
+    existing = yaml.safe_load(target.read_text())
+    if existing is None:  # an empty file
+        existing = []
     if not isinstance(existing, list):
         raise SystemExit(f"{target} is not a list of model entries; not touching it")
     by_id = {entry.get("model_id"): i for i, entry in enumerate(existing) if isinstance(entry, dict)}

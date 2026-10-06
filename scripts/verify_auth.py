@@ -17,9 +17,15 @@ import yaml
 from dotenv import load_dotenv
 
 MODELS_YAML = Path(__file__).parent.parent / "datasets" / "models.yaml"
-# llm's own directory: ~/Library/Application Support/io.datasette.llm on macOS,
-# ~/.config/io.datasette.llm on Linux, or $LLM_USER_PATH. `uv run llm keys path` shows it.
-LLM_KEYS_PATH = llm.user_dir() / "keys.json"  # type: ignore[no-untyped-call]
+
+
+def _llm_keys_path() -> Path:
+    """llm's keys.json, the file `uv run llm keys path` prints.
+
+    Resolved when called, after .env is loaded, so an LLM_USER_PATH set there is honored.
+    """
+    return Path(llm.user_dir()) / "keys.json"  # type: ignore[no-untyped-call]
+
 
 # Env vars the llm-* plugins typically read when the key store is empty.
 _LLM_ENV_VARS = {
@@ -36,8 +42,9 @@ def _llm_key_source(provider: str) -> str:
     resolution order. Returns 'llm-store', 'env', or 'none'.
     """
     with contextlib.suppress(OSError, json.JSONDecodeError):
-        if LLM_KEYS_PATH.exists():
-            with open(LLM_KEYS_PATH) as f:
+        keys_path = _llm_keys_path()
+        if keys_path.exists():
+            with open(keys_path) as f:
                 keys = json.load(f)
             if keys.get(provider):
                 return "llm-store"
@@ -110,7 +117,9 @@ def test_cborg_credentials() -> list[str]:
 
 def test_cborg_llm_route() -> list[str]:
     """Test one cborg/* alias through llm, the route suite runs use. Returns list of failures."""
-    name = "cborg/" + os.environ.get("CBORG_TEST_MODEL", "gpt-4o-mini")
+    # An llm alias, which can differ from the CBORG server name in CBORG_TEST_MODEL
+    # (cborg/llama-4-scout is meta/llama-4-scout on the server).
+    name = os.environ.get("CBORG_TEST_ALIAS", "cborg/gpt-4o-mini")
     try:
         model = llm.get_model(name)
     except llm.UnknownModelError:

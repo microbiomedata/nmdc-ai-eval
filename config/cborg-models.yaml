@@ -1,7 +1,7 @@
 # CBORG (LBL's OpenAI-compatible proxy) model aliases for the llm tool.
 #
 # `just setup-cborg` merges these into extra-openai-models.yaml in llm's user directory
-# (the directory `uv run llm keys path` prints) and stores CBORG_API_KEY from .env in the
+# (the directory holding the keys.json that `uv run llm keys path` prints) and stores CBORG_API_KEY from .env in the
 # llm key store as `cborg`. After that, any cborg/* name below works in a suite run.
 # Full catalog: `just probe-tiers --list-cborg-models`. See docs/auth.md.
 #
