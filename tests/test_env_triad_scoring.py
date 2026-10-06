@@ -113,6 +113,16 @@ def test_coverage_counts_answered_unlabeled_and_unknown_ids() -> None:
     }
 
 
+def test_coverage_ignores_non_triad_fields_on_known_ids() -> None:
+    output = LLMOutput(
+        metadata_fields=[
+            suggestion("a", "env_medium", "leaf [PO:0025034]"),
+            MetadataFieldSuggestion(id="b", field_name="depth", reason="test", value="0 m"),
+        ]
+    )
+    assert coverage(output, ["a", "b"])["samples_with_suggestions"] == 1
+
+
 def test_compare_outputs_records_direction_of_change() -> None:
     reference = reference_from_rows(
         [{"sample_name": s, "env_medium": "plant matter [ENVO_01001121]"} for s in ("a", "b", "c")]

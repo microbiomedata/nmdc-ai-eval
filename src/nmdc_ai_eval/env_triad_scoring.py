@@ -172,7 +172,9 @@ def coverage(output: LLMOutput, sample_ids: Iterable[str]) -> dict[str, int]:
     counted here so a low score is not mistaken for a wrong answer.
     """
     known = set(sample_ids)
-    labeled = {f.id for f in output.metadata_fields if f.id in known}
+    # Only triad fields count as an answer: the gate passes other fields through, and a
+    # stray field on a valid id would otherwise mark that sample as answered.
+    labeled = {f.id for f in output.metadata_fields if f.id in known and f.field_name in ENV_TRIAD_SLOTS}
     return {
         "n_samples": len(known),
         "samples_with_suggestions": len(labeled),
