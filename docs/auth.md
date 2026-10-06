@@ -57,9 +57,9 @@ Suite runs will automatically skip configured models that lack their required `l
 | `vertex/gemini-*` | local `llm_plugin_vertex` | **Vertex AI** (Gemini via generateContent) |
 | `vertex/claude-*` | local `llm_plugin_vertex` | **Vertex AI** (Claude via rawPredict) |
 | `*-project` suffix | Pipeline backend | PNNL AI Incubator |
-| (CBORG) | Not via `llm-matrix` — see notes below | |
+| `cborg/*` | `llm` built-in openai plugin, aliases from `config/cborg-models.yaml` (run `just setup-cborg`) | CBORG |
 
-**CBORG** fronts OpenAI, Anthropic, and Gemini model families through one OpenAI-compatible endpoint. It is *not* currently wired into `llm-matrix`; `just verify-auth` checks CBORG with a direct `openai` SDK call against `CBORG_BASE_URL`. Evals that want to use CBORG need a dedicated code path (see issue #62).
+**CBORG** fronts OpenAI, Anthropic, and Gemini model families through one OpenAI-compatible endpoint. Suite runs reach it through `cborg/*` aliases that `just setup-cborg` registers with `llm`; see [Using CBORG models in eval suites](#using-cborg-models-in-eval-suites).
 
 **Vertex** models are now reachable from `llm-matrix` via the in-repo `llm_plugin_vertex` — use `vertex/gemini-*` or `vertex/claude-*` anywhere a model name is accepted. Auth reuses the existing `GOOGLE_APPLICATION_CREDENTIALS` + `VERTEX_PROJECT_ID` setup below. Region defaults to `us-east5`; override with `CLOUD_ML_REGION` (or `GEMINI_REGION`) if your project uses a different Vertex location.
 
@@ -100,18 +100,23 @@ Note: no `/v1` suffix — the OpenAI SDK appends the path automatically.
 
 ### Using CBORG models in eval suites
 
-`just run-env-triad` (and every other `run-*` suite target) resolves model names through the `llm` library's plugin ecosystem, not through the `.env` that `verify-auth` / `probe-tiers` read. So setting `CBORG_API_KEY` alone **does not** make CBORG models usable in suite evals.
+Suite runs resolve model names through the `llm` library, which does not read `.env`. CBORG models reach it through `llm`'s `extra-openai-models.yaml` feature: aliases such as `cborg/gpt-4o-mini` that point at CBORG's OpenAI-compatible endpoint and use a key stored in `llm`'s key store under the name `cborg`.
 
-The bridge is `llm`'s `extra-openai-models.yaml` feature. Entries in that file register custom model aliases that hit any OpenAI-compatible endpoint. This repo ships a starter at `~/.config/io.datasette.llm/extra-openai-models.yaml` with seven aliases (`cborg/gpt-4o-mini`, `cborg/claude-sonnet-4-6`, `cborg/gemini-2.5-pro`, etc.). See the file's inline comments for how to add more.
-
-**One-time activation:**
+**One-step setup**, after `CBORG_API_KEY` is in `.env`:
 
 ```bash
-uv run llm keys set cborg
-# paste the same value you have in CBORG_API_KEY
+just setup-cborg
+just verify-auth
 ```
 
-Verify with `uv run llm models list | grep cborg` — the aliases should appear. After that, any `cborg/*` model name is valid in `just pilot-env-triad` or other suite runs.
+`just setup-cborg` does two things, and is safe to rerun:
+
+1. Merges the aliases in [`config/cborg-models.yaml`](../config/cborg-models.yaml) into `extra-openai-models.yaml` in `llm`'s directory. Entries already there for other model IDs are left alone.
+2. Stores `CBORG_API_KEY` in `llm`'s key store as `cborg`, without printing it. Rerun it after rotating the key in `.env`.
+
+`llm`'s directory is the one holding the `keys.json` that `uv run llm keys path` prints: `~/Library/Application Support/io.datasette.llm/` on macOS, `~/.config/io.datasette.llm/` on Linux, or `$LLM_USER_PATH` if set.
+
+`just verify-auth` then checks one alias (`cborg/gpt-4o-mini`, or `$CBORG_TEST_ALIAS`) through `llm`, so an `OK` there means suite runs can use `cborg/*` names, for example in `just pilot-env-triad`.
 
 **Discover the full CBORG catalog** (~200 models) with:
 
@@ -119,13 +124,11 @@ Verify with `uv run llm models list | grep cborg` — the aliases should appear.
 just probe-tiers --list-cborg-models
 ```
 
-Pick names you want and add new entries to `extra-openai-models.yaml` following the same pattern.
+To add a model, add an entry to `config/cborg-models.yaml` following the same pattern and rerun `just setup-cborg`.
 
-### Known limitation: key duplication
+### One key, two stores
 
-Right now CBORG credentials have to live in **both** `.env` (as `CBORG_API_KEY` — for `verify-auth` and `probe-tiers`, which use the `openai` SDK directly) **and** the `llm` key store (as `cborg` — for suite evals that route through `llm-matrix`). Changing CBORG's key means updating both places.
-
-Tracked as [#71](https://github.com/microbiomedata/nmdc-ai-eval/issues/71); low priority given the friction is a one-time setup per dev.
+`CBORG_API_KEY` in `.env` is the only place you set the key. `verify-auth` and `probe-tiers` read it from there, because they call the `openai` SDK directly, and `just setup-cborg` copies it into `llm`'s key store for suite runs. The rest of [issue 71](https://github.com/microbiomedata/nmdc-ai-eval/issues/71) (one store instead of two) is still open.
 
 ### Adding more models from any other OpenAI-compatible endpoint
 
