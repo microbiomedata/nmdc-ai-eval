@@ -2249,7 +2249,7 @@ dev = [
     { name = "deptry", specifier = ">=0.24.0" },
     { name = "mypy", specifier = ">=1.19.1" },
     { name = "nmdc-api-utilities", specifier = ">=0.6.1" },
-    { name = "nmdc-metadata-suggestor-ai-tool", git = "https://github.com/microbiomedata/nmdc-metadata-suggestor-ai-tool.git?branch=main" },
+    { name = "nmdc-metadata-suggestor-ai-tool", specifier = ">=1.3.0" },
     { name = "pandas-stubs", specifier = ">=3.0.0.260204" },
     { name = "pip-audit", specifier = ">=2.10.0" },
     { name = "pre-commit", specifier = ">=3.3" },
@@ -2288,8 +2288,8 @@ wheels = [
 
 [[package]]
 name = "nmdc-metadata-suggestor-ai-tool"
-version = "1.2.1"
-source = { git = "https://github.com/microbiomedata/nmdc-metadata-suggestor-ai-tool.git?branch=main#ef3c30f4cd754bb569c3c52e2de176e20803c340" }
+version = "1.3.0"
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "claude-agent-sdk" },
     { name = "curl-cffi" },
@@ -2310,6 +2310,10 @@ dependencies = [
     { name = "requests" },
     { name = "restrictedpython" },
     { name = "starlette" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/27/9d/8bb8e6be1b44f748ed4c0f02960044989d783d18d697fba6521d8b16bf90/nmdc_metadata_suggestor_ai_tool-1.3.0.tar.gz", hash = "sha256:709ac0e82d29512ecabcb06ab9c66092c15f1e0af632a6323df009463bede4e8", size = 210197, upload-time = "2026-10-06T20:25:50.107Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/25/94/95585dc44187bfc7586a89c0839cda11e19f448402b413dbe0d76865990c/nmdc_metadata_suggestor_ai_tool-1.3.0-py3-none-any.whl", hash = "sha256:93b553a2cb08deef37596d77ef9d1d1f7c253856e9991ad570aef0e306509115", size = 140069, upload-time = "2026-10-06T20:25:48.734Z" },
 ]
 
 [[package]]
