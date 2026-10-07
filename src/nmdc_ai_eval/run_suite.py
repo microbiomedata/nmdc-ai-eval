@@ -231,7 +231,7 @@ def _score_simple_question(scorer: llm.Model, ideal: str | None, output: str) ->
         ),
     )
     message = response.text().strip()
-    match = re.match(r"(\d+(?:\.\d+)?)", message)
+    match = re.match(r"[\s*_`#>]*(?:score\s*[:=]?\s*)?[\s*_`]*(\d+(?:\.\d+)?)", message, re.IGNORECASE)
     score = float(match.group(1)) if match else None
     if score is not None and not 0.0 <= score <= 1.0:
         score = None
@@ -496,9 +496,9 @@ def main(suite_path: Path, output_dir: Path | None = None, scorer_model: str | N
             if direct is not None:
                 score = direct
         except Exception as exc:  # noqa: BLE001
-            click.echo(f"\nError during eval: {exc}", err=True)
-            click.echo("Check model names and API keys. Run: uv run llm models list", err=True)
-            break
+            raise click.ClickException(
+                f"Error during eval: {exc}\nCheck model names and API keys. Run: uv run llm models list"
+            ) from exc
 
         row = _flat_result(case, effective_params, template, prompt, system, response_text, score, evaluation_message)
         row["input_tokens"] = sum(x for x in (input_tokens, judge_input_tokens) if x is not None) or None
@@ -560,6 +560,10 @@ def main(suite_path: Path, output_dir: Path | None = None, scorer_model: str | N
     click.echo(f"\nResults: {tsv_path} ({len(rows)} rows)")
 
     _print_summary(df)
+
+    if len(rows) < n_total:
+        click.echo(f"\nIncomplete run: {len(rows)} of {n_total} results. See the error above.", err=True)
+        sys.exit(1)
 
 
 if __name__ == "__main__":

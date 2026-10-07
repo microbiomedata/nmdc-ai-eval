@@ -59,7 +59,14 @@ def test_pnnl_model_omits_temperature() -> None:
 
 
 @pytest.mark.parametrize(
-    ("judge_text", "expected_score"), [("1 Correct", 1.0), ("Score: 1", None), ("1.5 Too high", None)]
+    ("judge_text", "expected_score"),
+    [
+        ("1 Correct", 1.0),
+        ("Score: 1", 1.0),
+        ("**Score: 0.5** partially right", 0.5),
+        ("Looks correct to me", None),
+        ("1.5 Too high", None),
+    ],
 )
 def test_main_runs_models_and_writes_usage_and_score(tmp_path, judge_text: str, expected_score: float | None) -> None:
     suite_path = tmp_path / "suite.yaml"
@@ -163,3 +170,42 @@ cases:
     assert result.exit_code == 1
     assert "unsupported llm-matrix plugin" in result.output
     get_model.assert_not_called()
+
+
+def test_main_aborts_without_writing_partial_results_on_failure(tmp_path) -> None:
+    suite_path = tmp_path / "suite.yaml"
+    suite_path.write_text(
+        """name: test-suite
+template: basic
+templates:
+  basic:
+    prompt: "{input}"
+matrix:
+  hyperparameters:
+    model: [gpt-4o-mini]
+cases:
+  - input: "first"
+    ideal: "a"
+  - input: "second"
+    ideal: "b"
+"""
+    )
+    ok_response = MagicMock(spec=["text", "input_tokens", "output_tokens", "duration_ms"])
+    ok_response.text.return_value = "a"
+    ok_response.input_tokens = 1
+    ok_response.output_tokens = 1
+    ok_response.duration_ms.return_value = 1
+    model = MagicMock(spec=["prompt"])
+    model.prompt.side_effect = [ok_response, RuntimeError("boom")]
+
+    with (
+        patch("nmdc_ai_eval.run_suite._preflight", return_value=[]),
+        patch("nmdc_ai_eval.run_suite._models_with_credentials", return_value=(["gpt-4o-mini"], [])),
+        patch("nmdc_ai_eval.run_suite._pnnl_models_if_configured", return_value=[]),
+        patch("nmdc_ai_eval.run_suite.llm.get_model", return_value=model),
+    ):
+        result = CliRunner().invoke(main, [str(suite_path), "--output-dir", str(tmp_path / "out")])
+
+    assert result.exit_code != 0
+    assert "boom" in result.output
+    assert not (tmp_path / "out" / "results.tsv").exists()

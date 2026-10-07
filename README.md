@@ -84,7 +84,7 @@ just compare-pipeline-results --detail   # per-submission breakdown
 
 ### Value prediction evals (env_broad_scale, sampleData)
 
-These use evaluation suite YAMLs with models called through the `llm` library and the plugins listed in `datasets/models.yaml`. No MongoDB needed.
+These use evaluation suite YAMLs with the models listed in `datasets/models.yaml`, called through the corresponding `llm` plugins. No MongoDB needed.
 
 ```bash
 just eval-ebs            # env_broad_scale: 100 cases × 5 models, ontology-scored
@@ -123,7 +123,7 @@ just eval-sampledata     # sampleData smoke test
 | `just eval-sampledata` | sampleData: generate + run (smoke test) | ~$0.01 |
 | `just generate` | Regenerate evaluation suite YAMLs | No |
 | `just clean-outputs` | Delete all eval outputs | No |
-| `just clean-all` | Delete outputs + generated suites + and Python caches | No |
+| `just clean-all` | Delete outputs + generated suites + Python caches | No |
 
 ## Model configuration
 

@@ -93,7 +93,7 @@ Categories with 0 rows are valid `sampleData` values but have no Released submis
 
 ## Artifacts
 
-Running an eval suite (`just run-sampledata-openai`) produces:
+Running an eval suite (`just run-sampledata`) produces:
 
 | File | Description |
 |---|---|

@@ -2,9 +2,9 @@
 
 ## llm-matrix
 
-The `simple_question` judge system prompt in `src/nmdc_ai_eval/run_suite.py` is
-reused from [llm-matrix](https://github.com/monarch-initiative/llm-matrix).
-The rest of the suite parser and runner are implemented in this repository.
+The `_score_simple_question` implementation in `src/nmdc_ai_eval/run_suite.py`
+ is adapted from [llm-matrix](https://github.com/monarch-initiative/llm-matrix).
+ The suite parser and remaining runner code are implemented in this repository.
 
 Copyright (c) 2024 Monarch Initiative
 

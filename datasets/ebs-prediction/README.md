@@ -169,14 +169,14 @@ Templates without enums: air_data, host_associated_data, misc_envs_data, metagen
 
 ## Artifacts
 
-Running an eval suite (`just run-ebs-openai`) produces:
+Running the eval (`just run-ebs`) produces:
 
 | File | Description |
 |---|---|
 | `ebs-suite-output/results.tsv` | Tabular results — one row per case and model/settings combination. |
-| `ebs-suite-{provider}-output/results_envo_scored.tsv` | Enriched results after `just score-ebs {provider}` — adds ontology-aware scoring columns. |
+| `ebs-suite-output/results_envo_scored.tsv` | Enriched results after `just score-ebs` — adds ontology-aware scoring columns. |
 
-Use `just clean-outputs` to remove generated eval results.
+Use `just clean-ebs-outputs` (or `just clean-outputs` for all evals) to remove generated eval results.
 
 ## Eval Controls
 
@@ -195,7 +195,7 @@ The source TSV has 5,052 rows (318 unique with non-empty env_broad_scale after d
 
 Deduplication uses only the 9 INPUT_COLUMNS (the non-GOLD slots that appear in the prompt) plus `env_broad_scale` (the target). GOLD ecosystem columns are excluded from dedup because they are excluded from prompts.
 
-At the defaults (`--per-category 10 --min-pool 10`), the generator produces **100 cases across 10 strata** (10 each), evaluated across 2 models per provider = **200 scored rows per provider run**. The 12 excluded categories each have fewer than 10 unique rows — too few for meaningful per-stratum evaluation. The 10 included categories cover 283 of 318 unique rows (89% of the data).
+At the defaults (`--per-category 10 --min-pool 10`), the generator produces **100 cases across 10 strata** (10 each), evaluated across the 5 models in `datasets/models.yaml` = **500 scored rows per run**. The 12 excluded categories each have fewer than 10 unique rows — too few for meaningful per-stratum evaluation. The 10 included categories cover 283 of 318 unique rows (89% of the data).
 
 The `--min-pool` threshold exists because with fewer than ~10 observations per stratum, confidence intervals are too wide to distinguish signal from noise. For example, a model scoring 4/5 correct has a 95% CI of [28%, 99%] — that tells you nothing about per-category performance. With 10 samples, the intervals are still wide but directionally useful.
 
