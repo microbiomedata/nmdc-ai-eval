@@ -49,14 +49,11 @@ dev = [
   "pip-audit>=2.10.0",
   "pytest-cov>=7.0.0",
   "pandas-stubs>=3.0.0.260204",
-  # Resolved from the suggestor's git main, not from PyPI. Its newest release
-  # is 1.2.1 (2026-06-24) and main is ~145 commits ahead, so resolving from
-  # PyPI scored a June single-pass pipeline and none of the agentic work.
-  # Tracking the branch rather than pinning `rev` is deliberate: uv.lock still
-  # records the exact resolved SHA, so a run stays attributable, while
-  # `uv lock --upgrade` can advance it. An explicit `rev` is immutable and
-  # --upgrade will not move it, which would freeze the staleness at a new SHA.
-  "nmdc-metadata-suggestor-ai-tool",
+  # Resolved from PyPI. 1.3.0 (2026-10-06) is the first release with the agentic
+  # path and supplement retrieval; before it, evals installed the suggestor from
+  # git main because 1.2.1 predated both. Upgrade it in its own PR with
+  # `uv lock --upgrade-package nmdc-metadata-suggestor-ai-tool`.
+  "nmdc-metadata-suggestor-ai-tool>=1.3.0",
   "nmdc-api-utilities>=0.6.1",
   "pymongo>=4.16.0",
   "types-pyyaml>=6.0.12.20250915",
@@ -163,6 +160,3 @@ extend-exclude = [
   "pyproject.toml",
   "datasets/*",
 ]
-
-[tool.uv.sources]
-nmdc-metadata-suggestor-ai-tool = { git = "https://github.com/microbiomedata/nmdc-metadata-suggestor-ai-tool.git", branch = "main" }
