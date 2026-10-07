@@ -1,0 +1,20 @@
+# Packages the weekly dependency upgrade leaves at their locked versions.
+#
+# These are the model clients, agent frameworks, tracing libraries and the suggestor itself. A
+# version bump in any of them can change model output or what gets traced, which would move eval
+# scores for reasons unrelated to the change being evaluated. Each moves only in its own pull
+# request, with an eval run before and after, as docs/dependency-upgrades.md describes.
+#
+# One package name per line; a trailing * matches a prefix.
+anthropic
+openai
+google-genai
+claude-agent-sdk
+llm
+llm-anthropic
+llm-claude-3
+llm-gemini
+llm-matrix
+langfuse
+openinference-*
+nmdc-metadata-suggestor-ai-tool

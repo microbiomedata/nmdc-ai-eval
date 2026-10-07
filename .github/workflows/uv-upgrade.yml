@@ -4,6 +4,11 @@ on:
   schedule:
     - cron: '0 7 * * 1'  # Monday 7am UTC
   workflow_dispatch:
+    inputs:
+      include_held:
+        description: "Also upgrade the held AI packages. Opens a separate PR that never auto-merges and needs an eval run before and after."
+        type: boolean
+        default: false
 
 jobs:
   upgrade:
@@ -11,34 +16,85 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
+      issues: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Install uv
         uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
 
-      - name: Upgrade all dependencies
+      # Everything except the AI and agent packages in .github/held-packages.txt, which move
+      # only in their own PR with an eval run before and after (docs/dependency-upgrades.md).
+      - name: Upgrade dependencies except held AI packages
+        id: upgrade
+        if: ${{ !inputs.include_held }}
+        run: python3 scripts/upgrade_except_held.py
+
+      - name: Upgrade everything, including held AI packages
+        if: ${{ inputs.include_held }}
         run: uv lock --upgrade
 
       - name: Open PR if lockfile changed
         id: create-pr
+        if: ${{ !inputs.include_held }}
         uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
         with:
-          commit-message: "chore: uv lock --upgrade"
+          commit-message: "chore: upgrade dependencies except held AI packages"
           branch: chore/uv-upgrade
           delete-branch: true
           title: "chore: weekly dependency upgrade"
           body: |
-            Automated weekly `uv lock --upgrade`. Auto-merges when CI
-            passes (branch protection catches any regression).
+            Automated weekly upgrade of every locked package except the AI and agent
+            packages in `.github/held-packages.txt`, which stay put so eval scores do not
+            move with library versions (see `docs/dependency-upgrades.md`). Auto-merges when
+            CI passes (branch protection catches any regression).
 
             Check the Security tab after merging — Dependabot alerts for packages
             bumped here will auto-close once the new versions land on main.
           labels: dependencies
 
+      # Held packages change what models return, so this PR is never auto-merged.
+      - name: Open a held-package PR if lockfile changed
+        if: ${{ inputs.include_held }}
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+        with:
+          commit-message: "chore: upgrade dependencies including held AI packages"
+          branch: chore/uv-upgrade-held
+          delete-branch: true
+          title: "chore: upgrade held AI packages (eval before and after required)"
+          body: |
+            Upgrade of every locked package, including the held AI and agent packages in
+            `.github/held-packages.txt`. This PR does not merge itself.
+
+            Before merging, run an eval on the same inputs before and after this change and
+            compare the two results in this PR (see `docs/dependency-upgrades.md`).
+          labels: dependencies
+
+      # Intended: the weekly PR holds no AI packages, so it merges itself when CI passes.
       - name: Enable auto-merge on the PR
         if: steps.create-pr.outputs.pull-request-number
         run: gh pr merge --auto --squash "$PR_NUM"
         env:
           PR_NUM: ${{ steps.create-pr.outputs.pull-request-number }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Last, so it catches a failure in any weekly step. A red scheduled run notifies nobody, and
+      # one failure (an upgraded package needing a newer held one) blocks every upgrade until
+      # someone moves the held package by hand.
+      - name: Open or update an issue when the weekly upgrade fails
+        if: ${{ failure() && !inputs.include_held }}
+        env:
+          GH_REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          title="Weekly dependency upgrade failed"
+          body="The weekly dependency upgrade failed: $RUN_URL
+
+          If the log says held packages moved during resolution, an upgraded package needs a newer version of a held AI package. Move that package in its own PR with an eval run before and after (docs/dependency-upgrades.md); the weekly upgrade stays blocked until then."
+          existing=$(gh issue list --state open --search "\"$title\" in:title" --json number --jq '.[0].number')
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --body "Failed again: $RUN_URL"
+          else
+            gh issue create --title "$title" --body "$body" --label dependencies
+          fi

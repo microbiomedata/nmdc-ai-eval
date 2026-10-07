@@ -31,6 +31,15 @@ audit:
     # It is unavoidable while oaklib pins setuptools<82; see INCATools/ontology-access-kit#852.
     uv run pip-audit --ignore-vuln CVE-2025-69872 --ignore-vuln CVE-2026-4539 --ignore-vuln PYSEC-2026-3447
 
+# Upgrade every locked package except the held AI packages (what the weekly job runs)
+upgrade:
+    python3 scripts/upgrade_except_held.py
+
+# Upgrade everything, held AI packages included. Commit it in its own PR with an eval before and after.
+upgrade-held:
+    uv lock --upgrade
+    @echo "Held AI packages may have moved. Open a separate PR and run an eval before and after (docs/dependency-upgrades.md)."
+
 # Verify API auth works for all providers (1 cheap call each)
 verify-auth:
     uv run python scripts/verify_auth.py
