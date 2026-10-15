@@ -1,0 +1,55 @@
+{
+ "description": "Study of oligotrophic, dystrophic, and eutrophic lakes from the North Temperate Lakes Long Term Ecological Research sites in Wisconsin, USA to identify new gene functions and dissect carbon cycling metabolisms",
+ "gold_study_identifiers": [
+  "gold:Gs0126301"
+ ],
+ "id": "nmdc:sty-11-fkbnah04",
+ "name": "Freshwater microbial communities from oligotrophic, dystrophic, and eutrophic lakes in Wisonsin, USA",
+ "study_category": "research_study",
+ "title": "Freshwater microbial communities from oligotrophic, dystrophic, and eutrophic lakes in Wisonsin, USA",
+ "type": "nmdc:Study",
+ "associated_dois": [
+  {
+   "doi_value": "doi:10.25345/C5QB9VG8C",
+   "doi_provider": "massive",
+   "doi_category": "dataset_doi",
+   "type": "nmdc:Doi"
+  },
+  {
+   "doi_value": "doi:10.1002/lno.11306",
+   "doi_category": "publication_doi",
+   "type": "nmdc:Doi"
+  },
+  {
+   "doi_value": "doi:10.46936/10.25585/60000947",
+   "doi_category": "award_doi",
+   "doi_provider": "jgi",
+   "type": "nmdc:Doi"
+  }
+ ],
+ "jgi_portal_study_identifiers": [
+  "jgi.proposal:1977"
+ ],
+ "funding_sources": [
+  "United States National Science Foundation Microbial Observatories program (MCB-0702395)",
+  "Long-Term Ecological Research Program (NTL–LTER DEB-1440297)",
+  "INSPIRE award (DEB-1344254)"
+ ],
+ "has_credit_associations": [
+  {
+   "applied_roles": [
+    "Principal Investigator"
+   ],
+   "type": "prov:Association",
+   "applies_to_agent": {
+    "name": "Katherine McMahon",
+    "email": "tmcmahon@engr.wisc.edu",
+    "type": "nmdc:Person"
+   }
+  }
+ ],
+ "provenance_metadata": {
+  "type": "nmdc:ProvenanceMetadata",
+  "mod_date": "2026-08-26T21:18:45Z"
+ }
+}

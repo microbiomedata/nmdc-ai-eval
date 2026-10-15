@@ -29,6 +29,8 @@ from nmdc_metadata_suggestor_ai_tool.models.llm_output import (
 
 # "label [PREFIX:0000000]" or "label [PREFIX_0000000]"; the label may be empty.
 TERM_PATTERN = re.compile(r"^\s*(?P<label>.*?)\s*\[(?P<prefix>[A-Za-z]+)[:_](?P<local>\d+)\]\s*$")
+# A CURIE with no label or brackets, as GOLD-imported biosamples store raw values: "ENVO_01000252".
+BARE_CURIE_PATTERN = re.compile(r"^\s*(?P<prefix>[A-Za-z]+)[:_](?P<local>\d+)\s*$")
 MULTI_TERM_SEPARATOR = "|"
 
 # reference name -> sample id -> slot -> terms
@@ -44,8 +46,10 @@ class TriadTerm:
 
     @property
     def value(self) -> str:
-        """The term in the portal's ``label [CURIE]`` form."""
-        return f"{self.label} [{self.curie}]" if self.curie else self.label
+        """The term in the portal's ``label [CURIE]`` form; the bare CURIE when it has no label."""
+        if self.curie and self.label:
+            return f"{self.label} [{self.curie}]"
+        return self.curie or self.label
 
 
 def parse_triad_value(raw: str | None) -> list[TriadTerm]:
@@ -53,8 +57,9 @@ def parse_triad_value(raw: str | None) -> list[TriadTerm]:
 
     ``|`` separates multiple terms. CURIEs are normalized to ``PREFIX:local``,
     so ``ENVO_00000446`` and ``ENVO:00000446`` compare equal. A piece with no
-    bracketed CURIE keeps its text as the label and an empty ``curie``. Empty
-    and ``NA`` cells yield no terms.
+    bracketed CURIE keeps its text as the label and an empty ``curie``, unless
+    the piece is itself a bare CURIE (``ENVO_01000252``), which gets an empty
+    label. Empty and ``NA`` cells yield no terms.
     """
     if not raw:
         return []
@@ -63,12 +68,13 @@ def parse_triad_value(raw: str | None) -> list[TriadTerm]:
         piece = piece.strip()
         if not piece or piece.upper() in {"NA", "N/A", "NOT APPLICABLE"}:
             continue
-        match = TERM_PATTERN.match(piece)
+        match = TERM_PATTERN.match(piece) or BARE_CURIE_PATTERN.match(piece)
         if match is None:
             terms.append(TriadTerm(label=piece, curie=""))
             continue
         curie = f"{match['prefix'].upper()}:{match['local']}"
-        terms.append(TriadTerm(label=match["label"].strip(), curie=curie))
+        label = match.groupdict().get("label") or ""
+        terms.append(TriadTerm(label=label.strip(), curie=curie))
     return terms
 
 

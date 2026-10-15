@@ -1,0 +1,346 @@
+{
+ "id": "nmdc:sty-11-28tm5d36",
+ "name": "1000 Soils Research Campaign",
+ "type": "nmdc:Study",
+ "title": "1000 Soils Research Campaign",
+ "websites": [],
+ "description": "The 1,000 Soils Pilot is composed of crowdsourced soil cores sampled and analyzed using standardized materials and protocols. The data types include molecular and microstructural data that describe soil structure, soil organic matter (SOM) chemistry, and soil microbiology.The  Environmental Molecular Sciences Laboratory (EMSL) analyzed samples using Fourier-transform ion cyclotron resonance-(FTICR), liquid chromatography-(LC) mass spectrometry (MS), X-ray Computed Tomography (XCT), and water retention curves while outsourced vendors provided metagenomic sequencing and standard biogeochemical measurements. Data and analytic workflows from the 1000 Soils Pilot will populate a unique continental-scale database of soil molecular properties, as part of the EMSL Molecular Observation Network (MONet) user program.",
+ "gold_study_identifiers": [
+  "gold:Gs0156736"
+ ],
+ "funding_sources": [
+  "The U.S. Department of Energy, Office of Science, Office of Biological and Environmental Research (BER) under contract DE-AC05-76RL01830 (PNNL) for the Environmental Molecular Sciences Laboratory."
+ ],
+ "study_image": [
+  {
+   "url": "https://portal.nersc.gov/project/m3408/profile_images/nmdc_sty-11-28tm5d36.jpg",
+   "type": "nmdc:ImageValue"
+  }
+ ],
+ "has_credit_associations": [
+  {
+   "applied_roles": [
+    "Funding acquisition",
+    "Conceptualization",
+    "Project administration",
+    "Writing review and editing",
+    "Principal Investigator"
+   ],
+   "type": "prov:Association",
+   "applies_to_agent": {
+    "name": "Emily Graham",
+    "orcid": "orcid:0000-0002-4623-7076",
+    "email": "emily.graham@pnnl.gov",
+    "profile_image_url": "https://portal.nersc.gov/project/m3408/profile_images/graham_emily.jpg",
+    "type": "nmdc:Person"
+   }
+  },
+  {
+   "applied_roles": [
+    "Conceptualization",
+    "Investigation",
+    "Data curation",
+    "Methodology",
+    "Formal Analysis",
+    "Writing original draft",
+    "Project administration"
+   ],
+   "type": "prov:Association",
+   "applies_to_agent": {
+    "name": "Maggie M. Bowman",
+    "orcid": "orcid:0000-0001-8825-1098",
+    "email": "maggie.bowman@pnnl.gov",
+    "type": "nmdc:Person"
+   }
+  },
+  {
+   "applied_roles": [
+    "Project administration",
+    "Writing review and editing"
+   ],
+   "type": "prov:Association",
+   "applies_to_agent": {
+    "name": "John Bargar",
+    "orcid": "orcid:0000-0001-9303-4901",
+    "email": "john.bargar@pnnl.gov",
+    "type": "nmdc:Person"
+   }
+  },
+  {
+   "applied_roles": [
+    "Funding acquisition",
+    "Conceptualization"
+   ],
+   "type": "prov:Association",
+   "applies_to_agent": {
+    "name": "Nancy Hess",
+    "type": "nmdc:Person"
+   }
+  },
+  {
+   "applied_roles": [
+    "Project administration"
+   ],
+   "type": "prov:Association",
+   "applies_to_agent": {
+    "name": "Sarah Leichty",
+    "orcid": "orcid:0000-0002-9609-9126",
+    "email": "sarah.leichty@pnnl.gov",
+    "type": "nmdc:Person"
+   }
+  },
+  {
+   "applied_roles": [
+    "Investigation"
+   ],
+   "type": "prov:Association",
+   "applies_to_agent": {
+    "name": "Andrew Townsend",
+    "email": "andrew.townsend@pnnl.gov",
+    "type": "nmdc:Person"
+   }
+  },
+  {
+   "applied_roles": [
+    "Investigation"
+   ],
+   "type": "prov:Association",
+   "applies_to_agent": {
+    "name": "Nick Sconzo",
+    "email": "nicholas.sconzo@pnnl.gov",
+    "type": "nmdc:Person"
+   }
+  },
+  {
+   "applied_roles": [
+    "Investigation"
+   ],
+   "type": "prov:Association",
+   "applies_to_agent": {
+    "name": "Patricia Miller",
+    "email": "patricia.miller@pnnl.gov",
+    "type": "nmdc:Person"
+   }
+  },
+  {
+   "applied_roles": [
+    "Investigation"
+   ],
+   "type": "prov:Association",
+   "applies_to_agent": {
+    "name": "James Anderson",
+    "type": "nmdc:Person"
+   }
+  },
+  {
+   "applied_roles": [
+    "Investigation"
+   ],
+   "type": "prov:Association",
+   "applies_to_agent": {
+    "name": "Izabel Stohel",
+    "email": "izabel.stohel@pnnl.gov",
+    "type": "nmdc:Person"
+   }
+  },
+  {
+   "applied_roles": [
+    "Investigation"
+   ],
+   "type": "prov:Association",
+   "applies_to_agent": {
+    "name": "Michael Rosenstock",
+    "email": "michael.rosenstock@pnnl.gov",
+    "type": "nmdc:Person"
+   }
+  },
+  {
+   "applied_roles": [
+    "Investigation"
+   ],
+   "type": "prov:Association",
+   "applies_to_agent": {
+    "name": "Albert Lawver",
+    "type": "nmdc:Person"
+   }
+  },
+  {
+   "applied_roles": [
+    "Investigation"
+   ],
+   "type": "prov:Association",
+   "applies_to_agent": {
+    "name": "Alexis E. Heath",
+    "type": "nmdc:Person"
+   }
+  },
+  {
+   "applied_roles": [
+    "Methodology",
+    "Investigation",
+    "Formal Analysis"
+   ],
+   "type": "prov:Association",
+   "applies_to_agent": {
+    "name": "Che Clendinen",
+    "orcid": "orcid:0000-0002-1487-4126",
+    "email": "chaevien.clendinen@pnnl.gov",
+    "type": "nmdc:Person"
+   }
+  },
+  {
+   "applied_roles": [
+    "Methodology",
+    "Visualization",
+    "Investigation"
+   ],
+   "type": "prov:Association",
+   "applies_to_agent": {
+    "name": "Tamas Varga",
+    "orcid": "orcid:0000-0002-5492-866X",
+    "email": "tamas.varga@pnnl.gov",
+    "type": "nmdc:Person"
+   }
+  },
+  {
+   "applied_roles": [
+    "Methodology",
+    "Visualization",
+    "Investigation"
+   ],
+   "type": "prov:Association",
+   "applies_to_agent": {
+    "name": "Anil K. Battu",
+    "orcid": "orcid:0000-0001-7724-5100",
+    "email": "anilkrishna.battu@pnnl.gov",
+    "type": "nmdc:Person"
+   }
+  },
+  {
+   "applied_roles": [
+    "Methodology",
+    "Investigation"
+   ],
+   "type": "prov:Association",
+   "applies_to_agent": {
+    "name": "Will Kew",
+    "orcid": "orcid:0000-0002-4281-4630",
+    "email": "william.kew@pnnl.gov",
+    "type": "nmdc:Person"
+   }
+  },
+  {
+   "applied_roles": [
+    "Visualization",
+    "Formal Analysis"
+   ],
+   "type": "prov:Association",
+   "applies_to_agent": {
+    "name": "Cheng Shi",
+    "orcid": "orcid:0000-0001-6985-1514",
+    "email": "cheng.shi@pnnl.gov",
+    "type": "nmdc:Person"
+   }
+  },
+  {
+   "applied_roles": [
+    "Methodology",
+    "Investigation"
+   ],
+   "type": "prov:Association",
+   "applies_to_agent": {
+    "name": "Rosey Chu",
+    "orcid": "orcid:0000-0001-7428-7647",
+    "email": "rosalie.chu@pnnl.gov",
+    "type": "nmdc:Person"
+   }
+  },
+  {
+   "applied_roles": [
+    "Investigation",
+    "Project administration"
+   ],
+   "type": "prov:Association",
+   "applies_to_agent": {
+    "name": "Jason Toyoda",
+    "orcid": "orcid:0000-0001-6299-2146",
+    "email": "jason.toyoda@pnnl.gov",
+    "type": "nmdc:Person"
+   }
+  },
+  {
+   "applied_roles": [
+    "Project administration",
+    "Writing review and editing"
+   ],
+   "type": "prov:Association",
+   "applies_to_agent": {
+    "name": "Odeta Qafoku",
+    "orcid": "orcid:0000-0002-4946-8988",
+    "email": "odeta.qafoku@pnnl.gov",
+    "type": "nmdc:Person"
+   }
+  },
+  {
+   "applied_roles": [
+    "Investigation"
+   ],
+   "type": "prov:Association",
+   "applies_to_agent": {
+    "name": "Rey Huachambé",
+    "orcid": "orcid:0000-0002-6943-0063",
+    "email": "rey.huachambe@pnnl.gov",
+    "type": "nmdc:Person"
+   }
+  }
+ ],
+ "study_category": "consortium",
+ "associated_dois": [
+  {
+   "doi_value": "doi:10.46936/intm.proj.2021.60141/60000423",
+   "doi_category": "award_doi",
+   "doi_provider": "emsl",
+   "type": "nmdc:Doi"
+  },
+  {
+   "doi_value": "doi:10.1101/2022.12.12.520098",
+   "doi_category": "publication_doi",
+   "type": "nmdc:Doi"
+  },
+  {
+   "doi_value": "doi:10.5281/zenodo.7406532",
+   "doi_provider": "zenodo",
+   "doi_category": "dataset_doi",
+   "type": "nmdc:Doi"
+  },
+  {
+   "doi_value": "doi:10.46936/10.25585/60008461",
+   "doi_category": "award_doi",
+   "doi_provider": "jgi",
+   "type": "nmdc:Doi"
+  },
+  {
+   "doi_value": "doi:10.1016/j.apsoil.2025.106110",
+   "doi_category": "publication_doi",
+   "type": "nmdc:Doi"
+  },
+  {
+   "doi_value": "doi:10.1029/2024GL113091",
+   "doi_category": "publication_doi",
+   "type": "nmdc:Doi"
+  }
+ ],
+ "homepage_website": [
+  "https://www.emsl.pnnl.gov/project/60141"
+ ],
+ "jgi_portal_study_identifiers": [
+  "jgi.proposal:508306"
+ ],
+ "insdc_bioproject_identifiers": [
+  "bioproject:PRJNA1260013"
+ ],
+ "provenance_metadata": {
+  "type": "nmdc:ProvenanceMetadata",
+  "mod_date": "2026-08-26T21:17:38Z"
+ }
+}
