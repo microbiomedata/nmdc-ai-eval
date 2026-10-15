@@ -78,6 +78,13 @@ fallback-version = "0.0.0"
 constraint-dependencies = [
   "anthropic>=0.84.0",    # llm-claude-3 runtime dep
   "linkml>=1.10.0",       # linkml <1.10 references Format.JSON removed in linkml-runtime 1.10
+  # nmdc-submission-schema 11.24.0, the newest release, caps rdflib<7, and linkml-runtime 1.12
+  # needs rdflib>=7.6, so an unconstrained upgrade drops the schema back to 11.11.1 to get
+  # linkml-runtime 1.12, and the tests still pass
+  # (https://github.com/microbiomedata/nmdc-ai-eval/pull/140). submission-schema main already
+  # allows rdflib<8 (https://github.com/microbiomedata/submission-schema/issues/489), so remove
+  # this floor once the next submission-schema release is out.
+  "nmdc-submission-schema>=11.24.0",
   # setuptools>=83.0.0 (PYSEC-2026-3447) was constrained here until 2026-09-22. It pinned
   # oaklib to 0.6.23, which hardcodes the retired raw bucket
   # https://s3.amazonaws.com/bbop-sqlite/{prefix}.db.gz (403 since the migration in
