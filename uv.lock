@@ -14,6 +14,7 @@ resolution-markers = [
 constraints = [
     { name = "anthropic", specifier = ">=0.84.0" },
     { name = "linkml", specifier = ">=1.10.0" },
+    { name = "nmdc-submission-schema", specifier = ">=11.24.0" },
 ]
 
 [[package]]
