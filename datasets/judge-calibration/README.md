@@ -5,31 +5,52 @@ Ten invented NMDC-style submissions, each with three hand-written suggester outp
 ## Layout
 
 ```
-cases.tsv                       one row per case: folder, package, schema_fit_rank, schema_fit_why
+cases.tsv                       one row per case: folder, package, schema_fit_rank, schema_fit_why, unsupported_in_scope
 outputs.tsv                     one row per output: case, grade, counts, why it earns that grade
 cases/NN-<package>-<topic>/     NN is the schema_fit rank, 01 easiest to 10 hardest
   input/study.txt               study name and description, as a submitter would write them
   input/samples.tsv             id, samp_name, then one empty column per field in scope
-  outputs/{good,moderate,bad}.tsv    the suggester output to grade: id, field_name, value, reason
-  expected/{good,moderate,bad}.tsv   the answer key: kind (fail or open), criterion, field_name, id, why
+  outputs/{good,moderate,bad}.json   the suggester output to grade, in the suggester's LLMOutput shape
+  outputs/{good,moderate,bad}.tsv    a view of the same JSON: id, field_name, value, reason
+  expected/{good,moderate,bad}.tsv   the answer key: kind (fail or open), criterion, row, field_name, id, why
 ```
 
-`outputs/*.tsv` is what the judge sees. `expected/*.tsv` is what the judge should say about it; the judge never sees it.
+`outputs/*.json` is what the judge sees, and the JSON is the source; the TSV beside it is a view and the test checks they agree. `expected/*.tsv` is what the judge should say about the output; the judge never sees it. Outputs the suggester itself produces go in the same folder as `outputs/suggester-<provider>-<model>-<timestamp>.json`.
 
 ## What is in it
 
-- 10 inputs, 30 outputs, 226 suggestions, 92 expected fails, 7 open questions (counted by the check below).
+- 10 inputs, 30 outputs, 226 suggestions, 102 expected fails, 21 open questions (counted on 2026-10-16 after a review pass).
 - The inputs are in the style of submission-portal studies NMDC has handled: fertilized bioenergy crop soil, warmed peat, a stratified lake, estuarine sediment, greenhouse Populus roots, an insect gut, transit air, post-fire forest soil, contaminated groundwater and activated sludge. All names, dates, places and numbers are made up. Nothing is copied from a real submission or produced by the suggester.
 - `env_broad_scale`, `env_local_scale` and `env_medium` are left out on purpose. Those slots already have their own eval sets in this repo; this set exercises the other biosample slots.
-- The columns of `input/samples.tsv` after samp_name are the fields in scope, the list the judge is told about for completeness. Real traces do not record scope (see the 2026-10-16 judge run notes), so this set supplies it.
-- A `fail` row in `expected/*.tsv` names one (criterion, field_name, id) that should fail. Everything else in that output should pass.
-- An `open` row marks a suggestion whose verdict depends on a rubric decision not yet made, mainly whether a value or reason may use background knowledge (a taxon id for a Latin name, a common name), and whether a group mean or range endpoint counts as support for one sample. They are not counted as expected fails.
+- The columns of `input/samples.tsv` after `samp_name` are the fields in scope, the list the judge is told about for completeness. Real traces do not record scope (see the 2026-10-16 judge run notes), so this set supplies it.
+- A `fail` row in `expected/*.tsv` names one criterion and, for accuracy, factuality and relevancy, the one suggestion it applies to: `row` is the 1-based position in `metadata_fields`, and `field_name` and `id` repeat what that row holds so the key reads on its own. Completeness and coherence rows apply to the whole output and leave `row` empty. Any (criterion, suggestion) pair with no row is an expected pass; the accuracy and coherence verdicts were audited by hand on 2026-10-16, and the completeness rule below is enforced by the test.
+- `unsupported_in_scope` in `cases.tsv` lists the in-scope fields the input gives no per-sample value for (a range across samples, a group mean, a yearly average, a Latin name only). Omitting one is a pass; suggesting one is marked open. For every other in-scope field, an output that omits it has an expected completeness fail, and the test checks this both ways.
+- An `open` row marks a suggestion whose verdict depends on a rubric decision not yet made: whether a value or reason may use background knowledge (a taxon id for a Latin name, a common name, natural ventilation from open windows); whether a group mean or range endpoint supports one sample; whether a value that is true but filed under the wrong field also fails accuracy, or only relevancy; and whether a general claim in a reason ("estuarine sediments are anoxic") counts as unsupported. Open rows are not counted as expected fails.
 - `schema_fit_rank` in `cases.tsv`, and the folder prefix, order the inputs from easiest (1) to hardest (10) to encode in nmdc-submission-schema, with a one-line reason. The ranking is one person's judgment, not measured. The current ten sit mostly in the middle: there is no trivially easy case (one sample, literal lat_lon, date and depth) and no case whose main variables have no slot at all (for example a stable isotope probing design with labelled substrate, incubation time and density fractions). Those two would be the next additions.
+
+## Sending an input to the suggester
+
+`run_suggester.py` builds a submission-portal-shaped object from `input/study.txt` and `input/samples.tsv`, calls `run_recommendation_pipeline` (the single-pass path the portal uses) and saves the LLMOutput JSON plus a TSV view next to the hand-written outputs. Because that path reads only the study form, the sample sheet is also written into `studyForm.notes` as one line (`Samples: s1 samp_name "..."; s2 ...`), the same line the hand-written outputs were graded against.
+
+```
+just judge-calibration-dry-run 04-soil-miscanthus-fertilization        # prints the object, makes no request
+just judge-calibration-run 04-soil-miscanthus-fertilization gcp gemini-2.5-flash
+```
+
+Credentials load in-process from the repo's `.env` and are never printed.
+
+## Known limits
+
+- The single-pass path reads only the study form and the package name (`get_submission_fields` in the suggester); sample rows are read only by the env triad path. The runner passes the sample sheet through `studyForm.notes` so the model sees the sample names, but its outputs are still study-level suggestions with no sample `id`, while the hand-written outputs give per-sample ids. Per-sample outputs match the suggester's agentic and env triad paths, not this one.
+- The suggester fills `value` only when the submission states it literally; an inferred value goes into `reason` and `value` stays empty, by design (its README). The hand-written good outputs compose values such as `USA: Illinois, Urbana`. Before real outputs are scored against the expected keys, the rubric needs a rule for empty values; the 2026-10-16 judge run skipped them.
+- String value formats (for example the MIxS compound format of `agrochem_addition`) are not checked.
+- Nothing here carries a `label [CURIE]` value, so the set does not exercise the exact-term check.
+- Factuality verdicts on the bad outputs were not audited row by row beyond the invented facts listed; general claims in reasons are marked open where noticed.
 
 ## How it was checked
 
-On 2026-10-16, with `nmdc-submission-schema` from this repo's lock file and `SchemaView`: every `field_name` in every output and every in-scope column is a slot of the named package's interface (SoilInterface, WaterInterface, SedimentInterface, PlantAssociatedInterface, AirInterface, HostAssociatedInterface); every value for an enum-ranged slot is a permissible value; every float-ranged slot has a numeric value; every expected fail names a field present in that output. Value formats for string slots (for example the MIxS compound format of `agrochem_addition`) were not checked.
+`tests/test_judge_calibration.py` checks, with `nmdc-submission-schema` from this repo's lock file and `SchemaView`: every case folder is indexed and ranked; every in-scope column and every suggested `field_name` is a slot of the named package's interface (SoilInterface, WaterInterface, SedimentInterface, PlantAssociatedInterface, AirInterface, HostAssociatedInterface); every value for an enum-ranged slot is permissible; every float-ranged slot has a number; every output parses as the suggester's `LLMOutput`; each TSV view matches its JSON; every per-suggestion verdict resolves to exactly one row of that output and output-level verdicts to none; a completeness fail is listed exactly when a supported in-scope field is omitted; the index counts match; and the runner builds a submission object for every case without a request.
 
 ## How to use it
 
-Feed each output to the judge exactly as `local/judge-run-2026-10-16/run_judge.py` fed trace outputs: input text, the scope list with schema definitions, and one suggestion (or the whole output for completeness and coherence). Compare the judge's verdicts with `expected/*.tsv`. Agreement on the 92 expected fails and on the passes is the calibration number; disagreement on `open_questions` is a rubric decision to make, not a judge error.
+Feed each output to the judge exactly as `local/judge-run-2026-10-16/run_judge.py` fed trace outputs: input text (study.txt plus the samples line), the scope list with schema definitions, and one suggestion (or the whole output for completeness and coherence). Compare the judge's verdicts with `expected/*.tsv`. Agreement on the 102 expected fails and on the passes is the calibration number; disagreement on `open` rows is a rubric decision to make, not a judge error.

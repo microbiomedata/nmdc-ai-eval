@@ -39,6 +39,17 @@ def package_of(case_dir: Path) -> str:
     raise SystemExit(f"{case_dir.name} is not listed in cases.tsv")
 
 
+def samples_note(case_dir: Path) -> str:
+    """The sample sheet as one line of text, the form the hand-written outputs were graded against."""
+    with open(case_dir / "input" / "samples.tsv", newline="") as fh:
+        rows = list(csv.DictReader(fh, delimiter="\t"))
+    parts = []
+    for row in rows:
+        given = "; ".join(f'{k} "{v}"' for k, v in row.items() if k != "id" and v != "")
+        parts.append(f"{row['id']} {given}")
+    return "Samples: " + "; ".join(parts) + "."
+
+
 def build_submission(case_dir: Path) -> dict:
     study_name = description = ""
     for line in (case_dir / "input" / "study.txt").read_text().splitlines():
@@ -51,6 +62,8 @@ def build_submission(case_dir: Path) -> dict:
     with open(case_dir / "input" / "samples.tsv", newline="") as fh:
         for row in csv.DictReader(fh, delimiter="\t"):
             rows.append({k: v for k, v in row.items() if v != "" and k != "id"})
+    # The single-pass pipeline reads the study form only (get_submission_fields ignores sampleData),
+    # so the sample sheet also goes into studyForm.notes, which the model does see.
     return {
         "metadata_submission": {
             "packageName": [package],
@@ -58,7 +71,7 @@ def build_submission(case_dir: Path) -> dict:
             "studyForm": {
                 "studyName": study_name,
                 "description": description,
-                "notes": "",
+                "notes": samples_note(case_dir),
                 "dataDois": [],
                 "publicationDois": [],
             },
@@ -100,14 +113,17 @@ def main() -> int:
     result = run_recommendation_pipeline(submission, client, interface_name=package)
     stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     model = (result.model or a.model or "default").replace("/", "_")
-    out = case_dir / "outputs" / f"suggester-{a.provider}-{model}-{stamp}"
-    out.with_suffix(".json").write_text(result.model_dump_json(indent=2) + "\n")
-    with open(out.with_suffix(".tsv"), "w", newline="") as fh:
+    # Build the names by string, not Path.with_suffix: a model id such as gemini-2.5-flash has a dot
+    # in it, and with_suffix would cut the name there and overwrite earlier runs.
+    stem = case_dir / "outputs" / f"suggester-{a.provider}-{model}-{stamp}"
+    json_path = Path(f"{stem}.json")
+    json_path.write_text(result.model_dump_json(indent=2) + "\n")
+    with open(f"{stem}.tsv", "w", newline="") as fh:
         w = csv.writer(fh, delimiter="\t")
         w.writerow(["id", "field_name", "value", "reason"])
         for f in result.metadata_fields:
             w.writerow([f.id or "", f.field_name, f.value if f.value is not None else "", f.reason])
-    print(f"{len(result.metadata_fields)} suggestions -> {out.with_suffix('.json')}")
+    print(f"{len(result.metadata_fields)} suggestions -> {json_path}")
     return 0
 
 

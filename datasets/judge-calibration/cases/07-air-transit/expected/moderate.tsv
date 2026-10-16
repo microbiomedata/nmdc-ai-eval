@@ -1,5 +1,6 @@
-kind	criterion	field_name	id	why
-fail	factuality	ventilation_type	s2	The reason adds a generalization about buses not in the input.
-fail	completeness			The impinger is in the input and there is no samp_collec_method.
-open	accuracy	humidity	s1	48 percent is the mean across stations, applied to one station. Is a group mean support for one sample's value?
-open	accuracy	temp	s1	Same question for 19 degrees Celsius.
+kind	criterion	row	field_name	id	why
+fail	factuality	2	ventilation_type	s2	The reason adds a generalization about buses not in the input.
+fail	completeness				The impinger is in the input and there is no samp_collec_method.
+open	accuracy	2	ventilation_type	s2	Natural ventilation is an inference from windows open, not a phrase in the input. Same background-knowledge question.
+open	accuracy	3	humidity	s1	48 percent is the mean across stations, applied to one station. Is a group mean support for one sample's value?
+open	accuracy	4	temp	s1	Same question for 19 degrees Celsius.

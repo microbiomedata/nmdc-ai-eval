@@ -1,31 +1,31 @@
 case	grade	suggestions	expected_fails	open_questions	why
-01-host-termite-gut	bad	7	7	0	The oak-versus-pine diet is the one to watch; the rest are plain contradictions.
 01-host-termite-gut	good	8	0	0	Every value is a phrase from the input.
 01-host-termite-gut	moderate	6	2	1	A background common name in a reason, a coarser diet value, and a missing life stage.
-02-water-groundwater-plume	bad	8	7	0	The 0.2 versus 0.22 micrometer filter is the subtle one; the rest are swaps and a depth in the wrong field.
+01-host-termite-gut	bad	7	8	1	The oak-versus-pine diet is the one to watch; the rest are plain contradictions.
 02-water-groundwater-plume	good	9	0	0	Well-specific values follow the well names.
 02-water-groundwater-plume	moderate	8	2	0	One reason explains the contamination with a source the input never gives, and depth is missing.
-03-water-lake-column	bad	6	6	0	Depth-specific values applied to the wrong depth, wrong state, and two dates for one sample.
+02-water-groundwater-plume	bad	8	8	1	The 0.2 versus 0.22 micrometer filter is the subtle one; the rest are swaps and a depth in the wrong field.
 03-water-lake-column	good	10	0	0	Per-sample values follow the depths named in the sample names.
-03-water-lake-column	moderate	9	3	0	Right values with one reason that adds limnology background, a volume in the size-fraction field, and a missing method.
-04-soil-miscanthus-fertilization	bad	6	7	0	Wrong treatment for s1, invented depth and nitrogen value, a date in a method field, and coordinates that contradict the place name.
+03-water-lake-column	moderate	9	3	1	Right values with one reason that adds limnology background, a volume in the size-fraction field, and a missing method.
+03-water-lake-column	bad	6	7	1	Depth-specific values applied to the wrong depth, wrong state, and two dates for one sample.
 04-soil-miscanthus-fertilization	good	5	0	0	Every value is in the input and no reason adds anything. tot_nitro_content is measured but no value is given, so leaving it out is right.
 04-soil-miscanthus-fertilization	moderate	3	2	0	Values are right. One reason adds an institution the input never names, and the collection date is missing.
-05-water-activated-sludge	bad	8	8	0	Zones swapped, a location in a method field, wrong city, two dates for one sample.
+04-soil-miscanthus-fertilization	bad	6	8	2	Wrong treatment for s1, invented depth and nitrogen value, a date in a method field, and coordinates that contradict the place name.
 05-water-activated-sludge	good	10	0	0	Influent ammonium is a yearly average of the plant's inflow, not a property of the mixed-liquor samples, so it is left out.
 05-water-activated-sludge	moderate	9	2	1	An influent value applied to a basin sample, a process explanation in a reason, and a missing processing step.
-06-sediment-estuary	bad	6	7	0	Redox states swapped, an unsupported sediment type, wrong state with contradicting coordinates, and no method.
+05-water-activated-sludge	bad	8	9	1	Zones swapped, a location in a method field, wrong city, two dates for one sample.
 06-sediment-estuary	good	9	0	0	tot_org_carb is given only as a range across all slices, so no per-sample value is suggested.
 06-sediment-estuary	moderate	10	2	0	A range endpoint presented as one sample's value, and a reason that explains more than the input says.
-07-air-transit	bad	8	8	0	Ventilation swapped, invented method and day, a height in an elevation field, wrong city.
+06-sediment-estuary	bad	6	7	2	Redox states swapped, an unsupported sediment type, wrong state with contradicting coordinates, and no method.
 07-air-transit	good	5	0	0	Temperature and humidity are given only as a mean across stations, so no per-sample value is suggested.
-07-air-transit	moderate	6	2	2	The group-mean question and a reason that generalizes.
-08-soil-peat-warming	bad	6	8	0	Depths swapped, wrong treatment, wrong country with coordinates in the right one, wrong storage temperature, and no date.
+07-air-transit	moderate	6	2	3	The group-mean question and a reason that generalizes.
+07-air-transit	bad	8	8	1	Ventilation swapped, invented method and day, a height in an elevation field, wrong city.
 08-soil-peat-warming	good	8	0	0	Treatments are read off the sample names, which the input defines.
-08-soil-peat-warming	moderate	8	2	0	One treatment applied to the wrong sample, and the storage temperature put in the wrong field.
-09-plant-populus-drought	bad	8	7	0	Genotypes swapped, control treated as drought, facility and medium confused, and one sample described as both drought and control.
+08-soil-peat-warming	moderate	8	3	1	One treatment applied to the wrong sample, and the storage temperature put in the wrong field.
+08-soil-peat-warming	bad	6	9	0	Depths swapped, wrong treatment, wrong country with coordinates in the right one, wrong storage temperature, and no date.
 09-plant-populus-drought	good	8	0	0	host_common_name and host_taxid are left out because the input gives only the Latin name; see the moderate output.
 09-plant-populus-drought	moderate	9	1	3	This is the background-knowledge case. The taxon id and common name are correct and useful, and the rubric as written cannot pass them.
-10-soil-postfire	bad	8	7	0	Treatments applied to the reference plot, fire year used as sampling date, a note in a horizon field.
+09-plant-populus-drought	bad	8	9	1	Genotypes swapped, control treated as drought, facility and medium confused, and one sample described as both drought and control.
 10-soil-postfire	good	7	0	0	Slope is a range across plots, so no per-sample slope_gradient. Vegetation on the burned plot is not stated, so none is suggested for s1.
 10-soil-postfire	moderate	8	2	0	An invented midpoint and an invented fire size; everything else is right.
+10-soil-postfire	bad	8	8	1	Treatments applied to the reference plot, fire year used as sampling date, a note in a horizon field.

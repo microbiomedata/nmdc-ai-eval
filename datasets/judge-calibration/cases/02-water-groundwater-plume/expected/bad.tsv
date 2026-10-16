@@ -1,8 +1,10 @@
-kind	criterion	field_name	id	why
-fail	accuracy	ph	s1	Two values for s1; 6.9 is the background value.
-fail	accuracy	ph	s2	3.6 is the plume value.
-fail	accuracy	nitrate	s2	9,800 is the W106 value.
-fail	accuracy	samp_collec_method		A peristaltic pump was used, not a bailer.
-fail	accuracy	size_frac		The input says 0.2 micrometer.
-fail	relevancy	samp_size		A screened interval is a depth, not a sample amount.
-fail	coherence			ph 3.6 and ph 6.9 are both suggested for s1.
+kind	criterion	row	field_name	id	why
+fail	accuracy	2	ph	s1	Two values for s1; 6.9 is the background value.
+fail	accuracy	3	ph	s2	3.6 is the plume value.
+fail	accuracy	4	nitrate	s2	9,800 is the W106 value.
+fail	accuracy	5	samp_collec_method		A peristaltic pump was used, not a bailer.
+fail	accuracy	6	size_frac		The input says 0.2 micrometer.
+fail	relevancy	7	samp_size		A screened interval is a depth, not a sample amount.
+fail	coherence				ph 3.6 and ph 6.9 are both suggested for s1.
+fail	completeness				Screened intervals and Oak Ridge, Tennessee are in the input and there is no depth or geo_loc_name.
+open	accuracy	7	samp_size		7-12 m is the screened interval, misfiled; rubric v1 does not say whether a misfiled value also fails accuracy.

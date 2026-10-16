@@ -119,26 +119,46 @@ def test_tsv_view_matches_json(cases: list[dict[str, str]]) -> None:
             assert rows[1:] == rendered, f"{c['case']}/{grade}.tsv differs from {grade}.json"
 
 
-def test_expected_verdicts_name_real_suggestions(cases: list[dict[str, str]]) -> None:
+def test_expected_verdicts_resolve_to_one_suggestion(cases: list[dict[str, str]]) -> None:
     for c in cases:
         ids = sample_ids(c["case"])
         for grade in GRADES:
-            out = output(c["case"], grade)
-            present = {(f.field_name, f.id) for f in out.metadata_fields}
-            fields = {f.field_name for f in out.metadata_fields}
+            out = output(c["case"], grade).metadata_fields
+            seen: set[tuple[str, str]] = set()
             for row in read_tsv(CASES_DIR / c["case"] / "expected" / f"{grade}.tsv"):
                 where = f"{c['case']}/{grade}: {row}"
                 assert row["kind"] in {"fail", "open"}, where
                 assert row["criterion"] in PER_SUGGESTION | PER_OUTPUT, where
                 assert row["why"].strip(), where
+                key = (row["criterion"], row["row"])
+                assert key not in seen or row["criterion"] in PER_OUTPUT, f"{where}: duplicate verdict"
+                seen.add(key)
+                if row["criterion"] in PER_OUTPUT:
+                    assert row["row"] == "" and row["field_name"] == "" and row["id"] == "", where
+                    continue
+                assert row["row"].isdigit() and 1 <= int(row["row"]) <= len(out), where
+                target = out[int(row["row"]) - 1]
+                assert target.field_name == row["field_name"], where
+                assert (target.id or "") == row["id"], where
                 assert row["id"] == "" or row["id"] in ids, where
-                if row["criterion"] in PER_SUGGESTION:
-                    assert row["field_name"], where
-                    key = (row["field_name"], row["id"] or None)
-                    assert key in present or row["field_name"] in fields, where
             if grade == "good":
                 fails = [r for r in read_tsv(CASES_DIR / c["case"] / "expected" / "good.tsv") if r["kind"] == "fail"]
                 assert not fails, f"{c['case']}: a good output has expected fails"
+
+
+def test_completeness_verdict_matches_omitted_fields(cases: list[dict[str, str]]) -> None:
+    """A completeness fail is expected exactly when an in-scope, supported field has no suggestion."""
+    for c in cases:
+        with open(CASES_DIR / c["case"] / "input" / "samples.tsv", newline="") as fh:
+            scope = next(csv.reader(fh, delimiter="\t"))[2:]
+        unsupported = set(c["unsupported_in_scope"].split())
+        assert unsupported <= set(scope), c["case"]
+        for grade in GRADES:
+            suggested = {f.field_name for f in output(c["case"], grade).metadata_fields}
+            missing = [f for f in scope if f not in suggested and f not in unsupported]
+            expected = read_tsv(CASES_DIR / c["case"] / "expected" / f"{grade}.tsv")
+            listed = any(r["kind"] == "fail" and r["criterion"] == "completeness" for r in expected)
+            assert listed == bool(missing), f"{c['case']}/{grade}: omitted {missing}, completeness fail listed={listed}"
 
 
 def test_outputs_index_counts_match(cases: list[dict[str, str]]) -> None:

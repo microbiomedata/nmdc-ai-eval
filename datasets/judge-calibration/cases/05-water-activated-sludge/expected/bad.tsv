@@ -1,9 +1,11 @@
-kind	criterion	field_name	id	why
-fail	accuracy	diss_oxygen	s1	2.0 is the aeration basin value.
-fail	accuracy	diss_oxygen	s2	Below 0.2 is the anoxic zone value.
-fail	accuracy	oxy_stat_samp	s1	s1 is from the aeration basin.
-fail	accuracy	samp_store_temp		The input says -80.
-fail	accuracy	geo_loc_name		The plant is in Ann Arbor.
-fail	relevancy	samp_collec_method		Aeration basin is where the sample came from, not how it was collected.
-fail	accuracy	collection_date	s1	Two dates for s1; the name says 2023-07-12.
-fail	coherence			collection_date 2023-07-12 and 2023-01-10 are both suggested for s1; also anaerobic with 2.0 mg per liter dissolved oxygen is suspect but is a domain judgment.
+kind	criterion	row	field_name	id	why
+fail	accuracy	1	diss_oxygen	s1	2.0 is the aeration basin value.
+fail	accuracy	2	diss_oxygen	s2	Below 0.2 is the anoxic zone value.
+fail	accuracy	3	oxy_stat_samp	s1	s1 is from the aeration basin.
+fail	relevancy	4	samp_collec_method	s1	Aeration basin is where the sample came from, not how it was collected.
+fail	accuracy	5	samp_store_temp		The input says -80.
+fail	accuracy	7	collection_date	s1	Two dates for s1; the name says 2023-07-12.
+fail	accuracy	8	geo_loc_name		The plant is in Ann Arbor.
+fail	coherence				collection_date 2023-07-12 and 2023-01-10 are both suggested for s1; also anaerobic with 2.0 mg per liter dissolved oxygen is suspect but is a domain judgment.
+fail	completeness				Centrifugation is in the input and there is no samp_mat_process.
+open	accuracy	4	samp_collec_method	s1	Aeration basin is where s1 came from, misfiled; rubric v1 does not say whether a misfiled value also fails accuracy.

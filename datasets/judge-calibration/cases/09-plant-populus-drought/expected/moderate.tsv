@@ -1,5 +1,5 @@
-kind	criterion	field_name	id	why
-fail	completeness			The growth medium is in the input and there is no plant_growth_med.
-open	accuracy	host_taxid		The taxon id is correct for P. trichocarpa but comes from background knowledge, not the input. Rubric v1 as written fails it.
-open	accuracy	host_common_name		Black cottonwood is the common name of P. trichocarpa, from background knowledge. Same question.
-open	factuality	host_common_name		The reason states the common name, which the input does not.
+kind	criterion	row	field_name	id	why
+fail	completeness				The growth medium is in the input and there is no plant_growth_med.
+open	accuracy	6	host_taxid		The taxon id is correct for P. trichocarpa but comes from background knowledge, not the input. Rubric v1 as written fails it.
+open	accuracy	7	host_common_name		Black cottonwood is the common name of P. trichocarpa, from background knowledge. Same question.
+open	factuality	7	host_common_name		The reason states the common name, which the input does not.

@@ -1,4 +1,5 @@
-kind	criterion	field_name	id	why
-fail	factuality	diss_oxygen	s2	The reason adds a claim about dimictic lakes that the input does not make.
-fail	relevancy	size_frac		Two liters is a sample volume, not a size fraction.
-fail	completeness			The input names a Van Dorn sampler and there is no samp_collec_method.
+kind	criterion	row	field_name	id	why
+fail	factuality	5	diss_oxygen	s2	The reason adds a claim about dimictic lakes that the input does not make.
+fail	relevancy	7	size_frac		Two liters is a sample volume, not a size fraction.
+fail	completeness				The input names a Van Dorn sampler and there is no samp_collec_method.
+open	accuracy	7	size_frac		2 L is the filtered volume, misfiled; rubric v1 does not say whether a misfiled value also fails accuracy.
