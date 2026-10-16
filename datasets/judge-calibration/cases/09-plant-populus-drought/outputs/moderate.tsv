@@ -1,0 +1,10 @@
+id	field_name	value	reason
+s1	host_genotype	BESC-97	BESC97-drought-rhizo.
+s2	host_genotype	GW-9947	GW9947-control-root.
+s1	watering_regm	30 percent of field capacity for 21 days	Drought plants were held at 30 percent of field capacity for 21 days.
+s2	watering_regm	watered to field capacity every two days	Controls were watered to field capacity every two days.
+	growth_facil	greenhouse	Grown in a greenhouse.
+	host_taxid	NCBITaxon:3694	Populus trichocarpa is NCBI taxon 3694.
+	host_common_name	black cottonwood	Populus trichocarpa is black cottonwood.
+	collection_date	2023-09	September 2023.
+	geo_loc_name	USA: Tennessee, Oak Ridge	Oak Ridge, Tennessee, USA.

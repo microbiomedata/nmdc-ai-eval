@@ -1,0 +1,9 @@
+id	field_name	value	reason
+s1	host_genotype	GW-9947	Drought susceptible genotype.
+s2	host_genotype	BESC-97	Drought tolerant genotype.
+s2	watering_regm	30 percent of field capacity for 21 days	Drought treatment.
+s1	watering_regm	30 percent of field capacity for 21 days	Drought treatment.
+s1	other_treatment	well-watered control	Control plant.
+	growth_facil	field	Field soil was used.
+	plant_growth_med	greenhouse	Grown in a greenhouse.
+	geo_loc_name	USA: Tennessee, Oak Ridge	The Oak Ridge National Laboratory phytotron.

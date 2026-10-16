@@ -1,0 +1,54 @@
+{
+  "metadata_fields": [
+    {
+      "id": "s1",
+      "field_name": "host_genotype",
+      "value": "BESC-97",
+      "reason": "BESC-97 (drought tolerant); BESC97-drought-rhizo."
+    },
+    {
+      "id": "s2",
+      "field_name": "host_genotype",
+      "value": "GW-9947",
+      "reason": "GW-9947 (drought susceptible); GW9947-control-root."
+    },
+    {
+      "id": "s1",
+      "field_name": "watering_regm",
+      "value": "30 percent of field capacity for 21 days",
+      "reason": "Half of the plants were held at 30 percent of field capacity for 21 days; drought in BESC97-drought-rhizo."
+    },
+    {
+      "id": "s2",
+      "field_name": "watering_regm",
+      "value": "watered to field capacity every two days",
+      "reason": "Controls were watered to field capacity every two days; control in GW9947-control-root."
+    },
+    {
+      "id": null,
+      "field_name": "growth_facil",
+      "value": "greenhouse",
+      "reason": "Grown in a greenhouse."
+    },
+    {
+      "id": null,
+      "field_name": "plant_growth_med",
+      "value": "1:1 mix of field soil and sand",
+      "reason": "In a 1:1 mix of field soil and sand."
+    },
+    {
+      "id": null,
+      "field_name": "collection_date",
+      "value": "2023-09",
+      "reason": "Sampled in September 2023."
+    },
+    {
+      "id": null,
+      "field_name": "geo_loc_name",
+      "value": "USA: Tennessee, Oak Ridge",
+      "reason": "A greenhouse in Oak Ridge, Tennessee, USA."
+    }
+  ],
+  "model": null,
+  "access_provider": null
+}

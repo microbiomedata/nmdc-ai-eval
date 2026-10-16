@@ -112,6 +112,14 @@ run-field-guidance:
 run-env-triad:
     just run datasets/env-triad-prediction/env-triad-suite.yaml
 
+# Build the submission object for one judge-calibration case and print it; makes no request
+judge-calibration-dry-run case="04-soil-miscanthus-fertilization":
+    uv run python datasets/judge-calibration/run_suggester.py datasets/judge-calibration/cases/{{case}} --dry-run
+
+# Send one judge-calibration case to the suggester's single-pass path and save its output
+judge-calibration-run case provider="gcp" model="gemini-2.5-flash":
+    uv run python datasets/judge-calibration/run_suggester.py datasets/judge-calibration/cases/{{case}} --provider {{provider}} --model {{model}}
+
 # Field guidance eval: models × enrichment × verification → summary
 full-eval *args="":
     uv run python datasets/field-guidance/run_full_eval.py {{ args }}

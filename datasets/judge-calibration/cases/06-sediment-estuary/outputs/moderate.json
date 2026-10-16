@@ -1,0 +1,66 @@
+{
+  "metadata_fields": [
+    {
+      "id": "s1",
+      "field_name": "depth",
+      "value": "0-2 cm",
+      "reason": "CB-upper-0-2."
+    },
+    {
+      "id": "s2",
+      "field_name": "depth",
+      "value": "10-12 cm",
+      "reason": "CB-lower-10-12."
+    },
+    {
+      "id": "s1",
+      "field_name": "salinity",
+      "value": "5 practical salinity units",
+      "reason": "5 practical salinity units at the upper site, where river inflow freshens the water."
+    },
+    {
+      "id": "s2",
+      "field_name": "salinity",
+      "value": "18 practical salinity units",
+      "reason": "18 at the lower site."
+    },
+    {
+      "id": "s1",
+      "field_name": "oxy_stat_samp",
+      "value": "aerobic",
+      "reason": "The surface slices were brown and oxic."
+    },
+    {
+      "id": "s2",
+      "field_name": "oxy_stat_samp",
+      "value": "anaerobic",
+      "reason": "The deeper slices were black, sulfidic and anoxic."
+    },
+    {
+      "id": "s1",
+      "field_name": "tot_org_carb",
+      "value": 1.2,
+      "reason": "Total organic carbon ranged from 1.2 to 3.4 percent dry weight."
+    },
+    {
+      "id": null,
+      "field_name": "samp_collec_method",
+      "value": "push coring",
+      "reason": "By push coring from a small boat."
+    },
+    {
+      "id": null,
+      "field_name": "collection_date",
+      "value": "2022-06",
+      "reason": "June 2022."
+    },
+    {
+      "id": null,
+      "field_name": "geo_loc_name",
+      "value": "USA: Maryland, Chesapeake Bay",
+      "reason": "Chesapeake Bay tributary, Maryland, USA."
+    }
+  ],
+  "model": null,
+  "access_provider": null
+}

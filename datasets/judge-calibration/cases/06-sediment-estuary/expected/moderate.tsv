@@ -1,0 +1,3 @@
+kind	criterion	field_name	id	why
+fail	accuracy	tot_org_carb	s1	1.2 is the low end of a range across all slices, not s1's value.
+fail	factuality	salinity	s1	The reason adds a river and a mechanism the input does not mention.

@@ -1,0 +1,7 @@
+id	field_name	value	reason
+s1	agrochem_addition	urea; 60 kg N per hectare per year	All plots were fertilized with urea.
+	depth	0-30 cm	Standard agricultural soil cores are 30 cm.
+s1	tot_nitro_content	0.15 percent	Total nitrogen was measured at 0.15 percent.
+	samp_collec_method	July	Sampling took place in July.
+	geo_loc_name	USA: Illinois, Urbana	The Energy Farm in Urbana, Illinois, USA.
+	lat_lon	35.90 -79.05	Coordinates of the field site.

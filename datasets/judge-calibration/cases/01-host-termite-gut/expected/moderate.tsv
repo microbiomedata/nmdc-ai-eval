@@ -1,0 +1,4 @@
+kind	criterion	field_name	id	why
+fail	factuality	host_common_name		Eastern subterranean termite is not in the input.
+fail	completeness			Worker is in the input and there is no host_life_stage.
+open	accuracy	host_diet		Wood is supported but less specific than pine wood shavings. Does a true but coarser value pass?

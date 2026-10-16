@@ -1,0 +1,11 @@
+case	package	schema_fit_rank	schema_fit_why
+01-host-termite-gut	host-associated	1	Every fact is one host_* slot with a plain value (hindgut, worker, pine wood shavings). Nothing needs a compound format.
+02-water-groundwater-plume	water	2	Numbers map one to one onto ph, nitrate, depth and size_frac. The only work is reading well names.
+03-water-lake-column	water	3	Direct numeric slots per depth. oxy_stat_samp is an enum the input states in plain words (anoxic).
+04-soil-miscanthus-fertilization	soil	4	agrochem_addition wants the MIxS compound format (text; amount unit; time). The treatment is encoded in sample names.
+05-water-activated-sludge	water	5	Two zones of one plant on one date. A plant-wide influent average has no sample-level slot, and the grader has to notice that.
+06-sediment-estuary	sediment	6	Site-level salinity and slice-level redox cross in one sample. A range across slices tempts a per-sample value that is not there.
+07-air-transit	air	7	ventilation_type is free text, group means stand in for per-sample readings, and the sampling height has no slot.
+08-soil-peat-warming	soil	8	Two crossed treatments live in regimen slots (air_temp_regm, gaseous_environment) with compound formats, read off sample names.
+09-plant-populus-drought	plant-associated	9	watering_regm is a compound regimen, the host is a plant in a plant-associated package, and the useful host_taxid is not in the input.
+10-soil-postfire	soil	10	fire is a timestamp slot with no place for burn severity, salvage logging only fits other_treatment, and vegetation on burned plots is unstated.

@@ -1,0 +1,8 @@
+id	field_name	value	reason
+s1	fire	2021; high soil burn severity	Two years after a 2021 wildfire; high soil burn severity; OR-HS-logged-04.
+s2	fire	unburned	Unburned reference stands; OR-unburned-02.
+s1	other_treatment	salvage logging	High soil burn severity with salvage logging; logged in OR-HS-logged-04.
+s2	cur_vegetation	Douglas-fir	Unburned reference stands of Douglas-fir.
+	depth	0-5 cm	Mineral soil (0-5 cm, after removing the ash layer).
+	collection_date	2023-06	Sampled in June 2023.
+	geo_loc_name	USA: Oregon, Douglas County	A national forest in Douglas County, Oregon, USA.

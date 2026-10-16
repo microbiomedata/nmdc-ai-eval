@@ -1,0 +1,54 @@
+{
+  "metadata_fields": [
+    {
+      "id": "s1",
+      "field_name": "air_temp_regm",
+      "value": "+9 degrees Celsius above ambient",
+      "reason": "T9-eCO2-0-10 is the +9 treatment."
+    },
+    {
+      "id": "s1",
+      "field_name": "gaseous_environment",
+      "value": "carbon dioxide; 900 ppm",
+      "reason": "Elevated atmospheric CO2 at 900 ppm; eCO2."
+    },
+    {
+      "id": "s2",
+      "field_name": "gaseous_environment",
+      "value": "carbon dioxide; 900 ppm",
+      "reason": "Elevated atmospheric CO2 at 900 ppm."
+    },
+    {
+      "id": "s1",
+      "field_name": "depth",
+      "value": "0-10 cm",
+      "reason": "Sectioned at 0-10 cm."
+    },
+    {
+      "id": "s2",
+      "field_name": "depth",
+      "value": "10-20 cm",
+      "reason": "Sectioned at 10-20 cm."
+    },
+    {
+      "id": null,
+      "field_name": "temp",
+      "value": -80,
+      "reason": "Samples were frozen at -80 degrees Celsius."
+    },
+    {
+      "id": null,
+      "field_name": "collection_date",
+      "value": "2022-08",
+      "reason": "Collected in August 2022."
+    },
+    {
+      "id": null,
+      "field_name": "geo_loc_name",
+      "value": "USA: Minnesota, Grand Rapids",
+      "reason": "Near Grand Rapids, Minnesota, USA."
+    }
+  ],
+  "model": null,
+  "access_provider": null
+}

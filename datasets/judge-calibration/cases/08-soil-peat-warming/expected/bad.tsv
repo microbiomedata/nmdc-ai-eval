@@ -1,0 +1,9 @@
+kind	criterion	field_name	id	why
+fail	accuracy	air_temp_regm	s2	T0 is the +0 treatment.
+fail	accuracy	depth	s1	T9-eCO2-0-10 is 0-10 cm.
+fail	accuracy	depth	s2	T0-aCO2-10-20 is 10-20 cm.
+fail	accuracy	geo_loc_name		The bog is in Minnesota, USA.
+fail	factuality	geo_loc_name		The reason asserts a location the input does not give.
+fail	accuracy	samp_store_temp		The input says -80.
+fail	completeness			August 2022 is in the input and there is no collection_date.
+fail	coherence			Canada: Ontario and 47.50 -93.45 (Minnesota) cannot both hold.

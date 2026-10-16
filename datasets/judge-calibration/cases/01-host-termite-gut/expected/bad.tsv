@@ -1,0 +1,8 @@
+kind	criterion	field_name	id	why
+fail	accuracy	host_body_site		Hindguts were dissected, not foreguts.
+fail	accuracy	host_diet		The log was oak, but the diet before dissection was pine wood shavings.
+fail	accuracy	samp_store_temp		The input says -80.
+fail	accuracy	host_life_stage		The termites were workers.
+fail	relevancy	ecosystem		A place name belongs in geo_loc_name.
+fail	accuracy	host_taxid		No taxon id is in the input, and 10090 is the house mouse.
+fail	coherence			A termite host and the house mouse taxon id cannot describe one sample.

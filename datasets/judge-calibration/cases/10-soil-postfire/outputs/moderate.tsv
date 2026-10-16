@@ -1,0 +1,9 @@
+id	field_name	value	reason
+s1	fire	2021; high soil burn severity	A 2021 wildfire that burned about 10,000 hectares; high soil burn severity plot.
+s2	fire	unburned	Unburned reference stands.
+s1	other_treatment	salvage logging	High soil burn severity with salvage logging.
+s2	cur_vegetation	Douglas-fir	Unburned reference stands of Douglas-fir.
+s1	slope_gradient	22.5	Slopes ranged from 10 to 35 percent.
+	depth	0-5 cm	Mineral soil (0-5 cm).
+	collection_date	2023-06	June 2023.
+	geo_loc_name	USA: Oregon, Douglas County	Douglas County, Oregon, USA.

@@ -1,0 +1,60 @@
+{
+  "metadata_fields": [
+    {
+      "id": "s1",
+      "field_name": "depth",
+      "value": "0.5 m",
+      "reason": "Surface (0.5 m)."
+    },
+    {
+      "id": "s2",
+      "field_name": "depth",
+      "value": "20 m",
+      "reason": "From 20 m."
+    },
+    {
+      "id": "s1",
+      "field_name": "temp",
+      "value": 24.1,
+      "reason": "The surface was 24.1 degrees Celsius."
+    },
+    {
+      "id": "s2",
+      "field_name": "temp",
+      "value": 8.4,
+      "reason": "The 20 m sample was at 8.4 degrees Celsius."
+    },
+    {
+      "id": "s2",
+      "field_name": "diss_oxygen",
+      "value": "0.1 mg per liter",
+      "reason": "0.1 mg per liter dissolved oxygen, typical of the late-summer hypolimnion of a dimictic lake."
+    },
+    {
+      "id": "s2",
+      "field_name": "oxy_stat_samp",
+      "value": "anaerobic",
+      "reason": "The 20 m sample was anoxic."
+    },
+    {
+      "id": null,
+      "field_name": "size_frac",
+      "value": "2 L",
+      "reason": "Two liters were filtered."
+    },
+    {
+      "id": null,
+      "field_name": "collection_date",
+      "value": "2021-08",
+      "reason": "LK-2021-08."
+    },
+    {
+      "id": null,
+      "field_name": "geo_loc_name",
+      "value": "USA: Wisconsin, Dane County",
+      "reason": "Dane County, Wisconsin, USA."
+    }
+  ],
+  "model": null,
+  "access_provider": null
+}

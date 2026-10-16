@@ -1,0 +1,54 @@
+{
+  "metadata_fields": [
+    {
+      "id": "s1",
+      "field_name": "air_temp_regm",
+      "value": "+9 degrees Celsius above ambient",
+      "reason": "Enclosures were held at +0, +4.5 and +9 degrees Celsius above ambient air temperature; T9-eCO2-0-10 is the +9 treatment."
+    },
+    {
+      "id": "s2",
+      "field_name": "air_temp_regm",
+      "value": "+0 degrees Celsius above ambient",
+      "reason": "T0-aCO2-10-20 is the +0 treatment."
+    },
+    {
+      "id": "s1",
+      "field_name": "gaseous_environment",
+      "value": "carbon dioxide; 900 ppm",
+      "reason": "Elevated atmospheric CO2 at 900 ppm; eCO2 in T9-eCO2-0-10."
+    },
+    {
+      "id": "s1",
+      "field_name": "depth",
+      "value": "0-10 cm",
+      "reason": "Cores were sectioned at 0-10 cm and 10-20 cm; T9-eCO2-0-10."
+    },
+    {
+      "id": "s2",
+      "field_name": "depth",
+      "value": "10-20 cm",
+      "reason": "T0-aCO2-10-20."
+    },
+    {
+      "id": null,
+      "field_name": "samp_store_temp",
+      "value": -80,
+      "reason": "Samples were frozen at -80 degrees Celsius."
+    },
+    {
+      "id": null,
+      "field_name": "collection_date",
+      "value": "2022-08",
+      "reason": "Collected in August 2022."
+    },
+    {
+      "id": null,
+      "field_name": "geo_loc_name",
+      "value": "USA: Minnesota, Grand Rapids",
+      "reason": "An ombrotrophic bog near Grand Rapids, Minnesota, USA."
+    }
+  ],
+  "model": null,
+  "access_provider": null
+}

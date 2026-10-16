@@ -1,0 +1,54 @@
+{
+  "metadata_fields": [
+    {
+      "id": "s1",
+      "field_name": "ph",
+      "value": 3.6,
+      "reason": "pH 3.6 at W106."
+    },
+    {
+      "id": "s2",
+      "field_name": "ph",
+      "value": 6.9,
+      "reason": "Background wells, pH 6.9."
+    },
+    {
+      "id": "s1",
+      "field_name": "nitrate",
+      "value": "9800 mg per liter",
+      "reason": "Nitrate 9,800 mg per liter at W106, from the former disposal ponds upgradient."
+    },
+    {
+      "id": "s2",
+      "field_name": "nitrate",
+      "value": "below 1 mg per liter",
+      "reason": "Below 1 mg per liter at background wells."
+    },
+    {
+      "id": null,
+      "field_name": "samp_collec_method",
+      "value": "peristaltic pump after purging three well volumes",
+      "reason": "Purging three well volumes, using a peristaltic pump."
+    },
+    {
+      "id": null,
+      "field_name": "size_frac",
+      "value": "0.2 micrometer",
+      "reason": "0.2 micrometer filters."
+    },
+    {
+      "id": null,
+      "field_name": "collection_date",
+      "value": "2024-03",
+      "reason": "March 2024."
+    },
+    {
+      "id": null,
+      "field_name": "geo_loc_name",
+      "value": "USA: Tennessee, Oak Ridge",
+      "reason": "Near Oak Ridge, Tennessee, USA."
+    }
+  ],
+  "model": null,
+  "access_provider": null
+}

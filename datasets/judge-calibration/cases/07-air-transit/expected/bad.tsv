@@ -1,0 +1,9 @@
+kind	criterion	field_name	id	why
+fail	accuracy	ventilation_type	s1	Stations use mechanical ventilation.
+fail	accuracy	ventilation_type	s2	Buses ran with windows open.
+fail	accuracy	temp	s2	No bus temperature is given.
+fail	accuracy	samp_collec_method		The input says liquid impinger.
+fail	accuracy	collection_date		The input gives only the month.
+fail	relevancy	elev		1.5 m above the floor is a sampling height, not elevation above sea level.
+fail	accuracy	geo_loc_name		The input says Pittsburgh, Pennsylvania.
+fail	coherence			USA: Ohio, Cleveland and 40.44 -79.99 (Pittsburgh) cannot both hold.

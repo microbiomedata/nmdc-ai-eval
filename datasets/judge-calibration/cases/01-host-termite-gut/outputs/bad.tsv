@@ -1,0 +1,8 @@
+id	field_name	value	reason
+s1	host_common_name	termite	Worker termites.
+s1	host_taxid	NCBITaxon:10090	Host taxon.
+s1	host_body_site	foregut	Gut communities.
+s1	host_diet	oak wood	Collected from a decaying oak log.
+s1	host_life_stage	larva	Immature insects.
+	samp_store_temp	4	Stored in RNAlater.
+	ecosystem	USA: Georgia, Athens	Athens, Georgia, USA.

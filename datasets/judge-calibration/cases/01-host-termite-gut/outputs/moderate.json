@@ -1,0 +1,42 @@
+{
+  "metadata_fields": [
+    {
+      "id": "s1",
+      "field_name": "host_common_name",
+      "value": "termite",
+      "reason": "Reticulitermes flavipes, the eastern subterranean termite."
+    },
+    {
+      "id": "s1",
+      "field_name": "host_body_site",
+      "value": "hindgut",
+      "reason": "Whole hindguts were pooled."
+    },
+    {
+      "id": "s1",
+      "field_name": "host_diet",
+      "value": "wood",
+      "reason": "A wood-feeding termite kept on wood shavings."
+    },
+    {
+      "id": null,
+      "field_name": "samp_store_temp",
+      "value": -80,
+      "reason": "Stored at -80 degrees Celsius."
+    },
+    {
+      "id": null,
+      "field_name": "collection_date",
+      "value": "2022-05",
+      "reason": "May 2022."
+    },
+    {
+      "id": null,
+      "field_name": "geo_loc_name",
+      "value": "USA: Georgia, Athens",
+      "reason": "Athens, Georgia, USA."
+    }
+  ],
+  "model": null,
+  "access_provider": null
+}

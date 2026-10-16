@@ -1,0 +1,8 @@
+kind	criterion	field_name	id	why
+fail	accuracy	host_genotype	s1	s1 is BESC-97.
+fail	accuracy	host_genotype	s2	s2 is GW-9947.
+fail	accuracy	watering_regm	s2	s2 is a control.
+fail	accuracy	growth_facil		The plants were in a greenhouse.
+fail	relevancy	plant_growth_med		Greenhouse is a facility, not a growth medium.
+fail	factuality	geo_loc_name		The reason names a laboratory and a facility the input does not mention.
+fail	coherence			s1 cannot be both a drought plant and a well-watered control.

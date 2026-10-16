@@ -1,0 +1,54 @@
+{
+  "metadata_fields": [
+    {
+      "id": "s1",
+      "field_name": "diss_oxygen",
+      "value": "below 0.2 mg per liter",
+      "reason": "Low oxygen."
+    },
+    {
+      "id": "s2",
+      "field_name": "diss_oxygen",
+      "value": "2.0 mg per liter",
+      "reason": "Aerated."
+    },
+    {
+      "id": "s1",
+      "field_name": "oxy_stat_samp",
+      "value": "anaerobic",
+      "reason": "Activated sludge."
+    },
+    {
+      "id": "s1",
+      "field_name": "samp_collec_method",
+      "value": "aeration basin",
+      "reason": "Sampled from the aeration basin."
+    },
+    {
+      "id": null,
+      "field_name": "samp_store_temp",
+      "value": -20,
+      "reason": "Pellets frozen."
+    },
+    {
+      "id": "s1",
+      "field_name": "collection_date",
+      "value": "2023-07-12",
+      "reason": "AA-aer-2023-07-12."
+    },
+    {
+      "id": "s1",
+      "field_name": "collection_date",
+      "value": "2023-01-10",
+      "reason": "Sampling began in January 2023."
+    },
+    {
+      "id": null,
+      "field_name": "geo_loc_name",
+      "value": "USA: Michigan, Detroit",
+      "reason": "A Michigan treatment plant."
+    }
+  ],
+  "model": null,
+  "access_provider": null
+}

@@ -1,0 +1,8 @@
+kind	criterion	field_name	id	why
+fail	accuracy	oxy_stat_samp	s1	Surface slices were oxic.
+fail	accuracy	oxy_stat_samp	s2	Deeper slices were anoxic.
+fail	accuracy	sediment_type		Nothing in the input says what the sediment is made of.
+fail	accuracy	geo_loc_name		The input says Maryland.
+fail	accuracy	lat_lon		No coordinates are in the input.
+fail	coherence			USA: Virginia and 38.98 -76.48 (Maryland) cannot both hold.
+fail	completeness			Push coring is in the input and there is no samp_collec_method.

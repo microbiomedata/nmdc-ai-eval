@@ -1,0 +1,8 @@
+kind	criterion	field_name	id	why
+fail	accuracy	fire	s2	s2 is an unburned reference plot.
+fail	accuracy	other_treatment	s2	Only burned plots were logged.
+fail	accuracy	depth		The input says 0-5 cm.
+fail	accuracy	cur_vegetation	s1	The input says nothing about vegetation on burned plots.
+fail	accuracy	collection_date		Sampling was in June 2023, two years after the fire.
+fail	relevancy	soil_type		Ash layer removed is a sampling note, not a soil type or classification.
+fail	coherence			s2 is suggested as unburned reference and as salvage logged after high-severity burn.

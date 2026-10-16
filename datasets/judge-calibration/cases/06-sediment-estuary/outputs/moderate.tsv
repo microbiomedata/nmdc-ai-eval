@@ -1,0 +1,11 @@
+id	field_name	value	reason
+s1	depth	0-2 cm	CB-upper-0-2.
+s2	depth	10-12 cm	CB-lower-10-12.
+s1	salinity	5 practical salinity units	5 practical salinity units at the upper site, where river inflow freshens the water.
+s2	salinity	18 practical salinity units	18 at the lower site.
+s1	oxy_stat_samp	aerobic	The surface slices were brown and oxic.
+s2	oxy_stat_samp	anaerobic	The deeper slices were black, sulfidic and anoxic.
+s1	tot_org_carb	1.2	Total organic carbon ranged from 1.2 to 3.4 percent dry weight.
+	samp_collec_method	push coring	By push coring from a small boat.
+	collection_date	2022-06	June 2022.
+	geo_loc_name	USA: Maryland, Chesapeake Bay	Chesapeake Bay tributary, Maryland, USA.

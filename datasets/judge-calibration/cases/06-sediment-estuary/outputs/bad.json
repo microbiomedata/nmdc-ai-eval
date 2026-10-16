@@ -1,0 +1,42 @@
+{
+  "metadata_fields": [
+    {
+      "id": "s1",
+      "field_name": "oxy_stat_samp",
+      "value": "anaerobic",
+      "reason": "Estuarine sediments are anoxic."
+    },
+    {
+      "id": "s2",
+      "field_name": "oxy_stat_samp",
+      "value": "aerobic",
+      "reason": "Oxic sediment."
+    },
+    {
+      "id": null,
+      "field_name": "sediment_type",
+      "value": "biogenous",
+      "reason": "Sulfidic sediments are biogenous."
+    },
+    {
+      "id": null,
+      "field_name": "geo_loc_name",
+      "value": "USA: Virginia",
+      "reason": "Chesapeake Bay."
+    },
+    {
+      "id": null,
+      "field_name": "lat_lon",
+      "value": "38.98 -76.48",
+      "reason": "Site coordinates."
+    },
+    {
+      "id": null,
+      "field_name": "collection_date",
+      "value": "2022-06",
+      "reason": "June 2022."
+    }
+  ],
+  "model": null,
+  "access_provider": null
+}

@@ -1,0 +1,48 @@
+{
+  "metadata_fields": [
+    {
+      "id": "s1",
+      "field_name": "fire",
+      "value": "2021; high soil burn severity",
+      "reason": "Two years after a 2021 wildfire; high soil burn severity; OR-HS-logged-04."
+    },
+    {
+      "id": "s2",
+      "field_name": "fire",
+      "value": "unburned",
+      "reason": "Unburned reference stands; OR-unburned-02."
+    },
+    {
+      "id": "s1",
+      "field_name": "other_treatment",
+      "value": "salvage logging",
+      "reason": "High soil burn severity with salvage logging; logged in OR-HS-logged-04."
+    },
+    {
+      "id": "s2",
+      "field_name": "cur_vegetation",
+      "value": "Douglas-fir",
+      "reason": "Unburned reference stands of Douglas-fir."
+    },
+    {
+      "id": null,
+      "field_name": "depth",
+      "value": "0-5 cm",
+      "reason": "Mineral soil (0-5 cm, after removing the ash layer)."
+    },
+    {
+      "id": null,
+      "field_name": "collection_date",
+      "value": "2023-06",
+      "reason": "Sampled in June 2023."
+    },
+    {
+      "id": null,
+      "field_name": "geo_loc_name",
+      "value": "USA: Oregon, Douglas County",
+      "reason": "A national forest in Douglas County, Oregon, USA."
+    }
+  ],
+  "model": null,
+  "access_provider": null
+}

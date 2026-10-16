@@ -1,0 +1,7 @@
+id	field_name	value	reason
+s1	oxy_stat_samp	anaerobic	The lake was anoxic in August.
+s2	temp	24.1	August temperature.
+s1	diss_oxygen	0.1 mg per liter	Dissolved oxygen in August.
+	geo_loc_name	USA: Michigan	A eutrophic lake in the upper Midwest.
+s1	collection_date	2021-08	LK-2021-08-0.5m.
+s1	collection_date	2021-05	Sampling began in May 2021.

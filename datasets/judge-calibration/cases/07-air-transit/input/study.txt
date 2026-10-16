@@ -1,0 +1,2 @@
+Study: Aerobiomes of subway stations and buses in a mid-sized city
+Description: Air was sampled for 30 minutes at 1.5 m above the floor on platforms of six underground stations and inside four buses in Pittsburgh, Pennsylvania, USA, during weekday rush hours in October 2022, using a liquid impinger at 12.5 liters per minute. Stations use mechanical ventilation; buses ran with windows open. Temperature and relative humidity were logged; the mean across stations was 19 degrees Celsius and 48 percent.

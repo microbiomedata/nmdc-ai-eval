@@ -1,0 +1,8 @@
+kind	criterion	field_name	id	why
+fail	accuracy	agrochem_addition	s1	EF-2008-N0-1 is a 0 kg N plot.
+fail	accuracy	depth		The input says 0 to 10 cm.
+fail	accuracy	tot_nitro_content	s1	No value is given in the input.
+fail	factuality	tot_nitro_content	s1	The reason claims a measured value the input does not contain.
+fail	relevancy	samp_collec_method		A month is not a collection method.
+fail	accuracy	lat_lon		No coordinates are in the input.
+fail	coherence			USA: Illinois, Urbana and 35.90 -79.05 (North Carolina) cannot describe the same sample.

@@ -1,0 +1,2 @@
+Study: Nitrogen fertilization and stand age effects on the soil microbiome of Miscanthus x giganteus
+Description: We sampled bulk soil from Miscanthus x giganteus plots at the Energy Farm in Urbana, Illinois, USA, in July 2023. Plots were established in 2008 and 2018 and received 0 or 60 kg N per hectare per year as urea. Soil cores were taken from 0 to 10 cm depth. Total nitrogen and soil pH were measured on each sample. The field was row-crop agriculture (maize and soybean rotation) before conversion to Miscanthus.

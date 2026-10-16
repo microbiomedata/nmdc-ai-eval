@@ -1,0 +1,9 @@
+id	field_name	value	reason
+s1	air_temp_regm	+9 degrees Celsius above ambient	Enclosures were held at +0, +4.5 and +9 degrees Celsius above ambient air temperature; T9-eCO2-0-10 is the +9 treatment.
+s2	air_temp_regm	+0 degrees Celsius above ambient	T0-aCO2-10-20 is the +0 treatment.
+s1	gaseous_environment	carbon dioxide; 900 ppm	Elevated atmospheric CO2 at 900 ppm; eCO2 in T9-eCO2-0-10.
+s1	depth	0-10 cm	Cores were sectioned at 0-10 cm and 10-20 cm; T9-eCO2-0-10.
+s2	depth	10-20 cm	T0-aCO2-10-20.
+	samp_store_temp	-80	Samples were frozen at -80 degrees Celsius.
+	collection_date	2022-08	Collected in August 2022.
+	geo_loc_name	USA: Minnesota, Grand Rapids	An ombrotrophic bog near Grand Rapids, Minnesota, USA.

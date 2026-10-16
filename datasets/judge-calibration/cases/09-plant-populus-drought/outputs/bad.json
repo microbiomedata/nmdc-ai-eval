@@ -1,0 +1,54 @@
+{
+  "metadata_fields": [
+    {
+      "id": "s1",
+      "field_name": "host_genotype",
+      "value": "GW-9947",
+      "reason": "Drought susceptible genotype."
+    },
+    {
+      "id": "s2",
+      "field_name": "host_genotype",
+      "value": "BESC-97",
+      "reason": "Drought tolerant genotype."
+    },
+    {
+      "id": "s2",
+      "field_name": "watering_regm",
+      "value": "30 percent of field capacity for 21 days",
+      "reason": "Drought treatment."
+    },
+    {
+      "id": "s1",
+      "field_name": "watering_regm",
+      "value": "30 percent of field capacity for 21 days",
+      "reason": "Drought treatment."
+    },
+    {
+      "id": "s1",
+      "field_name": "other_treatment",
+      "value": "well-watered control",
+      "reason": "Control plant."
+    },
+    {
+      "id": null,
+      "field_name": "growth_facil",
+      "value": "field",
+      "reason": "Field soil was used."
+    },
+    {
+      "id": null,
+      "field_name": "plant_growth_med",
+      "value": "greenhouse",
+      "reason": "Grown in a greenhouse."
+    },
+    {
+      "id": null,
+      "field_name": "geo_loc_name",
+      "value": "USA: Tennessee, Oak Ridge",
+      "reason": "The Oak Ridge National Laboratory phytotron."
+    }
+  ],
+  "model": null,
+  "access_provider": null
+}

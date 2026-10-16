@@ -1,0 +1,10 @@
+id	field_name	value	reason
+s1	diss_oxygen	2.0 mg per liter	2.0 mg per liter in the aeration basin.
+s2	diss_oxygen	below 0.2 mg per liter	Below 0.2 mg per liter in the anoxic zone.
+s1	oxy_stat_samp	aerobic	Aeration basin.
+s2	oxy_stat_samp	anaerobic	The anoxic zone, where denitrification removes the nitrate formed in the aeration basin.
+s1	ammonium	35 mg N per liter	Influent ammonium averaged 35 mg N per liter over the year.
+	samp_collec_method	grab sample	Grab-sampled.
+	samp_store_temp	-80	Frozen at -80 degrees Celsius.
+	collection_date	2023-07-12	The sample names carry 2023-07-12.
+	geo_loc_name	USA: Michigan, Ann Arbor	Ann Arbor, Michigan, USA.

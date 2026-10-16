@@ -1,0 +1,7 @@
+id	field_name	value	reason
+s1	oxy_stat_samp	anaerobic	Estuarine sediments are anoxic.
+s2	oxy_stat_samp	aerobic	Oxic sediment.
+	sediment_type	biogenous	Sulfidic sediments are biogenous.
+	geo_loc_name	USA: Virginia	Chesapeake Bay.
+	lat_lon	38.98 -76.48	Site coordinates.
+	collection_date	2022-06	June 2022.
