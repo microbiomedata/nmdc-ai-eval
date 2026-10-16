@@ -1,0 +1,4 @@
+kind	criterion	row	field_name	id	why
+fail	factuality	4	oxy_stat_samp	s2	The reason adds a process claim the input does not make.
+fail	completeness				Centrifugation is in the input and there is no samp_mat_process.
+open	accuracy	5	ammonium	s1	35 mg N per liter is the influent average, not the aeration basin's value. Rubric v1 fails it; some curators might accept it as context.

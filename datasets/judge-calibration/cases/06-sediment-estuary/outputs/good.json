@@ -1,0 +1,60 @@
+{
+  "metadata_fields": [
+    {
+      "id": "s1",
+      "field_name": "depth",
+      "value": "0 - 0.02",
+      "reason": "Cores were sliced at 0-2 cm and 10-12 cm; CB-upper-0-2."
+    },
+    {
+      "id": "s2",
+      "field_name": "depth",
+      "value": "0.1 - 0.12",
+      "reason": "CB-lower-10-12."
+    },
+    {
+      "id": "s1",
+      "field_name": "salinity",
+      "value": "5 practical salinity units",
+      "reason": "Porewater salinity, measured on each slice, was 5 practical salinity units at the upper site."
+    },
+    {
+      "id": "s2",
+      "field_name": "salinity",
+      "value": "18 practical salinity units",
+      "reason": "18 at the lower site."
+    },
+    {
+      "id": "s1",
+      "field_name": "oxy_stat_samp",
+      "value": "aerobic",
+      "reason": "The surface slices were brown and oxic."
+    },
+    {
+      "id": "s2",
+      "field_name": "oxy_stat_samp",
+      "value": "anaerobic",
+      "reason": "The deeper slices were black, sulfidic and anoxic."
+    },
+    {
+      "id": null,
+      "field_name": "samp_collec_method",
+      "value": "push coring",
+      "reason": "By push coring from a small boat."
+    },
+    {
+      "id": null,
+      "field_name": "collection_date",
+      "value": "2022-06",
+      "reason": "Collected in June 2022."
+    },
+    {
+      "id": null,
+      "field_name": "geo_loc_name",
+      "value": "USA: Maryland, Chesapeake Bay",
+      "reason": "A Chesapeake Bay tributary, Maryland, USA."
+    }
+  ],
+  "model": null,
+  "access_provider": null
+}

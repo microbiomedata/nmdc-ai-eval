@@ -1,0 +1,30 @@
+{
+  "metadata_fields": [
+    {
+      "id": "s2",
+      "field_name": "agrochem_addition",
+      "value": "urea;60 kg N per hectare per year;2023-04",
+      "reason": "Plots received 0 or 60 kg N per hectare per year as urea, applied in April 2023; the sample name EF-2018-N60-1 carries N60."
+    },
+    {
+      "id": null,
+      "field_name": "depth",
+      "value": "0 - 0.1",
+      "reason": "Soil cores were taken from 0 to 10 cm depth."
+    },
+    {
+      "id": null,
+      "field_name": "collection_date",
+      "value": "2023-07",
+      "reason": "Sampled in July 2023."
+    },
+    {
+      "id": null,
+      "field_name": "geo_loc_name",
+      "value": "USA: Illinois, Urbana",
+      "reason": "The Energy Farm in Urbana, Illinois, USA."
+    }
+  ],
+  "model": null,
+  "access_provider": null
+}
