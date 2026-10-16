@@ -19,7 +19,7 @@ cases/NN-<package>-<topic>/     NN is the schema_fit rank, 01 easiest to 10 hard
 
 ## What is in it
 
-- 10 inputs, 30 outputs, 219 suggestions, 118 expected fails, 26 open questions (counted on 2026-10-16 after two review passes).
+- 10 inputs, 30 outputs, 219 suggestions, 120 expected fails, 26 open questions (counted on 2026-10-16 after two review passes).
 - The inputs are in the style of submission-portal studies NMDC has handled: fertilized bioenergy crop soil, warmed peat, a stratified lake, estuarine sediment, greenhouse Populus roots, an insect gut, transit air, post-fire forest soil, contaminated groundwater and activated sludge. All names, dates, places and numbers are made up. Nothing is copied from a real submission or produced by the suggester.
 - `env_broad_scale`, `env_local_scale` and `env_medium` are left out on purpose. Those slots already have their own eval sets in this repo; this set exercises the other biosample slots.
 - The columns of `input/samples.tsv` after `samp_name` are the fields in scope, the list the judge is told about for completeness. Real traces do not record scope (see the 2026-10-16 judge run notes), so this set supplies it. Completeness is judged per field, not per sample, as in the rubric's own example.
@@ -53,4 +53,4 @@ Credentials load in-process from the repo's `.env` and are never printed.
 
 ## How to use it
 
-Feed each output to the judge the way the 2026-10-16 run over real traces did: the input text (study.txt plus the samples line the runner builds), the scope list with the schema's definitions, and one suggestion per call (or the whole output for completeness and coherence). Compare the judge's verdicts with `expected/*.tsv`. Agreement on the 118 expected fails and on the passes is the calibration number; disagreement on `open` rows is a rubric decision to make, not a judge error.
+Feed each output to the judge the way the 2026-10-16 run over real traces did: the input text (study.txt plus the samples line the runner builds), the scope list with the schema's definitions, and one suggestion per call (or the whole output for completeness and coherence). Compare the judge's verdicts with `expected/*.tsv`. Agreement on the 120 expected fails and on the passes is the calibration number; disagreement on `open` rows is a rubric decision to make, not a judge error.
