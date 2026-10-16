@@ -38,12 +38,6 @@
     },
     {
       "id": null,
-      "field_name": "plant_growth_med",
-      "value": "greenhouse",
-      "reason": "Grown in a greenhouse."
-    },
-    {
-      "id": null,
       "field_name": "geo_loc_name",
       "value": "USA: Tennessee, Oak Ridge",
       "reason": "The Oak Ridge National Laboratory phytotron."

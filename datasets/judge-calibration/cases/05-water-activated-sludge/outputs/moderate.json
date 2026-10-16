@@ -9,8 +9,8 @@
     {
       "id": "s2",
       "field_name": "diss_oxygen",
-      "value": "below 0.2 mg per liter",
-      "reason": "Below 0.2 mg per liter in the anoxic zone."
+      "value": "0.1 mg per liter",
+      "reason": "0.1 mg per liter in the anoxic zone."
     },
     {
       "id": "s1",

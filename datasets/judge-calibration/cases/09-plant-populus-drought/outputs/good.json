@@ -32,12 +32,6 @@
     },
     {
       "id": null,
-      "field_name": "plant_growth_med",
-      "value": "1:1 mix of field soil and sand",
-      "reason": "In a 1:1 mix of field soil and sand."
-    },
-    {
-      "id": null,
       "field_name": "collection_date",
       "value": "2023-09",
       "reason": "Sampled in September 2023."

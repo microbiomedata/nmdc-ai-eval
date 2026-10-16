@@ -9,8 +9,8 @@
     {
       "id": "s2",
       "field_name": "diss_oxygen",
-      "value": "below 0.2 mg per liter",
-      "reason": "Below 0.2 mg per liter in the anoxic zone; AA-anox-2023-07-12."
+      "value": "0.1 mg per liter",
+      "reason": "Dissolved oxygen was 0.1 mg per liter in the anoxic zone; AA-anox-2023-07-12."
     },
     {
       "id": "s1",

@@ -9,7 +9,7 @@
     {
       "id": "s1",
       "field_name": "host_body_site",
-      "value": "hindgut",
+      "value": "hindgut [UBERON:0001046]",
       "reason": "Whole hindguts were pooled."
     },
     {

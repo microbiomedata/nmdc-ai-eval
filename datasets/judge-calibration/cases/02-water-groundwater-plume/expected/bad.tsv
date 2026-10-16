@@ -1,6 +1,7 @@
 kind	criterion	row	field_name	id	why
 fail	accuracy	2	ph	s1	Two values for s1; 6.9 is the background value.
 fail	accuracy	3	ph	s2	3.6 is the plume value.
+fail	factuality	3	ph	s2	The reason calls W301 an acidic plume well; the input says it is a background well.
 fail	accuracy	4	nitrate	s2	9,800 is the W106 value.
 fail	accuracy	5	samp_collec_method		A peristaltic pump was used, not a bailer.
 fail	accuracy	6	size_frac		The input says 0.2 micrometer.

@@ -5,5 +5,4 @@ s2	watering_regm	30 percent of field capacity for 21 days	Drought treatment.
 s1	watering_regm	30 percent of field capacity for 21 days	Drought treatment.
 s1	other_treatment	well-watered control	Control plant.
 	growth_facil	field	Field soil was used.
-	plant_growth_med	greenhouse	Grown in a greenhouse.
 	geo_loc_name	USA: Tennessee, Oak Ridge	The Oak Ridge National Laboratory phytotron.

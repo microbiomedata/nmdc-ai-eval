@@ -3,13 +3,13 @@
     {
       "id": "s1",
       "field_name": "agrochem_addition",
-      "value": "urea; 60 kg N per hectare per year",
+      "value": "urea;60 kg N per hectare per year;2023-04",
       "reason": "All plots were fertilized with urea."
     },
     {
       "id": null,
       "field_name": "depth",
-      "value": "0-30 cm",
+      "value": "0 - 0.3",
       "reason": "Standard agricultural soil cores are 30 cm."
     },
     {

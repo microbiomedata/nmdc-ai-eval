@@ -3,19 +3,13 @@
     {
       "id": "s2",
       "field_name": "agrochem_addition",
-      "value": "urea; 60 kg N per hectare per year",
-      "reason": "Plots received 0 or 60 kg N per hectare per year as urea, and the sample name EF-2018-N60-1 carries N60."
-    },
-    {
-      "id": "s1",
-      "field_name": "agrochem_addition",
-      "value": "none; 0 kg N per hectare per year",
-      "reason": "Plots received 0 or 60 kg N per hectare per year as urea, and the sample name EF-2008-N0-1 carries N0."
+      "value": "urea;60 kg N per hectare per year;2023-04",
+      "reason": "Plots received 0 or 60 kg N per hectare per year as urea, applied in April 2023; the sample name EF-2018-N60-1 carries N60."
     },
     {
       "id": null,
       "field_name": "depth",
-      "value": "0-10 cm",
+      "value": "0 - 0.1",
       "reason": "Soil cores were taken from 0 to 10 cm depth."
     },
     {

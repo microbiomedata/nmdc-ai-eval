@@ -122,7 +122,8 @@ def main() -> int:
         w = csv.writer(fh, delimiter="\t")
         w.writerow(["id", "field_name", "value", "reason"])
         for f in result.metadata_fields:
-            w.writerow([f.id or "", f.field_name, f.value if f.value is not None else "", f.reason])
+            value = f.value if isinstance(f.value, str) else ("" if f.value is None else json.dumps(f.value))
+            w.writerow([f.id or "", f.field_name, value, f.reason])
     print(f"{len(result.metadata_fields)} suggestions -> {json_path}")
     return 0
 

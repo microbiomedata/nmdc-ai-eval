@@ -1,6 +1,6 @@
 id	field_name	value	reason
-s1	depth	0.5 m	From the surface (0.5 m); LK-2021-08-0.5m.
-s2	depth	20 m	From 20 m; LK-2021-08-20m.
+s1	depth	0.5	From the surface (0.5 m); LK-2021-08-0.5m.
+s2	depth	20	From 20 m; LK-2021-08-20m.
 s1	temp	24.1	In August the surface was 24.1 degrees Celsius.
 s2	temp	8.4	In August the 20 m sample was at 8.4 degrees Celsius.
 s2	diss_oxygen	0.1 mg per liter	The 20 m sample was anoxic (0.1 mg per liter dissolved oxygen).

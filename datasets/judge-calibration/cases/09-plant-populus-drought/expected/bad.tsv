@@ -2,10 +2,10 @@ kind	criterion	row	field_name	id	why
 fail	accuracy	1	host_genotype	s1	s1 is BESC-97.
 fail	accuracy	2	host_genotype	s2	s2 is GW-9947.
 fail	accuracy	3	watering_regm	s2	s2 is a control.
+fail	factuality	3	watering_regm	s2	The reason calls the control plant a drought treatment.
 fail	accuracy	5	other_treatment	s1	s1 is a drought plant, not a well-watered control.
+fail	factuality	5	other_treatment	s1	The reason calls the drought plant a control plant.
 fail	accuracy	6	growth_facil		The plants were in a greenhouse.
-fail	relevancy	7	plant_growth_med		Greenhouse is a facility, not a growth medium.
-fail	factuality	8	geo_loc_name		The reason names a laboratory and a facility the input does not mention.
+fail	factuality	7	geo_loc_name		The reason names a laboratory and a facility the input does not mention.
 fail	coherence				s1 cannot be both a drought plant and a well-watered control.
 fail	completeness				September 2023 is in the input and there is no collection_date.
-open	accuracy	7	plant_growth_med		Greenhouse is true of the study but misfiled; rubric v1 does not say whether a misfiled value also fails accuracy.

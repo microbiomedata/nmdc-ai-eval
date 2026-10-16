@@ -10,7 +10,7 @@
       "id": "s2",
       "field_name": "ph",
       "value": 6.9,
-      "reason": "Background wells, pH 6.9."
+      "reason": "At W301 the pH was 6.9; W301-2024-03."
     },
     {
       "id": "s1",
@@ -21,8 +21,8 @@
     {
       "id": "s2",
       "field_name": "nitrate",
-      "value": "below 1 mg per liter",
-      "reason": "Below 1 mg per liter at background wells."
+      "value": "0.4 mg per liter",
+      "reason": "At W301 the pH was 6.9 and nitrate 0.4 mg per liter; W301-2024-03."
     },
     {
       "id": null,

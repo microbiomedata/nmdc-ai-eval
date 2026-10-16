@@ -9,19 +9,19 @@
     {
       "id": "s1",
       "field_name": "depth",
-      "value": "10-20 cm",
+      "value": "0.1 - 0.2",
       "reason": "Sectioned at 10-20 cm."
     },
     {
       "id": "s2",
       "field_name": "depth",
-      "value": "0-10 cm",
+      "value": "0 - 0.1",
       "reason": "Sectioned at 0-10 cm."
     },
     {
       "id": null,
       "field_name": "geo_loc_name",
-      "value": "Canada: Ontario",
+      "value": "Canada: Ontario, Kenora",
       "reason": "Northern bogs of this kind are in Ontario."
     },
     {

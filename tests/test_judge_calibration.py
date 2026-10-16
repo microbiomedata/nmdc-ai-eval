@@ -12,6 +12,7 @@ from __future__ import annotations
 import csv
 import importlib.util
 import json
+import re
 from pathlib import Path
 from typing import Any
 
@@ -90,9 +91,17 @@ def test_input_columns_are_interface_slots(cases: list[dict[str, str]], interfac
 def test_outputs_parse_and_use_valid_slots_and_values(
     sv: SchemaView, cases: list[dict[str, str]], interface_slots: dict[str, set[str]]
 ) -> None:
+    """Every suggestion is a slot of the package interface with a value the schema accepts.
+
+    The slot is induced on the interface, not read at top level, because enums and patterns are
+    often set per interface in slot_usage (ecosystem is a string at top level and an enum on
+    HostAssociatedInterface). Patterns are checked too, so a format the portal would reject never
+    counts as a good suggestion.
+    """
     enums = sv.all_enums()
     for c in cases:
         ids = sample_ids(c["case"])
+        interface = INTERFACE[c["package"]]
         for grade in GRADES:
             out = output(c["case"], grade)
             assert out.metadata_fields, f"{c['case']}/{grade}: no suggestions"
@@ -101,11 +110,14 @@ def test_outputs_parse_and_use_valid_slots_and_values(
                 assert f.field_name in interface_slots[c["case"]], where
                 assert f.id is None or f.id in ids, where
                 assert f.reason.strip(), where
-                slot = sv.get_slot(f.field_name)
+                slot = sv.induced_slot(f.field_name, interface)
+                value = str(f.value)
                 if slot.range in enums:
-                    assert str(f.value) in sv.get_enum(slot.range).permissible_values, f"{where}={f.value!r}"
+                    assert value in enums[slot.range].permissible_values, f"{where}={f.value!r}"
                 if slot.range == "float":
                     assert isinstance(f.value, (int, float)), f"{where}={f.value!r}"
+                if slot.pattern:
+                    assert re.fullmatch(slot.pattern, value), f"{where}={f.value!r} does not match {slot.pattern}"
 
 
 def test_tsv_view_matches_json(cases: list[dict[str, str]]) -> None:
@@ -147,7 +159,11 @@ def test_expected_verdicts_resolve_to_one_suggestion(cases: list[dict[str, str]]
 
 
 def test_completeness_verdict_matches_omitted_fields(cases: list[dict[str, str]]) -> None:
-    """A completeness fail is expected exactly when an in-scope, supported field has no suggestion."""
+    """A completeness fail is expected exactly when an in-scope, supported field has no suggestion.
+
+    Completeness is judged per field, not per sample, as in the rubric's own example: a field
+    suggested for one sample only still counts as present.
+    """
     for c in cases:
         with open(CASES_DIR / c["case"] / "input" / "samples.tsv", newline="") as fh:
             scope = next(csv.reader(fh, delimiter="\t"))[2:]

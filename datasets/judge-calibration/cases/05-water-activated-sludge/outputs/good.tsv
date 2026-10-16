@@ -1,6 +1,6 @@
 id	field_name	value	reason
 s1	diss_oxygen	2.0 mg per liter	Dissolved oxygen was 2.0 mg per liter in the aeration basin; AA-aer-2023-07-12.
-s2	diss_oxygen	below 0.2 mg per liter	Below 0.2 mg per liter in the anoxic zone; AA-anox-2023-07-12.
+s2	diss_oxygen	0.1 mg per liter	Dissolved oxygen was 0.1 mg per liter in the anoxic zone; AA-anox-2023-07-12.
 s1	oxy_stat_samp	aerobic	Aeration basin, dissolved oxygen 2.0 mg per liter.
 s2	oxy_stat_samp	anaerobic	The anoxic zone.
 	samp_collec_method	grab sample	Mixed liquor was grab-sampled.

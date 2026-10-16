@@ -3,7 +3,7 @@
     {
       "id": "s2",
       "field_name": "fire",
-      "value": "2021; high soil burn severity",
+      "value": "2021",
       "reason": "The 2021 wildfire."
     },
     {
@@ -27,7 +27,7 @@
     {
       "id": null,
       "field_name": "depth",
-      "value": "0-10 cm",
+      "value": "0 - 0.1",
       "reason": "Mineral soil cores."
     },
     {

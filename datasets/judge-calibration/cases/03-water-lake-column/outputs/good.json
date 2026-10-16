@@ -3,13 +3,13 @@
     {
       "id": "s1",
       "field_name": "depth",
-      "value": "0.5 m",
+      "value": "0.5",
       "reason": "From the surface (0.5 m); LK-2021-08-0.5m."
     },
     {
       "id": "s2",
       "field_name": "depth",
-      "value": "20 m",
+      "value": "20",
       "reason": "From 20 m; LK-2021-08-20m."
     },
     {

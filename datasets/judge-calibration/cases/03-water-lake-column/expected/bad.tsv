@@ -7,3 +7,4 @@ fail	accuracy	6	collection_date	s1	Two different months are given for one sample
 fail	coherence				collection_date 2021-08 and 2021-05 are both suggested for s1.
 fail	completeness				Depths, the 0.22 micrometer filter and the Van Dorn sampler are in the input and there is no depth, size_frac or samp_collec_method.
 open	factuality	1	oxy_stat_samp	s1	The reason says the lake was anoxic in August; the input says only the 20 m sample was. Whether an overgeneralization is an unsupported claim is a rubric decision.
+open	factuality	4	geo_loc_name		The reason places the lake in the upper Midwest, a characterization the input does not give. Background-knowledge question.

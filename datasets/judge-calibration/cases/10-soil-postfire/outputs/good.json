@@ -3,14 +3,8 @@
     {
       "id": "s1",
       "field_name": "fire",
-      "value": "2021; high soil burn severity",
-      "reason": "Two years after a 2021 wildfire; high soil burn severity; OR-HS-logged-04."
-    },
-    {
-      "id": "s2",
-      "field_name": "fire",
-      "value": "unburned",
-      "reason": "Unburned reference stands; OR-unburned-02."
+      "value": "2021",
+      "reason": "Two years after a 2021 wildfire; OR-HS-logged-04 is a high soil burn severity plot."
     },
     {
       "id": "s1",
@@ -27,7 +21,7 @@
     {
       "id": null,
       "field_name": "depth",
-      "value": "0-5 cm",
+      "value": "0 - 0.05",
       "reason": "Mineral soil (0-5 cm, after removing the ash layer)."
     },
     {

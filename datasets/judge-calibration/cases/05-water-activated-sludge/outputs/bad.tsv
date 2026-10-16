@@ -1,5 +1,5 @@
 id	field_name	value	reason
-s1	diss_oxygen	below 0.2 mg per liter	Low oxygen.
+s1	diss_oxygen	0.1 mg per liter	Low oxygen.
 s2	diss_oxygen	2.0 mg per liter	Aerated.
 s1	oxy_stat_samp	anaerobic	Activated sludge.
 s1	samp_collec_method	aeration basin	Sampled from the aeration basin.

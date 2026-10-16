@@ -3,7 +3,7 @@
     {
       "id": "s1",
       "field_name": "diss_oxygen",
-      "value": "below 0.2 mg per liter",
+      "value": "0.1 mg per liter",
       "reason": "Low oxygen."
     },
     {

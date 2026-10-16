@@ -1,11 +1,13 @@
 kind	criterion	row	field_name	id	why
 fail	accuracy	1	agrochem_addition	s1	EF-2008-N0-1 is a 0 kg N plot.
-fail	accuracy	2	depth		The input says 0 to 10 cm.
+fail	factuality	1	agrochem_addition	s1	The reason says all plots were fertilized with urea; the input says plots received 0 or 60 kg N.
+fail	accuracy	2	depth		The input says 0 to 10 cm, which is 0 - 0.1 m.
 fail	accuracy	3	tot_nitro_content	s1	No value is given in the input.
 fail	factuality	3	tot_nitro_content	s1	The reason claims a measured value the input does not contain.
 fail	relevancy	4	samp_collec_method		A month is not a collection method.
 fail	accuracy	6	lat_lon		No coordinates are in the input.
+fail	factuality	6	lat_lon		The reason calls these the site's coordinates; the input gives no coordinates.
 fail	coherence				USA: Illinois, Urbana and 35.90 -79.05 (North Carolina) cannot describe the same sample.
 fail	completeness				July 2023 is in the input and there is no collection_date.
-open	factuality	2	depth		The reason makes a general claim about soil cores, not a claim about this study. Whether general claims count is a rubric decision.
+open	factuality	2	depth		The input says 0 to 10 cm, which is 0 - 0.1 m.
 open	accuracy	4	samp_collec_method		July is the sampling month, misfiled; rubric v1 does not say whether a misfiled value also fails accuracy.

@@ -21,13 +21,13 @@
     {
       "id": "s1",
       "field_name": "depth",
-      "value": "0-10 cm",
+      "value": "0 - 0.1",
       "reason": "Cores were sectioned at 0-10 cm and 10-20 cm; T9-eCO2-0-10."
     },
     {
       "id": "s2",
       "field_name": "depth",
-      "value": "10-20 cm",
+      "value": "0.1 - 0.2",
       "reason": "T0-aCO2-10-20."
     },
     {

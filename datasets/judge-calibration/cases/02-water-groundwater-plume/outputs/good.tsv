@@ -1,10 +1,10 @@
 id	field_name	value	reason
 s1	ph	3.6	pH 3.6 and nitrate 9,800 mg per liter at W106; W106-2024-03.
-s2	ph	6.9	Background wells (pH 6.9); W301-2024-03.
+s2	ph	6.9	At W301 the pH was 6.9; W301-2024-03.
 s1	nitrate	9800 mg per liter	Nitrate 9,800 mg per liter at W106.
-s2	nitrate	below 1 mg per liter	Nitrate below 1 mg per liter at background wells.
+s2	nitrate	0.4 mg per liter	At W301 the pH was 6.9 and nitrate 0.4 mg per liter; W301-2024-03.
 	samp_collec_method	peristaltic pump after purging three well volumes	After purging three well volumes, using a peristaltic pump.
 	size_frac	0.2 micrometer	Filtered on site through 0.2 micrometer filters.
-	depth	7-12 m	Screened intervals were 7 to 12 m below ground surface.
+	depth	7 - 12	Screened intervals were 7 to 12 m below ground surface.
 	collection_date	2024-03	March 2024; the sample names carry 2024-03.
 	geo_loc_name	USA: Tennessee, Oak Ridge	A valley near Oak Ridge, Tennessee, USA.

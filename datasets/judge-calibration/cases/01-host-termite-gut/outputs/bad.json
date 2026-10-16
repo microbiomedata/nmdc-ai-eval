@@ -15,7 +15,7 @@
     {
       "id": "s1",
       "field_name": "host_body_site",
-      "value": "foregut",
+      "value": "foregut [UBERON:0001041]",
       "reason": "Gut communities."
     },
     {
@@ -38,7 +38,7 @@
     },
     {
       "id": null,
-      "field_name": "ecosystem",
+      "field_name": "samp_mat_process",
       "value": "USA: Georgia, Athens",
       "reason": "Athens, Georgia, USA."
     }

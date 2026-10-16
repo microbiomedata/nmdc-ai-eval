@@ -47,12 +47,6 @@
       "field_name": "collection_date",
       "value": "2023-09",
       "reason": "September 2023."
-    },
-    {
-      "id": null,
-      "field_name": "geo_loc_name",
-      "value": "USA: Tennessee, Oak Ridge",
-      "reason": "Oak Ridge, Tennessee, USA."
     }
   ],
   "model": null,

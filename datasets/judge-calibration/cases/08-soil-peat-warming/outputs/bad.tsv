@@ -1,7 +1,7 @@
 id	field_name	value	reason
 s2	air_temp_regm	+9 degrees Celsius above ambient	Warming treatment.
-s1	depth	10-20 cm	Sectioned at 10-20 cm.
-s2	depth	0-10 cm	Sectioned at 0-10 cm.
-	geo_loc_name	Canada: Ontario	Northern bogs of this kind are in Ontario.
+s1	depth	0.1 - 0.2	Sectioned at 10-20 cm.
+s2	depth	0 - 0.1	Sectioned at 0-10 cm.
+	geo_loc_name	Canada: Ontario, Kenora	Northern bogs of this kind are in Ontario.
 	lat_lon	47.50 -93.45	Site coordinates.
 	samp_store_temp	-20	Frozen within two hours.

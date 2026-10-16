@@ -3,13 +3,13 @@
     {
       "id": "s1",
       "field_name": "depth",
-      "value": "0.5 m",
+      "value": "0.5",
       "reason": "Surface (0.5 m)."
     },
     {
       "id": "s2",
       "field_name": "depth",
-      "value": "20 m",
+      "value": "20",
       "reason": "From 20 m."
     },
     {

@@ -3,8 +3,9 @@ fail	accuracy	2	host_taxid	s1	No taxon id is in the input, and 10090 is the hous
 fail	accuracy	3	host_body_site	s1	Hindguts were dissected, not foreguts.
 fail	accuracy	4	host_diet	s1	The log was oak, but the diet before dissection was pine wood shavings.
 fail	accuracy	5	host_life_stage	s1	The termites were workers.
+fail	factuality	5	host_life_stage	s1	The reason calls the termites immature insects; the input says workers.
 fail	accuracy	6	samp_store_temp		The input says -80.
-fail	relevancy	7	ecosystem		A place name belongs in geo_loc_name.
+fail	relevancy	7	samp_mat_process		A place name belongs in geo_loc_name, not in a processing field.
 fail	coherence				A termite host and the house mouse taxon id cannot describe one sample.
-fail	completeness				20 hindguts, May 2022 and Athens, Georgia are in the input and there is no samp_size, collection_date or geo_loc_name.
-open	accuracy	7	ecosystem		The value is true of the sample but belongs in geo_loc_name; rubric v1 does not say whether a misfiled value also fails accuracy.
+fail	completeness				May 2022 and Athens, Georgia are in the input and there is no collection_date or geo_loc_name.
+open	accuracy	7	samp_mat_process		The value is true of the sample but belongs in geo_loc_name, not in a processing field; rubric v1 does not say whether a misfiled value also fails accuracy.

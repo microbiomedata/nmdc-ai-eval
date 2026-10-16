@@ -1,4 +1,4 @@
 id	field_name	value	reason
-s2	agrochem_addition	urea; 60 kg N per hectare per year	Plots received 0 or 60 kg N per hectare per year as urea; EF-2018-N60-1 is an N60 plot.
-	depth	0-10 cm	Soil cores were taken from 0 to 10 cm depth.
+s2	agrochem_addition	urea;60 kg N per hectare per year;2023-04	Plots received 0 or 60 kg N per hectare per year as urea, applied in April 2023; EF-2018-N60-1 is an N60 plot.
+	depth	0 - 0.1	Soil cores were taken from 0 to 10 cm depth.
 	geo_loc_name	USA: Illinois, Urbana	The Energy Farm is the University of Illinois field site in Urbana, Illinois, USA.

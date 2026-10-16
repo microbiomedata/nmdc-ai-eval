@@ -1,3 +1,3 @@
 kind	criterion	row	field_name	id	why
 fail	factuality	1	fire	s1	The fire's size is not in the input.
-fail	accuracy	5	slope_gradient	s1	22.5 is a midpoint of a range across plots; the input gives no slope for s1.
+fail	accuracy	4	slope_gradient	s1	22.5 appears nowhere in the input; it is the midpoint of the stated range.
