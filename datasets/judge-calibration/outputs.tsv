@@ -25,7 +25,7 @@ case	grade	suggestions	expected_fails	open_questions	why
 08-soil-peat-warming	bad	6	11	2	Depths swapped, wrong treatment, wrong country with coordinates in the right one, wrong storage temperature, and no date.
 09-plant-populus-drought	good	7	0	0	host_common_name and host_taxid are left out because the input gives only the Latin name; see the moderate output.
 09-plant-populus-drought	moderate	8	1	4	This is the background-knowledge case. The taxon id and common name are correct and useful, and the rubric as written cannot pass them.
-09-plant-populus-drought	bad	7	12	0	Genotypes swapped, control treated as drought, facility and medium confused, and one sample described as both drought and control.
+09-plant-populus-drought	bad	7	13	0	Genotypes swapped, control treated as drought, facility and medium confused, and one sample described as both drought and control.
 10-soil-postfire	good	6	0	0	Slope is a range across plots, so no per-sample slope_gradient. Vegetation on the burned plot is not stated, so none is suggested for s1.
 10-soil-postfire	moderate	7	2	0	An invented midpoint and an invented fire size; everything else is right.
 10-soil-postfire	bad	8	10	2	Treatments applied to the reference plot, fire year used as sampling date, a note in a horizon field.

@@ -117,8 +117,8 @@ judge-calibration-dry-run case="04-soil-miscanthus-fertilization":
     uv run python datasets/judge-calibration/run_suggester.py datasets/judge-calibration/cases/{{case}} --dry-run
 
 # Send one judge-calibration case to the suggester's single-pass path and save its output
-judge-calibration-run case provider="gcp" model="gemini-2.5-flash":
-    uv run python datasets/judge-calibration/run_suggester.py datasets/judge-calibration/cases/{{case}} --provider {{provider}} --model {{model}}
+judge-calibration-run case provider="gcp" model="":
+    uv run python datasets/judge-calibration/run_suggester.py datasets/judge-calibration/cases/{{case}} --provider {{provider}} {{ if model != "" { "--model " + model } else { "" } }}
 
 # Field guidance eval: models × enrichment × verification → summary
 full-eval *args="":
