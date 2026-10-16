@@ -1,6 +1,6 @@
 case	grade	suggestions	expected_fails	open_questions	why
 01-host-termite-gut	good	7	0	0	Every value is a phrase from the input.
-01-host-termite-gut	moderate	6	2	1	A background common name in a reason, a coarser diet value, and a missing life stage.
+01-host-termite-gut	moderate	6	1	2	A background common name in a reason, a coarser diet value, and a missing life stage.
 01-host-termite-gut	bad	7	9	1	The oak-versus-pine diet is the one to watch; the rest are plain contradictions.
 02-water-groundwater-plume	good	9	0	0	Well-specific values follow the well names.
 02-water-groundwater-plume	moderate	8	2	0	One reason explains the contamination with a source the input never gives, and depth is missing.
@@ -15,7 +15,7 @@ case	grade	suggestions	expected_fails	open_questions	why
 05-water-activated-sludge	moderate	9	2	1	An influent value applied to a basin sample, a process explanation in a reason, and a missing processing step.
 05-water-activated-sludge	bad	8	11	1	Zones swapped, a location in a method field, wrong city, two dates for one sample.
 06-sediment-estuary	good	9	0	0	tot_org_carb is given only as a range across all slices, so no per-sample value is suggested.
-06-sediment-estuary	moderate	10	1	1	A range endpoint presented as one sample's value, and a reason that explains more than the input says.
+06-sediment-estuary	moderate	10	2	0	A range endpoint presented as one sample's value, and a reason that explains more than the input says.
 06-sediment-estuary	bad	6	9	2	Redox states swapped, an unsupported sediment type, wrong state with contradicting coordinates, and no method.
 07-air-transit	good	5	0	0	Temperature and humidity are given only as a mean across stations, so no per-sample value is suggested.
 07-air-transit	moderate	6	2	3	The group-mean question and a reason that generalizes.

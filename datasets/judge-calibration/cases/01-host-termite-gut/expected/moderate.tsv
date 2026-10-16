@@ -1,4 +1,4 @@
 kind	criterion	row	field_name	id	why
-fail	factuality	1	host_common_name	s1	Eastern subterranean termite is not in the input.
 fail	completeness				Worker is in the input and there is no host_life_stage.
+open	factuality	1	host_common_name	s1	The reason gives the common name eastern subterranean termite, which the input does not; same background-knowledge question as the Populus common name.
 open	accuracy	3	host_diet	s1	Wood is supported but less specific than pine wood shavings. Does a true but coarser value pass?
