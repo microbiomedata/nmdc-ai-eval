@@ -16,6 +16,7 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import os
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -106,6 +107,9 @@ def main() -> int:
     from dotenv import load_dotenv
 
     load_dotenv(a.env)
+    # This repo's .env.example names the CBORG key CBORG_API_KEY; the suggester's LLMClient reads CBORG_KEY.
+    if "CBORG_KEY" not in os.environ and "CBORG_API_KEY" in os.environ:
+        os.environ["CBORG_KEY"] = os.environ["CBORG_API_KEY"]
     from nmdc_metadata_suggestor_ai_tool.llm_client import LLMClient
     from nmdc_metadata_suggestor_ai_tool.recommendation_pipeline import run_recommendation_pipeline
 
