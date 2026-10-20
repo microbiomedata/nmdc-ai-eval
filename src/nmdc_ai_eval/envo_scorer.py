@@ -1,6 +1,6 @@
 """Ontology-aware scorer for env_broad_scale predictions.
 
-Enriches llm-matrix results with:
+Enriches evaluation runner results with:
 - Parse validation (label [CURIE] format)
 - CURIE-label consistency via oaklib
 - Ontology relationship (exact/ancestor/descendant/unrelated)
@@ -40,9 +40,8 @@ Future work
 - LinkML schema validation: validate predictions against submission-schema enums
   directly via linkml-runtime SchemaView, rather than the bundled TSV snapshots.
   See `validate_via_linkml()` stub below.
-- Response time and cost tracking: llm-matrix does not currently expose these in
-  its results. When it does (or via wrapper timing), add response_time_s and
-  est_cost_usd columns. See `_add_timing_cost_columns()` below.
+- Response time and cost tracking are captured by the suite runner and preserved
+    by this post-hoc scorer.
 """
 
 from __future__ import annotations
@@ -357,7 +356,7 @@ def compute_ontology_score(
 def _add_timing_cost_columns(result: dict[str, object], source_columns: set[str]) -> None:
     """Ensure timing/cost columns exist in the scored output.
 
-    If run_suite.py already captured these from the llm logs DB, they will
+    If run_suite.py already captured these from llm responses, they will
     be in the source TSV and preserved by pd.concat — this function is a
     no-op in that case. If the source TSV lacks them (e.g. older results),
     this adds None placeholders so the output schema is stable.
@@ -374,7 +373,7 @@ def score_envo_results(
 ) -> "pd.DataFrame":
     """Score env_broad_scale predictions with ontology-aware metrics.
 
-    Reads an llm-matrix results TSV, adds scoring columns, writes enriched TSV.
+    Reads a suite runner results TSV, adds scoring columns, writes enriched TSV.
     """
     import pandas as pd
 

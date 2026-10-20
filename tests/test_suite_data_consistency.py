@@ -3,7 +3,7 @@
 import csv
 from pathlib import Path
 
-from llm_matrix.schema import load_suite  # type: ignore[import-untyped]
+from nmdc_ai_eval.suite import Suite
 
 DATASETS_DIR = Path(__file__).parent.parent / "datasets"
 TSV_PATH = DATASETS_DIR / "submission-metadata-prediction" / "eval_input_target_pairs.tsv"
@@ -27,7 +27,7 @@ def test_sampledata_suite_ideals_match_tsv() -> None:
     """Every ideal in a sampledata suite must be a sampleData value in the TSV."""
     tsv_values = _load_tsv_values("sampleData")
     for suite_path in _find_suites("sampledata-suite*.yaml"):
-        suite = load_suite(suite_path)
+        suite = Suite.load(suite_path)
         for i, case in enumerate(suite.cases):
             if case.ideal:
                 assert case.ideal in tsv_values, (
@@ -39,7 +39,7 @@ def test_envo_suite_ideals_match_tsv() -> None:
     """Every ideal in an envo suite must be an env_broad_scale value in the TSV."""
     tsv_values = _load_tsv_values("env_broad_scale")
     for suite_path in _find_suites("ebs-suite*.yaml"):
-        suite = load_suite(suite_path)
+        suite = Suite.load(suite_path)
         for i, case in enumerate(suite.cases):
             if case.ideal:
                 assert case.ideal in tsv_values, (
@@ -57,7 +57,7 @@ def test_suite_original_inputs_match_tsv() -> None:
     with open(TSV_PATH, newline="") as f:
         tsv_study_names = {row["study_name"] for row in csv.DictReader(f, delimiter="\t")}
     for suite_path in _find_suites():
-        suite = load_suite(suite_path)
+        suite = Suite.load(suite_path)
         for i, case in enumerate(suite.cases):
             if case.original_input and "study_name" in case.original_input:
                 # Skip suites whose cases come from MongoDB, not the TSV

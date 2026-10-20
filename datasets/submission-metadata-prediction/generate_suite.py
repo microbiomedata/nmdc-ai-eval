@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate llm-matrix suite YAML from the eval TSV.
+"""Generate evaluation suite YAML from the eval TSV.
 
 Samples N rows per sampleData value and writes a single suite YAML
 with all models from models.yaml.
