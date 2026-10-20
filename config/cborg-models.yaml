@@ -1,0 +1,44 @@
+# CBORG (LBL's OpenAI-compatible proxy) model aliases for the llm tool.
+#
+# `just setup-cborg` merges these into extra-openai-models.yaml in llm's user directory
+# (the directory holding the keys.json that `uv run llm keys path` prints) and stores CBORG_API_KEY from .env in the
+# llm key store as `cborg`. After that, any cborg/* name below works in a suite run.
+# Full catalog: `just probe-tiers --list-cborg-models`. See docs/auth.md.
+#
+# Caution: CBORG cuts off all models once a user without a project ID reaches the $50 cap.
+- model_id: cborg/gpt-4o-mini
+  model_name: gpt-4o-mini
+  api_base: https://api.cborg.lbl.gov/v1
+  api_key_name: cborg
+- model_id: cborg/gpt-4.1-mini
+  model_name: gpt-4.1-mini
+  api_base: https://api.cborg.lbl.gov/v1
+  api_key_name: cborg
+- model_id: cborg/gpt-5-mini
+  model_name: gpt-5-mini
+  api_base: https://api.cborg.lbl.gov/v1
+  api_key_name: cborg
+- model_id: cborg/claude-haiku-4-5
+  model_name: claude-haiku-4-5
+  api_base: https://api.cborg.lbl.gov/v1
+  api_key_name: cborg
+- model_id: cborg/claude-sonnet-4-6
+  model_name: claude-sonnet-4-6
+  api_base: https://api.cborg.lbl.gov/v1
+  api_key_name: cborg
+- model_id: cborg/gemini-2.5-flash
+  model_name: gemini-2.5-flash
+  api_base: https://api.cborg.lbl.gov/v1
+  api_key_name: cborg
+- model_id: cborg/gemini-2.5-pro
+  model_name: gemini-2.5-pro
+  api_base: https://api.cborg.lbl.gov/v1
+  api_key_name: cborg
+- model_id: cborg/llama-4-scout
+  model_name: meta/llama-4-scout
+  api_base: https://api.cborg.lbl.gov/v1
+  api_key_name: cborg
+- model_id: cborg/gpt-oss-120b
+  model_name: lbl/gpt-oss-120b
+  api_base: https://api.cborg.lbl.gov/v1
+  api_key_name: cborg

@@ -17,7 +17,15 @@ import yaml
 from dotenv import load_dotenv
 
 MODELS_YAML = Path(__file__).parent.parent / "datasets" / "models.yaml"
-LLM_KEYS_PATH = Path.home() / ".config" / "io.datasette.llm" / "keys.json"
+
+
+def _llm_keys_path() -> Path:
+    """llm's keys.json, the file `uv run llm keys path` prints.
+
+    Resolved when called, after .env is loaded, so an LLM_USER_PATH set there is honored.
+    """
+    return Path(llm.user_dir()) / "keys.json"  # type: ignore[no-untyped-call]
+
 
 # Env vars the llm-* plugins typically read when the key store is empty.
 _LLM_ENV_VARS = {
@@ -34,8 +42,9 @@ def _llm_key_source(provider: str) -> str:
     resolution order. Returns 'llm-store', 'env', or 'none'.
     """
     with contextlib.suppress(OSError, json.JSONDecodeError):
-        if LLM_KEYS_PATH.exists():
-            with open(LLM_KEYS_PATH) as f:
+        keys_path = _llm_keys_path()
+        if keys_path.exists():
+            with open(keys_path) as f:
                 keys = json.load(f)
             if keys.get(provider):
                 return "llm-store"
@@ -106,6 +115,32 @@ def test_cborg_credentials() -> list[str]:
     return failures
 
 
+def test_cborg_llm_route() -> list[str]:
+    """Test one cborg/* alias through llm, the route suite runs use. Returns list of failures."""
+    # An llm alias, which can differ from the CBORG server name in CBORG_TEST_MODEL
+    # (cborg/llama-4-scout is meta/llama-4-scout on the server).
+    name = os.environ.get("CBORG_TEST_ALIAS", "cborg/gpt-4o-mini")
+    # With CBORG_API_KEY set, a missing setup is a failure: suite runs would not find cborg/* names.
+    status = "FAIL" if os.environ.get("CBORG_API_KEY") else "SKIP"
+    problem = None
+    try:
+        model = llm.get_model(name)
+    except llm.UnknownModelError:
+        problem = "alias not registered"
+    if problem is None and _llm_key_source("cborg") != "llm-store":
+        problem = "no `cborg` key in the llm key store"
+    if problem:
+        print(f"  {status:4s}  {name:45s} -> {problem}; run `just setup-cborg`")
+        return [name] if status == "FAIL" else []
+    try:
+        text = str(model.prompt("Reply with only: OK")).strip()[:20]
+        print(f"  OK    {name:45s} [key: llm-store] -> {text}")
+        return []
+    except Exception as e:
+        print(f"  FAIL  {name:45s} [key: llm-store] -> {str(e)[:200]}")
+        return [name]
+
+
 def test_gcp_credentials() -> list[str]:
     """Test GCP Vertex AI credentials from .env. Returns list of failures."""
     failures: list[str] = []
@@ -172,6 +207,7 @@ def main() -> int:
 
     print("\nInstitutional providers (.env credentials):")
     failures += test_cborg_credentials()
+    failures += test_cborg_llm_route()
     failures += test_gcp_credentials()
     failures += test_pnnl_credentials()
 

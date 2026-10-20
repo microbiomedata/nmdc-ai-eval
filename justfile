@@ -35,6 +35,11 @@ audit:
 verify-auth:
     uv run python scripts/verify_auth.py
 
+# Make cborg/* model names work in suite runs: merge config/cborg-models.yaml into llm's
+# extra-openai-models.yaml and store CBORG_API_KEY from .env as llm's `cborg` key. Safe to rerun.
+setup-cborg:
+    uv run python scripts/setup_cborg.py
+
 # Probe which model names our Vertex SA+project can actually reach
 probe-vertex-garden:
     uv run python scripts/probe_vertex_garden.py
@@ -115,6 +120,10 @@ full-eval *args="":
 compare-pipeline-results *args="":
     uv run python datasets/field-guidance/compare_pipeline_results.py {{ args }}
 
+# Env triad with vs. without supplements on the phyllosphere study (runs the suggestor pipeline; needs Vertex creds)
+eval-supplement-triad *args="":
+    uv run python datasets/supplement-triad/run_supplement_eval.py {{ args }}
+
 # End-to-end value prediction evals (no DOI/PDF)
 eval-sampledata: clean-sampledata-outputs generate-sampledata run-sampledata
 eval-ebs: clean-ebs-outputs generate-ebs run-ebs score-ebs
@@ -152,6 +161,9 @@ clean-field-guidance-outputs:
 clean-env-triad-outputs:
     rm -rf datasets/env-triad-prediction/env-triad-suite-output/
 
-clean-outputs: clean-sampledata-outputs clean-ebs-outputs clean-field-guidance-outputs clean-env-triad-outputs
+clean-supplement-triad-outputs:
+    rm -rf datasets/supplement-triad/pipeline-results/
+
+clean-outputs: clean-sampledata-outputs clean-ebs-outputs clean-field-guidance-outputs clean-env-triad-outputs clean-supplement-triad-outputs
 
 clean-all: clean-cache clean-suites clean-outputs
