@@ -40,6 +40,14 @@ def test_parse_keeps_unbracketed_text_as_label_without_curie() -> None:
     assert parse_triad_value("leaf surface") == [TriadTerm(label="leaf surface", curie="")]
 
 
+def test_parse_reads_a_bare_curie_as_a_term_without_label() -> None:
+    # GOLD-imported biosamples store raw values this way, e.g. the GEODES lakes study.
+    (term,) = parse_triad_value("ENVO_01000252")
+    assert term == TriadTerm(label="", curie="ENVO:01000252")
+    assert term.value == "ENVO:01000252"
+    assert parse_triad_value("PO:0025025") == [TriadTerm(label="", curie="PO:0025025")]
+
+
 def test_parse_ignores_empty_and_na_cells() -> None:
     assert parse_triad_value("") == []
     assert parse_triad_value(None) == []

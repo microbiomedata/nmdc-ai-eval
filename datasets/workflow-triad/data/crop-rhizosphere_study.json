@@ -1,0 +1,52 @@
+{
+ "description": "Plant associated metagenomes--Microbial community diversity and host control of community assembly across model and emerging plant ecological genomics systems",
+ "gold_study_identifiers": [
+  "gold:Gs0053073"
+ ],
+ "id": "nmdc:sty-11-prtb4s28",
+ "name": "Arabidopsis, maize, boechera and miscanthus rhizosphere microbial communities from different US locations",
+ "study_category": "research_study",
+ "title": "Arabidopsis, maize, boechera and miscanthus rhizosphere microbial communities from different US locations",
+ "type": "nmdc:Study",
+ "jgi_portal_study_identifiers": [
+  "jgi.proposal:584"
+ ],
+ "associated_dois": [
+  {
+   "doi_value": "doi:10.25345/C5JS9HJ9J",
+   "doi_provider": "massive",
+   "doi_category": "dataset_doi",
+   "type": "nmdc:Doi"
+  },
+  {
+   "doi_value": "doi:10.25345/C58C9RF3K",
+   "doi_provider": "massive",
+   "doi_category": "dataset_doi",
+   "type": "nmdc:Doi"
+  },
+  {
+   "doi_value": "doi:10.46936/10.25585/60000944",
+   "doi_provider": "jgi",
+   "doi_category": "award_doi",
+   "type": "nmdc:Doi"
+  }
+ ],
+ "has_credit_associations": [
+  {
+   "applied_roles": [
+    "Principal Investigator"
+   ],
+   "type": "prov:Association",
+   "applies_to_agent": {
+    "name": "Jeff Dangl",
+    "orcid": "orcid:0000-0003-3199-8654",
+    "email": "dangl@email.unc.edu",
+    "type": "nmdc:Person"
+   }
+  }
+ ],
+ "provenance_metadata": {
+  "type": "nmdc:ProvenanceMetadata",
+  "mod_date": "2026-08-26T21:18:45Z"
+ }
+}
