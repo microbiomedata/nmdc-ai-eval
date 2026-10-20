@@ -1,0 +1,42 @@
+{
+  "metadata_fields": [
+    {
+      "id": "s1",
+      "field_name": "agrochem_addition",
+      "value": "urea;60 kg N per hectare per year;2023-04",
+      "reason": "All plots were fertilized with urea."
+    },
+    {
+      "id": null,
+      "field_name": "depth",
+      "value": "0 - 0.3",
+      "reason": "Standard agricultural soil cores are 30 cm."
+    },
+    {
+      "id": "s1",
+      "field_name": "tot_nitro_content",
+      "value": "0.15 percent",
+      "reason": "Total nitrogen was measured at 0.15 percent."
+    },
+    {
+      "id": null,
+      "field_name": "samp_collec_method",
+      "value": "July",
+      "reason": "Sampling took place in July."
+    },
+    {
+      "id": null,
+      "field_name": "geo_loc_name",
+      "value": "USA: Illinois, Urbana",
+      "reason": "The Energy Farm in Urbana, Illinois, USA."
+    },
+    {
+      "id": null,
+      "field_name": "lat_lon",
+      "value": "35.90 -79.05",
+      "reason": "Coordinates of the field site."
+    }
+  ],
+  "model": null,
+  "access_provider": null
+}

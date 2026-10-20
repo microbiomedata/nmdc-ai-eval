@@ -1,0 +1,10 @@
+id	field_name	value	reason
+s1	depth	0.5	Surface (0.5 m).
+s2	depth	20	From 20 m.
+s1	temp	24.1	The surface was 24.1 degrees Celsius.
+s2	temp	8.4	The 20 m sample was at 8.4 degrees Celsius.
+s2	diss_oxygen	0.1 mg per liter	0.1 mg per liter dissolved oxygen, typical of the late-summer hypolimnion of a dimictic lake.
+s2	oxy_stat_samp	anaerobic	The 20 m sample was anoxic.
+	size_frac	2 L	Two liters were filtered.
+	collection_date	2021-08	LK-2021-08.
+	geo_loc_name	USA: Wisconsin, Dane County	Dane County, Wisconsin, USA.

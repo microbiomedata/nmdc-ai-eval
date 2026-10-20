@@ -1,0 +1,54 @@
+{
+  "metadata_fields": [
+    {
+      "id": "s1",
+      "field_name": "host_genotype",
+      "value": "BESC-97",
+      "reason": "BESC97-drought-rhizo."
+    },
+    {
+      "id": "s2",
+      "field_name": "host_genotype",
+      "value": "GW-9947",
+      "reason": "GW9947-control-root."
+    },
+    {
+      "id": "s1",
+      "field_name": "watering_regm",
+      "value": "30 percent of field capacity for 21 days",
+      "reason": "Drought plants were held at 30 percent of field capacity for 21 days."
+    },
+    {
+      "id": "s2",
+      "field_name": "watering_regm",
+      "value": "watered to field capacity every two days",
+      "reason": "Controls were watered to field capacity every two days."
+    },
+    {
+      "id": null,
+      "field_name": "growth_facil",
+      "value": "greenhouse",
+      "reason": "Grown in a greenhouse."
+    },
+    {
+      "id": null,
+      "field_name": "host_taxid",
+      "value": "NCBITaxon:3694",
+      "reason": "Populus trichocarpa is NCBI taxon 3694."
+    },
+    {
+      "id": null,
+      "field_name": "host_common_name",
+      "value": "black cottonwood",
+      "reason": "Populus trichocarpa is black cottonwood."
+    },
+    {
+      "id": null,
+      "field_name": "collection_date",
+      "value": "2023-09",
+      "reason": "September 2023."
+    }
+  ],
+  "model": null,
+  "access_provider": null
+}
