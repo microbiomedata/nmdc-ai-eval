@@ -124,6 +124,10 @@ compare-pipeline-results *args="":
 eval-supplement-triad *args="":
     uv run python datasets/supplement-triad/run_supplement_eval.py {{ args }}
 
+# Full env triad workflow (DOIs, PDFs, gate) vs samples alone on three NMDC studies (needs Vertex creds)
+eval-workflow-triad *args="":
+    uv run python datasets/workflow-triad/run_workflow_eval.py {{ args }}
+
 # End-to-end value prediction evals (llm-matrix, no DOI/PDF)
 eval-sampledata: clean-sampledata-outputs generate-sampledata run-sampledata
 eval-ebs: clean-ebs-outputs generate-ebs run-ebs score-ebs
@@ -168,6 +172,9 @@ clean-env-triad-outputs:
 clean-supplement-triad-outputs:
     rm -rf datasets/supplement-triad/pipeline-results/
 
-clean-outputs: clean-sampledata-outputs clean-ebs-outputs clean-field-guidance-outputs clean-env-triad-outputs clean-supplement-triad-outputs
+clean-workflow-triad-outputs:
+    rm -rf datasets/workflow-triad/pipeline-results/
+
+clean-outputs: clean-sampledata-outputs clean-ebs-outputs clean-field-guidance-outputs clean-env-triad-outputs clean-supplement-triad-outputs clean-workflow-triad-outputs
 
 clean-all: clean-cache clean-suites clean-outputs
