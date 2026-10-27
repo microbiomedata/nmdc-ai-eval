@@ -1,0 +1,8 @@
+id	field_name	value	reason
+s1	host_genotype	BESC-97	BESC-97 (drought tolerant); BESC97-drought-rhizo.
+s2	host_genotype	GW-9947	GW-9947 (drought susceptible); GW9947-control-root.
+s1	watering_regm	30 percent of field capacity for 21 days	Half of the plants were held at 30 percent of field capacity for 21 days; drought in BESC97-drought-rhizo.
+s2	watering_regm	watered to field capacity every two days	Controls were watered to field capacity every two days; control in GW9947-control-root.
+	growth_facil	greenhouse	Grown in a greenhouse.
+	collection_date	2023-09	Sampled in September 2023.
+	geo_loc_name	USA: Tennessee, Oak Ridge	A greenhouse in Oak Ridge, Tennessee, USA.

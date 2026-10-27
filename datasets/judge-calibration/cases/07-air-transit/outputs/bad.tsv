@@ -1,0 +1,9 @@
+id	field_name	value	reason
+s1	ventilation_type	windows open	Open windows.
+s2	ventilation_type	mechanical ventilation	Mechanical ventilation.
+s2	temp	19	19 degrees Celsius.
+	samp_collec_method	filter cassette	Air was sampled for 30 minutes.
+	collection_date	2022-10-15	October 2022.
+	elev	1.5	1.5 m above the floor.
+	geo_loc_name	USA: Ohio, Cleveland	A mid-sized city.
+	lat_lon	40.44 -79.99	City coordinates.

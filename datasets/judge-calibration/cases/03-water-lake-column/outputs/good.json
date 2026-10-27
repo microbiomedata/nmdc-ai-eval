@@ -1,0 +1,66 @@
+{
+  "metadata_fields": [
+    {
+      "id": "s1",
+      "field_name": "depth",
+      "value": "0.5",
+      "reason": "From the surface (0.5 m); LK-2021-08-0.5m."
+    },
+    {
+      "id": "s2",
+      "field_name": "depth",
+      "value": "20",
+      "reason": "From 20 m; LK-2021-08-20m."
+    },
+    {
+      "id": "s1",
+      "field_name": "temp",
+      "value": 24.1,
+      "reason": "In August the surface was 24.1 degrees Celsius."
+    },
+    {
+      "id": "s2",
+      "field_name": "temp",
+      "value": 8.4,
+      "reason": "In August the 20 m sample was at 8.4 degrees Celsius."
+    },
+    {
+      "id": "s2",
+      "field_name": "diss_oxygen",
+      "value": "0.1 mg per liter",
+      "reason": "The 20 m sample was anoxic (0.1 mg per liter dissolved oxygen)."
+    },
+    {
+      "id": "s2",
+      "field_name": "oxy_stat_samp",
+      "value": "anaerobic",
+      "reason": "The 20 m sample was anoxic."
+    },
+    {
+      "id": null,
+      "field_name": "size_frac",
+      "value": "0.22 micrometer",
+      "reason": "Filtered through 0.22 micrometer polyethersulfone filters."
+    },
+    {
+      "id": null,
+      "field_name": "samp_collec_method",
+      "value": "Van Dorn sampler",
+      "reason": "Using a Van Dorn sampler."
+    },
+    {
+      "id": null,
+      "field_name": "collection_date",
+      "value": "2021-08",
+      "reason": "The sample names carry 2021-08 and the August values are given."
+    },
+    {
+      "id": null,
+      "field_name": "geo_loc_name",
+      "value": "USA: Wisconsin, Dane County",
+      "reason": "A eutrophic lake in Dane County, Wisconsin, USA."
+    }
+  ],
+  "model": null,
+  "access_provider": null
+}
