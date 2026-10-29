@@ -208,4 +208,5 @@ cases:
 
     assert result.exit_code != 0
     assert "boom" in result.output
-    assert not (tmp_path / "out" / "results.tsv").exists()
+    assert "Incomplete run: 1 of 2 results" in result.output
+    assert len((tmp_path / "out" / "results.tsv").read_text().splitlines()) == 2

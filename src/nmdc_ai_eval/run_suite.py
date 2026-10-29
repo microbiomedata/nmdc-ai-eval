@@ -496,9 +496,9 @@ def main(suite_path: Path, output_dir: Path | None = None, scorer_model: str | N
             if direct is not None:
                 score = direct
         except Exception as exc:  # noqa: BLE001
-            raise click.ClickException(
-                f"Error during eval: {exc}\nCheck model names and API keys. Run: uv run llm models list"
-            ) from exc
+            click.echo(f"\nError during eval: {exc}", err=True)
+            click.echo("Check model names and API keys. Run: uv run llm models list", err=True)
+            break
 
         row = _flat_result(case, effective_params, template, prompt, system, response_text, score, evaluation_message)
         row["input_tokens"] = sum(x for x in (input_tokens, judge_input_tokens) if x is not None) or None
