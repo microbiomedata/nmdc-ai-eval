@@ -28,7 +28,6 @@ class TestCase(StrictModel):
 
 class Matrix(StrictModel):
     hyperparameters: dict[str, list[Any]]
-    exclude: "Matrix | None" = None
 
 
 class ModelInfo(StrictModel):
