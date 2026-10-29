@@ -1,0 +1,60 @@
+grading_scale:
+  4: "Fully correct / grounded / relevant / complete / coherent. Accept as-is."
+  3: "Minor issue. Accept with a trivial edit."
+  2: "Substantive problem. Needs a real edit or investigation."
+  1: "Wrong, fabricated, or unusable. Reject."
+
+metrics:
+  - name: accuracy
+    description: >
+      Is this the correct value for this slot and scope, at the most specific
+      level the evidence supports, with correct units and format? For
+      abstentions, was abstaining correct?
+    score_anchors:
+      4: "Correct, most specific level supported, correct units/format; or a correct abstention."
+      3: "Correct but slightly generic, or a trivially fixable format issue."
+      2: "Substantially too generic, over-specific, or partly wrong; or abstained when evidence weakly supported a value."
+      1: "Wrong value/unit/sample/slot; or abstained when the materials clearly state it."
+
+  - name: factuality
+    description: >
+      Is every claim in the reason traceable to the materials or to verifiable
+      fact? This means no fabricated quotes, attributions, ontology terms, or
+      ontology facts.
+    score_anchors:
+      4: "All claims verified."
+      3: "Minor imprecision."
+      2: "Mainly unverifiable inference."
+      1: "Fabricated or contradicts the materials."
+
+  - name: relevancy
+    description: >
+      Is the slot appropriate for this submission and package, does the value
+      answer what the slot asks, and is the reason on-topic?
+    score_anchors:
+      4: "Fully relevant."
+      3: "Marginal value or minor tangents."
+      2: "Weakly applicable or related concept."
+      1: "Not applicable."
+
+  - name: completeness
+    description: >
+      Does the value capture everything the materials support for this slot,
+      such as units, steps, and CURIE plus label?
+    null_when: "The suggestion is an abstention."
+    score_anchors:
+      4: "All supported information included."
+      3: "Minor detail missing."
+      2: "Significant information missing."
+      1: "Most information ignored."
+
+  - name: coherence
+    description: >
+      Does the reasoning validly support the value? Is it consistent with
+      related slots (env triad nesting, depth, location) and with the input
+      data, and are input conflicts flagged?
+    score_anchors:
+      4: "Valid, consistent, conflicts flagged."
+      3: "Small gap."
+      2: "Weak or partly invalid inference, or mild inconsistency."
+      1: "Doesn't follow, contradicts related slots, or builds on an unflagged conflict."
