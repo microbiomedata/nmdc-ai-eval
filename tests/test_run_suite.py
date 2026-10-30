@@ -172,7 +172,7 @@ cases:
     get_model.assert_not_called()
 
 
-def test_main_aborts_without_writing_partial_results_on_failure(tmp_path) -> None:
+def test_main_aborts_while_writing_partial_results_on_failure(tmp_path) -> None:
     suite_path = tmp_path / "suite.yaml"
     suite_path.write_text(
         """name: test-suite
