@@ -95,13 +95,13 @@ just eval-sampledata     # sampleData: 9 cases × 5 models (smoke test)
 
 Fetches submission documents from the authenticated NMDC API, runs the
 production suggestor pipeline, and scores its response using an LLM judge.
-Add IDs to [`datasets/submission-judge/submission-ids.txt`](datasets/submission-judge/submission-ids.txt).
-The [`datasets/submission-judge/judge-rubric.yaml`](datasets/submission-judge/judge-rubric.yaml)
+Add IDs to [`datasets/llm-judge/submission-ids.txt`](datasets/llm-judge/submission-ids.txt).
+The [`datasets/llm-judge/judge-rubric.yaml`](datasets/llm-judge/judge-rubric.yaml)
 contains the expert-defined metrics and 1–4 criteria. Completeness is null for
 abstentions and excluded from the mean score in those cases.
 
 ```bash
-just eval-submission-judge
+just eval-llm-judge
 ```
 
 ### Cost estimation

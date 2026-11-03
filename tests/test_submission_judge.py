@@ -12,8 +12,9 @@ from unittest.mock import MagicMock, patch
 import pytest
 import requests
 
-from nmdc_ai_eval.submission_judge import (
+from nmdc_ai_eval.llm_judge import (
     SubmissionApiClient,
+    _submission_sample_records,
     build_judge_system_prompt,
     evaluate_submission,
     load_rubric,
@@ -21,6 +22,28 @@ from nmdc_ai_eval.submission_judge import (
     parse_judge_response,
     resolve_suggestor_provider,
 )
+
+
+def test_submission_sample_records_match_data_suffix_and_assign_row_ids() -> None:
+    submission = {
+        "metadata_submission": {
+            "packageName": ["soil"],
+            "sampleData": {
+                "data": {
+                    "soil_data": [
+                        {"samp_name": "sample-a", "depth": "0-10 cm"},
+                        {"id": "sample-b", "samp_name": "sample-b"},
+                    ]
+                }
+            },
+        }
+    }
+
+    assert _submission_sample_records(submission, "soil") == [
+        {"id": "0", "samp_name": "sample-a", "depth": "0-10 cm"},
+        {"id": "sample-b", "samp_name": "sample-b"},
+    ]
+
 
 RUBRIC = {
     "metrics": [
@@ -57,7 +80,7 @@ def _response(payload: object) -> MagicMock:
 
 def test_fetch_submission_exchanges_refresh_token_then_uses_access_token() -> None:
     with patch(
-        "nmdc_ai_eval.submission_judge.requests.request",
+        "nmdc_ai_eval.llm_judge.requests.request",
         side_effect=[
             _response({"access_token": "access-token"}),
             _response({"id": "nmdc:sub-1", "metadata_submission": {}}),
@@ -89,7 +112,7 @@ def test_fetch_submission_normalizes_direct_api_shape_for_suggestor() -> None:
         ],
     }
     with patch(
-        "nmdc_ai_eval.submission_judge.requests.request",
+        "nmdc_ai_eval.llm_judge.requests.request",
         side_effect=[
             _response({"access_token": "access-token"}),
             _response(direct_submission),
@@ -123,7 +146,7 @@ def test_api_client_surfaces_http_error_body_and_redacts_refresh_token() -> None
     response = MagicMock(status_code=403, text='{"detail":"Invalid refresh-token"}')
     error = requests.HTTPError("Denied", response=response)
     with (
-        patch("nmdc_ai_eval.submission_judge.requests.request", side_effect=error),
+        patch("nmdc_ai_eval.llm_judge.requests.request", side_effect=error),
         pytest.raises(RuntimeError, match=r'HTTP 403\. Response body: \{"detail":"Invalid \[REDACTED\]"\}'),
     ):
         api.fetch_submission("submission-1")
@@ -133,21 +156,21 @@ def test_api_client_truncates_long_http_error_body() -> None:
     response = MagicMock(status_code=403, text="x" * 2000)
     error = requests.HTTPError("Denied", response=response)
     with (
-        patch("nmdc_ai_eval.submission_judge.requests.request", side_effect=error),
+        patch("nmdc_ai_eval.llm_judge.requests.request", side_effect=error),
         pytest.raises(RuntimeError, match=r"\.\.\. \[truncated\]"),
     ):
         SubmissionApiClient("https://data.example.org", "refresh-token").fetch_submission("id")
 
 
 def test_api_client_rejects_non_object_json_response() -> None:
-    with patch("nmdc_ai_eval.submission_judge.requests.request", return_value=_response([])):
+    with patch("nmdc_ai_eval.llm_judge.requests.request", return_value=_response([])):
         api = SubmissionApiClient("https://data.example.org", "refresh-token")
         with pytest.raises(ValueError, match="not an object"):
             api.fetch_submission("submission-1")
 
 
 def test_api_client_rejects_refresh_response_without_access_token() -> None:
-    with patch("nmdc_ai_eval.submission_judge.requests.request", return_value=_response({})):
+    with patch("nmdc_ai_eval.llm_judge.requests.request", return_value=_response({})):
         api = SubmissionApiClient("https://data.example.org", "refresh-token")
         with pytest.raises(ValueError, match="did not contain an access token"):
             api.fetch_submission("submission-1")
@@ -155,7 +178,7 @@ def test_api_client_rejects_refresh_response_without_access_token() -> None:
 
 def test_api_client_rejects_submission_without_metadata_document() -> None:
     with patch(
-        "nmdc_ai_eval.submission_judge.requests.request",
+        "nmdc_ai_eval.llm_judge.requests.request",
         side_effect=[_response({"access_token": "access-token"}), _response({"id": "submission-1"})],
     ):
         api = SubmissionApiClient("https://data.example.org", "refresh-token")
@@ -165,7 +188,7 @@ def test_api_client_rejects_submission_without_metadata_document() -> None:
 
 def test_api_client_debug_logs_response_and_redacts_token_fields(capsys: pytest.CaptureFixture[str]) -> None:
     with patch(
-        "nmdc_ai_eval.submission_judge.requests.request",
+        "nmdc_ai_eval.llm_judge.requests.request",
         return_value=_response({"access_token": "secret-access-token", "message": "ready"}),
     ):
         api = SubmissionApiClient("https://data.example.org", "secret-refresh-token", debug=True)
@@ -183,7 +206,7 @@ def test_api_client_debug_logs_response_shape_on_invalid_submission(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
     with patch(
-        "nmdc_ai_eval.submission_judge.requests.request",
+        "nmdc_ai_eval.llm_judge.requests.request",
         side_effect=[
             _response({"access_token": "access-token"}),
             _response({"id": "submission-1", "error": "not found"}),
@@ -200,7 +223,7 @@ def test_api_client_debug_logs_response_shape_on_invalid_submission(
 
 def test_api_client_reuses_access_token_until_near_expiry() -> None:
     with patch(
-        "nmdc_ai_eval.submission_judge.requests.request",
+        "nmdc_ai_eval.llm_judge.requests.request",
         side_effect=[
             _response({"access_token": "access-token"}),
             _response({"id": "first", "metadata_submission": {}}),
@@ -217,11 +240,11 @@ def test_api_client_reuses_access_token_until_near_expiry() -> None:
 
 
 def test_api_client_refreshes_access_token_before_expiry() -> None:
-    from nmdc_ai_eval import submission_judge
+    from nmdc_ai_eval import llm_judge
 
     with (
         patch(
-            "nmdc_ai_eval.submission_judge.requests.request",
+            "nmdc_ai_eval.llm_judge.requests.request",
             side_effect=[
                 _response({"access_token": "first-token"}),
                 _response({"id": "first", "metadata_submission": {}}),
@@ -230,7 +253,7 @@ def test_api_client_refreshes_access_token_before_expiry() -> None:
             ],
         ) as mocked_request,
         patch.object(
-            submission_judge.time,
+            llm_judge.time,
             "monotonic",
             side_effect=[100.0, 100.0 + 24 * 60 * 60 - 5 * 60, 200.0],
         ),
@@ -264,7 +287,7 @@ def test_load_submission_ids_strips_surrounding_whitespace(tmp_path) -> None:
 
 
 def test_checked_in_expert_rubric_is_valid() -> None:
-    rubric_path = Path(__file__).parents[1] / "datasets" / "submission-judge" / "judge-rubric.yaml"
+    rubric_path = Path(__file__).parents[1] / "datasets" / "llm-judge" / "judge-rubric.yaml"
     rubric = load_rubric(str(rubric_path))
     assert [metric["name"] for metric in rubric["metrics"]] == [
         "accuracy",
@@ -359,7 +382,7 @@ def test_parse_judge_response_validates_and_averages_all_metrics() -> None:
 
 
 def test_parse_judge_response_excludes_allowed_null_score_from_mean() -> None:
-    rubric = load_rubric(str(Path(__file__).parents[1] / "datasets" / "submission-judge" / "judge-rubric.yaml"))
+    rubric = load_rubric(str(Path(__file__).parents[1] / "datasets" / "llm-judge" / "judge-rubric.yaml"))
     response = """{"scores":[
       {"metric":"accuracy","score":4,"rationale":"Abstention is correct."},
       {"metric":"factuality","score":4,"rationale":"No unsupported claims."},
@@ -390,6 +413,36 @@ json
 ]}
 ```"""
     assert parse_judge_response(response, RUBRIC)["mean_score"] == 3.5
+
+
+def test_parse_judge_response_accepts_case_insensitive_json_fence() -> None:
+    response = """```JSON
+{"scores":[]}
+```"""
+
+    with pytest.raises(ValueError, match=r"omitted required metrics"):
+        parse_judge_response(response, RUBRIC)
+
+
+def test_parse_judge_response_preserves_pi_judge_annotations() -> None:
+    rubric = load_rubric(str(Path(__file__).parents[1] / "datasets" / "llm-judge" / "judge-rubric.yaml"))
+    response = """{"reasoning":"The existing value is unsupported.","scores":[
+      {"metric":"accuracy","score":2,"rationale":"The value is plausible but weakly supported."},
+      {"metric":"factuality","score":3,"rationale":"The reason is mostly traceable."},
+      {"metric":"relevancy","score":4,"rationale":"The slot is appropriate."},
+      {"metric":"completeness","score":4,"rationale":"The supported detail is captured."},
+      {"metric":"coherence","score":2,"rationale":"The inference is weak."}
+    ],
+    "suggestion_types":[{"suggestion_index":0,"type":"corrected_existing"}],
+    "critical_flags":[{"suggestion_index":0,"flag":"invalid_inference",
+      "evidence":"Growth facility does not establish landscape feature."}],
+    "missed_slots":[{"slot":"geo_loc_name","evidence":"The record states North Carolina."}]
+    }"""
+
+    parsed = parse_judge_response(response, rubric)
+    assert parsed["suggestion_types"] == [{"suggestion_index": 0, "type": "corrected_existing"}]
+    assert parsed["critical_flags"][0]["flag"] == "invalid_inference"
+    assert parsed["missed_slots"] == [{"slot": "geo_loc_name", "evidence": "The record states North Carolina."}]
 
 
 @pytest.mark.parametrize(
@@ -487,7 +540,7 @@ def test_resolve_suggestor_provider_accepts_explicit_provider() -> None:
 def test_cborg_client_uses_repository_api_key_name(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    from nmdc_ai_eval import submission_judge
+    from nmdc_ai_eval import llm_judge
 
     monkeypatch.delenv("CBORG_KEY", raising=False)
     monkeypatch.setenv("CBORG_API_KEY", "test-key")
@@ -497,8 +550,8 @@ def test_cborg_client_uses_repository_api_key_name(
         assert os.environ["CBORG_KEY"] == "test-key"
         return client
 
-    with patch.object(submission_judge, "LLMClient", side_effect=make_client) as client_type:
-        assert submission_judge._create_suggestor_client("cborg", "test-model") is client
+    with patch.object(llm_judge, "LLMClient", side_effect=make_client) as client_type:
+        assert llm_judge._create_suggestor_client("cborg", "test-model") is client
 
     client_type.assert_called_once_with(access_provider="cborg", model="test-model")
     assert "CBORG_KEY" not in os.environ
@@ -530,14 +583,14 @@ def test_evaluate_submission_runs_production_pipeline_and_judge() -> None:
 
     with (
         patch(
-            "nmdc_ai_eval.submission_judge.get_submission_fields",
+            "nmdc_ai_eval.llm_judge.get_submission_fields",
             return_value=parsed_submission,
         ),
         patch(
-            "nmdc_ai_eval.submission_judge.run_recommendation_pipeline",
+            "nmdc_ai_eval.llm_judge.run_recommendation_pipeline",
             side_effect=run_pipeline_with_context,
         ) as pipeline,
-        patch("nmdc_ai_eval.submission_judge.LLMClient", client_type),
+        patch("nmdc_ai_eval.llm_judge.LLMClient", client_type),
     ):
         result = evaluate_submission(
             submission_id="submission-1",
@@ -567,8 +620,8 @@ def test_evaluate_submission_runs_production_pipeline_and_judge() -> None:
 
 
 def test_runner_creates_a_distinct_judge_model_for_each_submission(tmp_path, monkeypatch: pytest.MonkeyPatch) -> None:
-    runner_path = Path(__file__).parents[1] / "datasets" / "submission-judge" / "run_eval.py"
-    spec = importlib.util.spec_from_file_location("submission_judge_runner", runner_path)
+    runner_path = Path(__file__).parents[1] / "datasets" / "llm-judge" / "run_eval.py"
+    spec = importlib.util.spec_from_file_location("llm-judge_runner", runner_path)
     assert spec is not None and spec.loader is not None
     runner = importlib.util.module_from_spec(spec)
     sys.modules[spec.name] = runner

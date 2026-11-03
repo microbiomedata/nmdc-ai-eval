@@ -4,6 +4,14 @@ grading_scale:
   2: "Substantive problem. Needs a real edit or investigation."
   1: "Wrong, fabricated, or unusable. Reject."
 
+critical_flags:
+  - confident_wrong_value
+  - fabricated_evidence
+  - fabricated_ontology
+  - value_reason_mismatch
+  - unflagged_input_conflict
+  - invalid_inference
+
 metrics:
   - name: accuracy
     description: >

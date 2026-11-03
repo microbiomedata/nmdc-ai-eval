@@ -12,7 +12,7 @@ from typing import Any
 import llm
 from dotenv import load_dotenv
 
-from nmdc_ai_eval.submission_judge import (
+from nmdc_ai_eval.llm_judge import (
     SubmissionApiClient,
     evaluate_submission,
     load_rubric,

@@ -125,8 +125,8 @@ eval-supplement-triad *args="":
     uv run python datasets/supplement-triad/run_supplement_eval.py {{ args }}
 
 # Fetch submissions and evaluate suggestor responses with the configured LLM judge.
-eval-submission-judge *args="":
-    uv run python datasets/submission-judge/run_eval.py {{ args }}
+eval-llm-judge *args="":
+    uv run python datasets/llm-judge/run_eval.py {{ args }}
 
 # End-to-end value prediction evals (no DOI/PDF)
 eval-sampledata: clean-sampledata-outputs generate-sampledata run-sampledata

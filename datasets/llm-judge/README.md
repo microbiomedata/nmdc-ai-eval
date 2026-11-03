@@ -39,9 +39,9 @@ chooses its default model for that provider.
 ## Run
 
 ```bash
-just eval-submission-judge
-just eval-submission-judge --suggestor-provider pnnl --suggestor-model gpt-4o --judge-model gpt-4o-mini
-just eval-submission-judge --ids-file /tmp/submission-judge-test-ids.txt --debug
+just eval-llm-judge
+just eval-llm-judge --suggestor-provider pnnl --suggestor-model gpt-4o --judge-model gpt-4o-mini
+just eval-llm-judge --ids-file /tmp/llm-judge-test-ids.txt --debug
 ```
 
 `--debug` prints bounded API request/response details to stderr, including
