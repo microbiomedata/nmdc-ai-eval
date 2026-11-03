@@ -1,6 +1,6 @@
 # Model configuration for eval suites, cost estimation, and eval tiers.
 #
-# `models:` — included in llm-matrix eval suites (Option B).
+# `models:` — included in the evaluation suite YAMLs.
 #   Names must match `uv run llm models list`.
 #   Auth: keys in llm key store (`uv run llm keys set <provider>`) or env vars.
 #   To add a model: add it here and run `just generate`.
@@ -35,7 +35,7 @@ gcp_models:
   - gemini-2.5-flash
 
 pnnl_models:
-  - gpt-5-project
+  #- gpt-5-project #This model is currently throwing an error TODO: see if this is a temporary issue or if we have lost access
   - gpt-5.1-project
   - gpt-5.2-project
   - gpt-4.1-project

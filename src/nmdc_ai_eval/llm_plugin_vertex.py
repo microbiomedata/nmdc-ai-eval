@@ -1,7 +1,7 @@
 """llm plugin for Vertex AI models (Gemini and Claude).
 
 Registers ``vertex/gemini-*`` and ``vertex/claude-*`` model IDs so they can be
-used anywhere llm models are accepted — including llm-matrix suite evals.
+used anywhere llm models are accepted — including this repository's suite runner.
 
 Auth: reads ``GOOGLE_APPLICATION_CREDENTIALS`` and ``VERTEX_PROJECT_ID`` from
 the environment (loaded from ``.env`` by dotenv). The same SA and project ID
@@ -55,7 +55,7 @@ _CREDS_FILE = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS")
 class _VertexOptions(llm.Options):
     """Shared options for Vertex models.
 
-    Declared so llm-matrix (and other callers) can pass ``temperature``
+    Declared so the suite runner (and other callers) can pass ``temperature``
     without pydantic rejecting it as an extra input. Keep this minimal —
     add options only when a caller actually needs to set them.
     """
