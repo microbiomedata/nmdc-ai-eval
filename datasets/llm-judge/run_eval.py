@@ -43,7 +43,11 @@ def main() -> None:
         "--suggestor-model",
         help="Provider-specific suggestor model; defaults to the suggestor package's provider default.",
     )
-    parser.add_argument("--judge-model", default="gpt-4o-mini")
+    parser.add_argument(
+        "--judge-model",
+        default="gpt-5.2",
+        help="Judge model with sufficient output capacity for the complete individual score set.",
+    )
     args = parser.parse_args()
 
     load_dotenv()

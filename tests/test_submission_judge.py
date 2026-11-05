@@ -369,7 +369,10 @@ def test_parse_judge_response_validates_and_averages_all_metrics() -> None:
 {"scores":[
   {"metric":"completeness","score":3,"rationale":"Most expected details are covered."},
   {"metric":"relevance","score":4,"rationale":"The suggestions use the study context."}
-]}
+],
+"suggestion_scores":[{"suggestion_index":0,"reasoning":"The first suggestion is relevant.",
+  "scores":[{"metric":"completeness","score":3,"rationale":"Most details are covered."},
+    {"metric":"relevance","score":4,"rationale":"The suggestion is relevant."}]}]}
 ```"""
     parsed = parse_judge_response(response, RUBRIC)
     assert parsed == {
@@ -378,6 +381,17 @@ def test_parse_judge_response_validates_and_averages_all_metrics() -> None:
             {"metric": "completeness", "score": 3, "rationale": "Most expected details are covered."},
         ],
         "mean_score": 3.5,
+        "suggestion_scores": [
+            {
+                "suggestion_index": 0,
+                "reasoning": "The first suggestion is relevant.",
+                "scores": [
+                    {"metric": "relevance", "score": 4, "rationale": "The suggestion is relevant."},
+                    {"metric": "completeness", "score": 3, "rationale": "Most details are covered."},
+                ],
+                "mean_score": 3.5,
+            }
+        ],
     }
 
 
@@ -389,7 +403,8 @@ def test_parse_judge_response_excludes_allowed_null_score_from_mean() -> None:
       {"metric":"relevancy","score":4,"rationale":"Slot is not applicable."},
       {"metric":"completeness","score":null,"rationale":"Not applicable for abstention."},
       {"metric":"coherence","score":4,"rationale":"Reasoning is consistent."}
-    ]}"""
+    ],
+    "suggestion_scores":[]}"""
     parsed = parse_judge_response(response, rubric)
     assert parsed["scores"][3]["score"] is None
     assert parsed["mean_score"] == 4.0
@@ -399,7 +414,8 @@ def test_parse_judge_response_rejects_null_for_metric_without_null_condition() -
     response = """{"scores":[
       {"metric":"relevance","score":null,"rationale":"Not allowed."},
       {"metric":"completeness","score":3,"rationale":"Mostly complete."}
-    ]}"""
+    ],
+    "suggestion_scores":[]}"""
     with pytest.raises(ValueError, match="integer from 1 through 4"):
         parse_judge_response(response, RUBRIC)
 
@@ -410,18 +426,51 @@ json
 {"scores":[
   {"metric":"relevance","score":4,"rationale":"Relevant."},
   {"metric":"completeness","score":3,"rationale":"Mostly complete."}
-]}
+],"suggestion_scores":[]}
 ```"""
     assert parse_judge_response(response, RUBRIC)["mean_score"] == 3.5
 
 
 def test_parse_judge_response_accepts_case_insensitive_json_fence() -> None:
     response = """```JSON
-{"scores":[]}
+{"scores":[],"suggestion_scores":[]}
 ```"""
 
     with pytest.raises(ValueError, match=r"omitted required metrics"):
         parse_judge_response(response, RUBRIC)
+
+
+def test_parse_judge_response_extracts_json_from_prose_and_trailing_comma() -> None:
+    response = """Here is the evaluation:
+```json
+{"scores":[
+  {"metric":"relevance","score":4,"rationale":"Relevant.",},
+  {"metric":"completeness","score":3,"rationale":"Complete.",}
+],"suggestion_scores":[]}
+```
+End of evaluation."""
+
+    assert parse_judge_response(response, RUBRIC)["mean_score"] == 3.5
+
+
+def test_parse_judge_response_repairs_missing_object_separator() -> None:
+    response = """{"scores":[
+      {"metric":"relevance","score":4,"rationale":"Relevant."},
+      {"metric":"completeness","score":3,"rationale":"Complete."}
+    ] "suggestion_scores":[]}"""
+
+    assert parse_judge_response(response, RUBRIC)["mean_score"] == 3.5
+
+
+def test_parse_judge_response_repairs_adjacent_objects() -> None:
+    response = """{"scores":[
+      {"metric":"relevance","score":4,"rationale":"Relevant."},
+      {"metric":"completeness","score":3,"rationale":"Complete."}
+    ],"suggestion_scores":[{"suggestion_index":0,"reasoning":"Relevant.","scores":[
+      {"metric":"relevance","score":4,"rationale":"Relevant."},{"metric":"completeness","score":3,"rationale":"Complete."}
+    ]}]}"""
+
+    assert len(parse_judge_response(response, RUBRIC)["suggestion_scores"]) == 1
 
 
 def test_parse_judge_response_preserves_pi_judge_annotations() -> None:
@@ -434,6 +483,7 @@ def test_parse_judge_response_preserves_pi_judge_annotations() -> None:
       {"metric":"coherence","score":2,"rationale":"The inference is weak."}
     ],
     "suggestion_types":[{"suggestion_index":0,"type":"corrected_existing"}],
+    "suggestion_scores":[],
     "critical_flags":[{"suggestion_index":0,"flag":"invalid_inference",
       "evidence":"Growth facility does not establish landscape feature."}],
     "missed_slots":[{"slot":"geo_loc_name","evidence":"The record states North Carolina."}]
@@ -443,6 +493,34 @@ def test_parse_judge_response_preserves_pi_judge_annotations() -> None:
     assert parsed["suggestion_types"] == [{"suggestion_index": 0, "type": "corrected_existing"}]
     assert parsed["critical_flags"][0]["flag"] == "invalid_inference"
     assert parsed["missed_slots"] == [{"slot": "geo_loc_name", "evidence": "The record states North Carolina."}]
+
+
+def test_parse_judge_response_validates_individual_suggestion_scores() -> None:
+    response = """{"scores":[
+      {"metric":"relevance","score":4,"rationale":"Overall response is relevant."},
+      {"metric":"completeness","score":3,"rationale":"Overall response is mostly complete."}
+    ],
+    "suggestion_scores":[
+      {"suggestion_index":1,"reasoning":"The second suggestion captures the slot.",
+       "scores":[
+         {"metric":"relevance","score":2,"rationale":"The slot is weakly applicable."},
+         {"metric":"completeness","score":4,"rationale":"All supported details are present."}
+       ]}
+    ]}"""
+
+    parsed = parse_judge_response(response, RUBRIC)
+
+    assert parsed["suggestion_scores"] == [
+        {
+            "suggestion_index": 1,
+            "reasoning": "The second suggestion captures the slot.",
+            "scores": [
+                {"metric": "relevance", "score": 2, "rationale": "The slot is weakly applicable."},
+                {"metric": "completeness", "score": 4, "rationale": "All supported details are present."},
+            ],
+            "mean_score": 3.0,
+        }
+    ]
 
 
 @pytest.mark.parametrize(
@@ -562,11 +640,16 @@ def test_evaluate_submission_runs_production_pipeline_and_judge() -> None:
     pipeline_output = SimpleNamespace(model_dump=lambda mode: suggestion_data)
     judge_response = SimpleNamespace(
         text=lambda: (
-            '{"scores":[{"metric":"relevance","score":4,"rationale":"Relevant."},'
-            '{"metric":"completeness","score":3,"rationale":"Mostly complete."}]}'
+            '{"reasoning":"The suggestion is appropriate.",'
+            '"scores":[{"metric":"relevance","score":4,"rationale":"Relevant."},'
+            '{"metric":"completeness","score":3,"rationale":"Mostly complete."}],'
+            '"suggestion_scores":[{"suggestion_index":0,"reasoning":"Relevant and mostly complete.",'
+            '"scores":[{"metric":"relevance","score":4,"rationale":"Relevant."},'
+            '{"metric":"completeness","score":3,"rationale":"Mostly complete."}]}]}'
         )
     )
     judge_model = MagicMock()
+    judge_model.supports_schema = False
     judge_model.prompt.return_value = judge_response
     suggestor_client = SimpleNamespace(access_provider="pnnl", model="test-model")
     client_type = MagicMock(return_value=suggestor_client)
@@ -604,7 +687,8 @@ def test_evaluate_submission_runs_production_pipeline_and_judge() -> None:
 
     client_type.assert_called_once_with(access_provider="pnnl", model="test-model")
     pipeline.assert_called_once_with(submission_object=submission, llm_client=suggestor_client)
-    judge_input = json.loads(judge_model.prompt.call_args.args[0])
+    judge_model.prompt.assert_called_once()
+    judge_input = json.loads(judge_model.prompt.call_args_list[0].args[0])
     assert judge_input == {
         "submission": parsed_submission,
         "suggestor_context_messages": [
@@ -612,11 +696,17 @@ def test_evaluate_submission_runs_production_pipeline_and_judge() -> None:
             "Retrieved publication context: Test abstract",
         ],
         "suggestor_response": suggestion_data,
+        "judge_task": {
+            "suggestion_count": 1,
+            "required_suggestion_indexes": [0],
+        },
     }
     assert result["submission_id"] == "submission-1"
     assert result["mean_score"] == 3.5
     assert result["suggestor_provider"] == "pnnl"
     assert result["suggestor_model"] == "test-model"
+    judge_model.prompt.assert_called_once()
+    assert judge_model.prompt.call_args.kwargs["max_tokens"] == 100_000
 
 
 def test_runner_creates_a_distinct_judge_model_for_each_submission(tmp_path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -662,8 +752,8 @@ def test_runner_creates_a_distinct_judge_model_for_each_submission(tmp_path, mon
     runner.main()
 
     assert runner.llm.get_model.call_args_list == [
-        (("gpt-4o-mini",),),
-        (("gpt-4o-mini",),),
+        (("gpt-5.2",),),
+        (("gpt-5.2",),),
     ]
     assert evaluate.call_args_list[0].kwargs["judge_model"] is first_judge
     assert evaluate.call_args_list[1].kwargs["judge_model"] is second_judge
