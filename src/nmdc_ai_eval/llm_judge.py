@@ -29,6 +29,7 @@ ACCESS_TOKEN_REFRESH_MARGIN_SECONDS = 5 * 60
 HTTP_ERROR_BODY_LIMIT = 1000
 DEBUG_RESPONSE_BODY_LIMIT = 10_000
 JUDGE_MAX_OUTPUT_TOKENS = 100_000
+JUDGE_SUGGESTION_BATCH_SIZE = 8
 
 
 def resolve_suggestor_provider(
@@ -298,11 +299,6 @@ class SubmissionApiClient:
             submission_url,
             headers={"Authorization": "Bearer " + access_token},
         )
-        submission = self._request_json(
-            "GET",
-            submission_url,
-            headers={"Authorization": f"Bearer {access_token}"},
-        )
         if isinstance(submission.get("metadata_submission"), dict):
             return submission
 
@@ -405,19 +401,25 @@ def build_judge_system_prompt(rubric: dict[str, Any]) -> str:
     rubric_json = json.dumps(rubric, ensure_ascii=False, indent=2)
     return (
         "Evaluate the suggestion response using only the submission context and rubric below. "
+        "Return only compact valid JSON with no markdown fences, comments, or prose before/after. "
+        "Keep every rationale short and evidence-based. Do not emit invalid JSON syntax or long "
+        "freeform text. "
         "Score every listed metric using its anchors. Scores must be integers from 1 to 4, except "
         "a metric with a rubric-defined null condition may have a null score when that condition "
         "applies. Do not add or omit metrics. Write reasoning before scores and give a concise "
         "evidence-based rationale for every score. "
-        "Keep each reasoning and rationale concise to fit the complete JSON response. "
-        "Do not begin with a partial response and do not stop before every suggestion index has "
-        "an entry. Return compact JSON rather than pretty-printed JSON. "
-        "Provide the submission-level overall score for the full set of suggestions and "
-        "one independent score for every suggestion in the same response. Preserve the "
-        "response-level scores as the overall score. "
-        "Assign every suggestion a suggestion_type from new_value, validated_existing, "
-        "corrected_existing, or abstained. Assign only applicable critical_flags from the rubric. "
-        "Identify only clear missed_slots with supporting evidence. "
+        "If there are many suggestions, use this pattern to reduce output size: first produce the "
+        "submission-level overall response with overall scores and empty suggestion_scores when needed; "
+        "then produce compact per-suggestion batches for only the relevant suggestion indexes. "
+        "For a batch call, include only that batch's suggestion indexes in suggestion_scores and do not "
+        "invent suggestion_scores for other indexes. "
+        "Provide the submission-level overall score for the full set of suggestions and the independent "
+        "batch-level scores for the requested suggestion indexes. Preserve the response-level scores as "
+        "the overall score. "
+        "Assign every suggestion a suggestion_type from new_value, validated_existing, corrected_existing, "
+        "or abstained. critical_flags are optional and should only be included when a rubric-defined "
+        "critical issue truly applies; emit an empty array when none apply. Identify only clear "
+        "missed_slots with supporting evidence. "
         "Return only a valid JSON object with this shape: "
         '{"reasoning":"...","scores":[{"metric":"metric_name","score":1,"rationale":"..."}],'
         '"suggestion_scores":[{"suggestion_index":0,"reasoning":"...","scores":[{'
@@ -426,7 +428,8 @@ def build_judge_system_prompt(rubric: dict[str, Any]) -> str:
         '"critical_flags":[{"suggestion_index":0,"flag":"invalid_inference","evidence":"..."}],'
         '"missed_slots":[{"slot":"slot_name","evidence":"..."}]}; use null for a score '
         "only when allowed by that metric's rubric condition. Omit unsupported flags and analyses "
-        "rather than guessing. "
+        "rather than guessing. For a batch call, suggestion_scores is allowed to be empty when the "
+        "requested batch is empty, and critical_flags should be [] when no critical issue applies. "
         "Rubric:\n"
         f"{rubric_json}"
     )
@@ -480,11 +483,8 @@ def build_judge_json_schema(rubric: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def parse_judge_response(
-    response_text: str,
-    rubric: dict[str, Any],
-) -> dict[str, Any]:
-    """Validate judge output against the structured judge schema."""
+def _extract_json_object(response_text: str) -> str:
+    """Extract the first complete JSON object from a model response."""
     text = response_text.strip()
     if text.startswith("```"):
         lines = text.splitlines()
@@ -505,45 +505,99 @@ def parse_judge_response(
             if text.endswith("```"):
                 text = text[:-3].rstrip()
 
-    # Some models append commentary or a code fence around otherwise valid JSON.
-    # Extract the first complete object and ignore surrounding prose.
-    candidate = text
+    candidate = text.strip()
+    if not candidate:
+        raise ValueError("Judge response is empty.")
     if not candidate.startswith("{"):
         object_start = candidate.find("{")
-        if object_start >= 0:
-            candidate = candidate[object_start:]
+        if object_start < 0:
+            raise ValueError("Judge response does not contain a JSON object.")
+        candidate = candidate[object_start:]
 
-    decode_error: json.JSONDecodeError
-    try:
-        payload, _ = json.JSONDecoder().raw_decode(candidate)
-    except json.JSONDecodeError as exc:
-        decode_error = exc
-        repaired_candidate = re.sub(r",(\s*[}\]])", r"\1", candidate)
-        repaired_candidate = re.sub(
-            r'(["}\]])(\s*)("[A-Za-z_][A-Za-z0-9_-]*"\s*:)',
-            r"\1,\2\3",
-            repaired_candidate,
-        )
-        repaired_candidate = re.sub(r"(?<=})(\s*)(?={)", r",\1", repaired_candidate)
-        repaired_candidate = re.sub(r"(?<=])(\s*)(?={)", r",\1", repaired_candidate)
-        try:
-            payload, _ = json.JSONDecoder().raw_decode(repaired_candidate)
-        except json.JSONDecodeError as repair_exc:
-            decode_error = repair_exc
-            payload = None
-    if payload is None:
-        preview = " ".join(response_text.split())
-        if len(preview) > 500:
-            preview = preview[:500] + "..."
+    last_brace = candidate.rfind("}")
+    if last_brace < 0 or last_brace < candidate.find("{"):
+        raise ValueError("Judge response does not contain a complete JSON object.")
+    return candidate[: last_brace + 1]
+
+
+def _validate_indexed_payload(
+    entries: Any,
+    field_name: str,
+    expected_indexes: set[int],
+) -> list[dict[str, Any]]:
+    """Validate per-suggestion payloads that should align to the scored suggestion set."""
+    if entries is None:
+        return []
+    if not isinstance(entries, list):
+        raise ValueError(f"Judge {field_name} must be a list.")
+
+    parsed: list[dict[str, Any]] = []
+    seen_indexes: set[int] = set()
+    for item in entries:
+        if not isinstance(item, dict):
+            raise ValueError(f"Judge {field_name} contains a non-object entry.")
+        suggestion_index = item.get("suggestion_index")
+        if type(suggestion_index) is not int or suggestion_index < 0:
+            raise ValueError(f"Judge {field_name} contains an invalid suggestion_index.")
+        if suggestion_index in seen_indexes:
+            raise ValueError(f"Judge {field_name} contains suggestion index {suggestion_index} more than once.")
+        if expected_indexes and suggestion_index not in expected_indexes:
+            raise ValueError(
+                f"Judge {field_name} references suggestion"
+                + f"index {suggestion_index} that is not part of the scored suggestion set."
+            )
+        seen_indexes.add(suggestion_index)
+        parsed.append(item)
+
+    if expected_indexes and seen_indexes != expected_indexes:
+        missing = sorted(expected_indexes - seen_indexes)
+        unexpected = sorted(seen_indexes - expected_indexes)
         raise ValueError(
-            f"Judge response is not valid JSON at line {decode_error.lineno} column {decode_error.colno}: "
-            f"{decode_error.msg}. Response preview: {preview!r}"
-        ) from decode_error
+            f"Judge {field_name} coverage mismatch: missing"
+            + f" indexes={missing[:20]}, unexpected indexes={unexpected[:20]}."
+        )
+    return parsed
+
+
+def _repair_json_candidate(candidate: str) -> str:
+    """Repair common LLM JSON formatting mistakes before validation."""
+    repaired = re.sub(r",(\s*[}\]])", r"\1", candidate)
+    repaired = re.sub(r"(?<=[}\]])\s+(?=\")", ", ", repaired)
+    repaired = re.sub(r"(?<=[}\]])\s+(?=\{)", ", ", repaired)
+    return repaired
+
+
+def parse_judge_response(
+    response_text: str,
+    rubric: dict[str, Any],
+) -> dict[str, Any]:
+    """Validate judge output against the structured judge schema."""
+    preview = " ".join(response_text.split())
+    if len(preview) > 500:
+        preview = preview[:500] + "..."
+    try:
+        extracted = _extract_json_object(response_text)
+    except ValueError as exc:
+        message = str(exc)
+        if "incomplete JSON code fence" in message:
+            raise ValueError(message) from exc
+        raise ValueError(f"Judge response is not valid JSON. Response preview: {preview!r}") from exc
+
+    try:
+        payload = json.loads(extracted)
+    except json.JSONDecodeError:
+        repaired = _repair_json_candidate(extracted)
+        if repaired == extracted:
+            raise ValueError(f"Judge response is not valid JSON. Response preview: {preview!r}") from None
+        try:
+            payload = json.loads(repaired)
+        except json.JSONDecodeError as exc:
+            raise ValueError(
+                f"Judge response is not valid JSON at line {exc.lineno} column {exc.colno}: "
+                f"{exc.msg}. Response preview: {preview!r}"
+            ) from exc
     if not isinstance(payload, dict) or not isinstance(payload.get("scores"), list):
         raise ValueError("Judge response must contain a 'scores' list.")
-    suggestion_scores_payload = payload.get("suggestion_scores", [])
-    if not isinstance(suggestion_scores_payload, list):
-        raise ValueError("Judge response must contain a 'suggestion_scores' list.")
 
     def parse_scores(raw_scores: Any) -> list[dict[str, Any]]:
         if not isinstance(raw_scores, list):
@@ -580,7 +634,8 @@ def parse_judge_response(
         return round(sum(numeric_scores) / len(numeric_scores), 2) if numeric_scores else None
 
     overall_scores = parse_scores(payload["scores"])
-    if "suggestion_scores" not in payload:
+    suggestion_scores_payload = payload.get("suggestion_scores")
+    if not isinstance(suggestion_scores_payload, list):
         raise ValueError("Judge response must contain a 'suggestion_scores' list.")
     parsed: dict[str, Any] = {
         "scores": overall_scores,
@@ -615,42 +670,42 @@ def parse_judge_response(
         )
     parsed["suggestion_scores"] = parsed_suggestion_scores
 
-    suggestion_types = payload.get("suggestion_types", [])
-    if suggestion_types:
-        if not isinstance(suggestion_types, list):
-            raise ValueError("Judge suggestion_types must be a list.")
-        allowed_types = {
-            "new_value",
-            "validated_existing",
-            "corrected_existing",
-            "abstained",
-        }
-        parsed_types: list[dict[str, Any]] = []
-        for item in suggestion_types:
-            if (
-                not isinstance(item, dict)
-                or type(item.get("suggestion_index")) is not int
-                or item.get("type") not in allowed_types
-            ):
+    suggestion_types = payload.get("suggestion_types")
+    if suggestion_types is not None:
+        parsed_types = _validate_indexed_payload(suggestion_types, "suggestion_types", seen_suggestion_indexes)
+        validated_types: list[dict[str, Any]] = []
+        allowed_types = {"new_value", "validated_existing", "corrected_existing", "abstained"}
+        for item in parsed_types:
+            if item.get("type") not in allowed_types:
                 raise ValueError("Judge suggestion_types contains an invalid entry.")
-            parsed_types.append(item)
-        parsed["suggestion_types"] = parsed_types
+            validated_types.append(
+                {
+                    "suggestion_index": item["suggestion_index"],
+                    "type": item["type"],
+                }
+            )
+        parsed["suggestion_types"] = validated_types
 
-    critical_flags = payload.get("critical_flags", [])
-    if critical_flags:
+    critical_flags = payload.get("critical_flags")
+    if critical_flags is not None:
         if not isinstance(critical_flags, list):
             raise ValueError("Judge critical_flags must be a list.")
-        allowed_flags = set(rubric.get("critical_flags", []))
         parsed_flags: list[dict[str, Any]] = []
+        seen_flag_indexes: set[int] = set()
+        allowed_flags = set(rubric.get("critical_flags", []))
         for item in critical_flags:
             if (
                 not isinstance(item, dict)
                 or type(item.get("suggestion_index")) is not int
+                or item["suggestion_index"] < 0
+                or (seen_suggestion_indexes and item["suggestion_index"] not in seen_suggestion_indexes)
+                or item["suggestion_index"] in seen_flag_indexes
                 or item.get("flag") not in allowed_flags
                 or not isinstance(item.get("evidence"), str)
                 or not item["evidence"].strip()
             ):
                 raise ValueError("Judge critical_flags contains an invalid entry.")
+            seen_flag_indexes.add(item["suggestion_index"])
             parsed_flags.append(
                 {
                     "suggestion_index": item["suggestion_index"],
@@ -660,8 +715,8 @@ def parse_judge_response(
             )
         parsed["critical_flags"] = parsed_flags
 
-    missed_slots = payload.get("missed_slots", [])
-    if missed_slots:
+    missed_slots = payload.get("missed_slots")
+    if missed_slots is not None:
         if not isinstance(missed_slots, list):
             raise ValueError("Judge missed_slots must be a list.")
         parsed_missed_slots: list[dict[str, Any]] = []
@@ -693,6 +748,9 @@ def evaluate_submission(
     suggestor = _create_suggestor_client(suggestor_provider, suggestor_model)
     suggestion, context_messages = _run_suggestor_with_context_capture(submission, suggestor)
     suggestion_data = suggestion.model_dump(mode="json")
+    suggestions = suggestion_data.get("metadata_fields")
+    if not isinstance(suggestions, list):
+        raise ValueError("Suggestor response must contain a metadata_fields list.")
 
     judge_input = json.dumps(
         {
@@ -700,8 +758,8 @@ def evaluate_submission(
             "suggestor_context_messages": context_messages,
             "suggestor_response": suggestion_data,
             "judge_task": {
-                "suggestion_count": len(suggestion_data.get("metadata_fields", [])),
-                "required_suggestion_indexes": list(range(len(suggestion_data.get("metadata_fields", [])))),
+                "suggestion_count": len(suggestions),
+                "required_suggestion_indexes": list(range(len(suggestions))),
             },
         },
         ensure_ascii=False,
@@ -716,9 +774,6 @@ def evaluate_submission(
         prompt_kwargs["schema"] = build_judge_json_schema(rubric)
     judge_response = judge_model.prompt(judge_input, **prompt_kwargs)
     judged = parse_judge_response(judge_response.text(), rubric)
-    suggestions = suggestion_data.get("metadata_fields", [])
-    if not isinstance(suggestions, list):
-        raise ValueError("Suggestor response must contain a metadata_fields list.")
     expected_indexes = set(range(len(suggestions)))
     scored_indexes = {item["suggestion_index"] for item in judged["suggestion_scores"]}
     if scored_indexes != expected_indexes:
