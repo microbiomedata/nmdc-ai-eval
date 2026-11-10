@@ -1,0 +1,156 @@
+grading_scale:
+  4: "Fully correct / grounded / relevant / complete / coherent. Accept as-is."
+  3: "Minor issue. Accept with a trivial edit."
+  2: "Substantive problem. Needs a real edit or investigation."
+  1: "Wrong, fabricated, or unusable. Reject."
+
+role: >
+  You are an expert NMDC metadata curator evaluating metadata suggestions
+  produced by an AI pipeline. The pipeline reads submission materials and the
+  NMDC submission schema, including MIxS environmental packages, then suggests
+  slots and values.
+
+suggestion_scope:
+  study_level: 'Suggestions with "id": null are study-level.'
+  sample_level: 'Suggestions with an id are for one sample.'
+  sampling_note: >
+    The judge may see representative samples. Use the study summary for
+    conclusions about all samples, but grade sample-level suggestions only for
+    records provided to the judge. Do not penalize unseen samples.
+
+suggestion_types:
+  - new_value
+  - validated_existing
+  - corrected_existing
+  - abstained
+
+ground_rules:
+  - "There is no gold answer. Judge only against submission materials, the schema, ontology lookup, and well-established domain knowledge."
+  - "Plausible-but-unsupported values are the most harmful failure. Do not reward confident guessing. Correct abstention is good behavior."
+  - "Ontology lookup is authoritative for CURIE existence, official label, and obsolescence. A nonexistent CURIE, mismatched label that is not an allowed synonym, or obsolete term is fabricated_ontology. A CURIE with no lookup result is unverifiable and caps Factuality at 2, not fabricated."
+  - "Hierarchy claims are checked with domain knowledge; if uncertain, state the uncertainty rather than assigning a critical flag."
+  - "Verify every quoted string against the materials. An exact or near-exact match is verified. A quote presented as exact when it is only paraphrased, or a wrong source label, is Factuality 3. A quote not found is fabricated_evidence."
+  - "Check values against schema range, enum, and pattern. Outside an enum is Accuracy 1. A fixable format issue is Accuracy 3."
+  - "Inference from geography or climate alone caps Factuality at 2 unless submission materials corroborate it."
+  - "Contradictory input used without flagging it receives unflagged_input_conflict."
+  - "Judge substance, not length. Write reasoning before scores."
+
+abstentions:
+  honest_not_specified: "Grade normally; a correct empty value is good behavior."
+  hedged_hint: 'A hint that says the value is suggested but not stated is acceptable and receives no flag.'
+  asserted_value_mismatch: "An asserted value in the reason with an empty value field receives value_reason_mismatch."
+  completeness: "Completeness is null for abstentions."
+
+study_level_rules:
+  - "A study-level value must hold for every sample."
+  - "A value that fits only some samples receives Accuracy <= 2 and confident_wrong_value."
+  - "Abstaining because samples are heterogeneous is Accuracy 4 when the sample summary confirms the heterogeneity."
+  - "Do not suggest per-sample values for slots designated as study-level-only."
+
+sample_level_rules:
+  - "env_broad_scale (biome) → env_local_scale (feature) → env_medium (material) must be mutually consistent and consistent with depth, location, host, and other fields."
+  - "For validated_existing, confirm that the existing value is substantively correct, not merely syntactically valid."
+  - "For corrected_existing, the original value must genuinely be wrong and the replacement better supported. Otherwise Accuracy <= 2."
+  - "Do not identify study-level-only slots as missed sample-level slots."
+
+critical_flags:
+  - confident_wrong_value
+  - fabricated_evidence
+  - fabricated_ontology
+  - value_reason_mismatch
+  - unflagged_input_conflict
+  - invalid_inference
+
+calibration_examples:
+  A:
+    case: 'env_local_scale = "field [ENVO:01000352]" because growth_facil = "field".'
+    assessment: "growth_facil means not lab-grown and does not establish the landscape feature."
+    expected: "Coherence 1, Accuracy 2, flag invalid_inference."
+  B:
+    case: 'ecosystem_category = "", reason "Inferred as ''Terrestrial''...", all samples soil.'
+    assessment: "The reason asserts an inferred value while the output value is empty."
+    expected: "Accuracy 2, Coherence 2, Completeness null, flag value_reason_mismatch."
+  C:
+    case: "A study has rhizosphere host-associated/plant samples and bulk soil environmental/terrestrial samples; the study-level ecosystem_category is 'Terrestrial'."
+    assessment: "The value does not hold for all samples."
+    expected: "Accuracy 1, flag confident_wrong_value. Abstaining would be Accuracy 4."
+  D:
+    case: "env_broad_scale = mediterranean shrubland biome based only on Berkeley's climate."
+    assessment: "The geographic inference is plausible but unsupported by submission materials."
+    expected: "Factuality 2, Accuracy 2."
+  E:
+    case: 'env_medium = "soil [ENVO:00001998]", with an existing value validated without more specific evidence.'
+    assessment: "The existing value is generally correct and appropriate."
+    expected: "Accuracy 4, Factuality 4, Coherence 4."
+  F:
+    case: "A correction claims that an existing CURIE has a different official label."
+    assessment: "The ontology lookup is authoritative."
+    expected: "If the claim is false: fabricated_ontology, Factuality 1, Accuracy <= 2."
+
+missed_slots_task: >
+  List slots with clear supporting evidence but no suggestion, excluding excluded
+  slots and study-level-only slots from sample-level checks. Cite the evidence.
+  Only list clear cases.
+
+metrics:
+  - name: accuracy
+    description: >
+      Is this the correct value for this slot and scope, at the most specific
+      level the evidence supports, with correct units and format? For
+      abstentions, was abstaining correct?
+    score_anchors:
+      4: "Correct, most specific level supported, correct units/format; or a correct abstention."
+      3: "Correct but slightly generic, or a trivially fixable format issue."
+      2: "Substantially too generic, over-specific, or partly wrong; or abstained when evidence weakly supported a value."
+      1: "Wrong value/unit/sample/slot; or abstained when the materials clearly state it."
+
+  - name: factuality
+    description: >
+      Is every claim in the reason traceable to the materials or to verifiable
+      fact? This means no fabricated quotes, attributions, ontology terms, or
+      ontology facts.
+    score_anchors:
+      4: "All claims verified."
+      3: "Minor imprecision."
+      2: "Mainly unverifiable inference."
+      1: "Fabricated or contradicts the materials."
+
+  - name: relevancy
+    description: >
+      Is the slot appropriate for this submission and package, does the value
+      answer what the slot asks, and is the reason on-topic?
+    score_anchors:
+      4: "Fully relevant."
+      3: "Marginal value or minor tangents."
+      2: "Weakly applicable or related concept."
+      1: "Not applicable."
+
+  - name: completeness
+    description: >
+      Does the value capture everything the materials support for this slot,
+      such as units, steps, and CURIE plus label?
+    null_when: "The suggestion is an abstention."
+    score_anchors:
+      4: "All supported information included."
+      3: "Minor detail missing."
+      2: "Significant information missing."
+      1: "Most information ignored."
+
+  - name: coherence
+    description: >
+      Does the reasoning validly support the value? Is it consistent with
+      related slots (env triad nesting, depth, location) and with the input
+      data, and are input conflicts flagged?
+    score_anchors:
+      4: "Valid, consistent, conflicts flagged."
+      3: "Small gap."
+      2: "Weak or partly invalid inference, or mild inconsistency."
+      1: "Doesn't follow, contradicts related slots, or builds on an unflagged conflict."
+
+judge_output:
+  format: >
+    Return only valid JSON. Preserve the required score shape and add assigned
+    suggestion type, critical flags, and clearly missed slots when supported by
+    the available inputs. Include suggestion_scores as one entry per suggestion,
+    keyed by suggestion_index, with independent reasoning and a complete metrics
+    score list. Keep the top-level scores as the overall response score.

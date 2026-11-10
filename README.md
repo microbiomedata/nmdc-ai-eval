@@ -91,6 +91,19 @@ just eval-ebs            # env_broad_scale: 100 cases × 5 models, ontology-scor
 just eval-sampledata     # sampleData: 9 cases × 5 models (smoke test)
 ```
 
+### Submission Suggestor LLM-Judge eval
+
+Fetches submission documents from the authenticated NMDC API, runs the
+production suggestor pipeline, and scores its response using an LLM judge.
+Add IDs to [`datasets/llm-judge/submission-ids.txt`](datasets/llm-judge/submission-ids.txt).
+The [`datasets/llm-judge/judge-rubric.yaml`](datasets/llm-judge/judge-rubric.yaml)
+contains the expert-defined metrics and 1–4 criteria. Completeness is null for
+abstentions and excluded from the mean score in those cases.
+
+```bash
+just eval-llm-judge
+```
+
 ### Cost estimation
 
 Model pricing lives in the `pricing:` section of [`datasets/models.yaml`](datasets/models.yaml). Edit that file to add models or update prices — no code changes needed. If a model isn't in the pricing table, the eval still runs; cost just shows as unavailable.

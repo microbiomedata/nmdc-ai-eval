@@ -1,0 +1,12 @@
+# Add one NMDC metadata_submission ID per line. Blank lines and comments are ignored.
+#210a0035-c339-4090-be2a-e3bd99321103
+#181d0ef7-e798-4342-ae50-0ef090577b77
+#12f7cb12-1242-451e-9a29-4abeae0533ba
+#462739ad-f899-4f0b-bdb8-a16a15031bc6
+#90e35592-aaf2-4882-99db-ee10d77a554d
+#e3b3be26-7da9-417d-b3a6-4fc747a1d586
+#ad6a2a03-9229-463c-aeb6-29e1eb90b58f
+#5a3fd857-b0e5-4c01-8b48-b95dac0615aa
+#5bbebea7-ef72-4b9a-a3cb-7346d943b639
+#380f5752b-e8d3-453f-9a47-f48210ed6ffc
+353d751f-cff0-4558-9051-25a87ba00d3f
