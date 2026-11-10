@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate llm-matrix suite YAML for env_broad_scale prediction.
+"""Generate evaluation suite YAML for env_broad_scale prediction.
 
 Samples N rows per env_broad_scale value and writes a single suite YAML
 with all models from models.yaml.

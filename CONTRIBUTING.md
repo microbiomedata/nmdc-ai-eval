@@ -24,7 +24,7 @@ The hooks and what they enforce are documented in the [QC and automation table i
 
 ### Common failures and fixes
 
-**pytest (suite YAML validation)** — Read the assertion or validation error. The most common cause for new contributors: suite YAML files with null required fields. Each suite YAML is loaded and checked against a strict Pydantic schema (`llm_matrix.schema.Suite`) — if a field is missing or the wrong type, you get a `ValidationError`. In YAML, a bare key with no value (e.g. `input:`) parses as `null`. `TestCase.input` must be a non-null string. Even for work-in-progress cases, use a placeholder:
+**pytest (suite YAML validation)** — Read the assertion or validation error. The most common cause for new contributors: suite YAML files with null required fields. Each suite YAML is loaded and checked against the repository's strict Pydantic schema (`nmdc_ai_eval.suite.Suite`) — if a field is missing or the wrong type, you get a `ValidationError`. In YAML, a bare key with no value (e.g. `input:`) parses as `null`. `TestCase.input` must be a non-null string. Even for work-in-progress cases, use a placeholder:
 
 ```yaml
 # Wrong — parses as null
@@ -71,7 +71,7 @@ cp -r datasets/ebs-prediction/ datasets/my-new-eval/
 
 ### 2. Write the suite YAML
 
-The suite YAML must parse into `llm_matrix.schema.Suite` (Pydantic-validated). Key requirements:
+The suite YAML must parse into `nmdc_ai_eval.suite.Suite` (Pydantic-validated). Key requirements:
 
 - **`cases[].input`** — required, must be a string (not null). Even for WIP, use `"TODO"`.
 - **`cases[].ideal`** — required, must be a non-null string. Tests enforce that every case has an ideal answer. Even for WIP, use a placeholder like `"TODO"`.

@@ -21,7 +21,7 @@ Unlike the sampleData classification task (8 discrete labels), env_broad_scale i
 
 ### The software engineering
 
-The eval is designed as a **post-hoc scorer** that enriches llm-matrix output with ontology-aware metrics. This avoids coupling to llm-matrix's limited built-in metrics and lets us iterate on scoring without re-running expensive LLM calls.
+The eval is designed as a **post-hoc scorer** that enriches suite-runner output with ontology-aware metrics. This keeps ontology scoring independent so it can be iterated without re-running expensive LLM calls.
 
 ## Setup
 
@@ -169,15 +169,14 @@ Templates without enums: air_data, host_associated_data, misc_envs_data, metagen
 
 ## Artifacts
 
-Running an eval suite (`just run-ebs-openai`) produces:
+Running the eval (`just run-ebs`) produces:
 
 | File | Description |
 |---|---|
-| `ebs-suite-{provider}.db` | DuckDB database created by llm-matrix. Caches results — **must be deleted before re-running with a regenerated suite**, otherwise llm-matrix reuses cached responses for matching cases. Use `just clean-outputs` to clear. |
-| `ebs-suite-{provider}-output/results.tsv` | Tabular results extracted from the .db — one row per (case × model) combination. |
-| `ebs-suite-{provider}-output/results_envo_scored.tsv` | Enriched results after `just score-ebs {provider}` — adds ontology-aware scoring columns. |
+| `ebs-suite-output/results.tsv` | Tabular results — one row per case and model/settings combination. |
+| `ebs-suite-output/results_envo_scored.tsv` | Enriched results after `just score-ebs` — adds ontology-aware scoring columns. |
 
-The `.db` files can be explored with DuckDB CLI or any DuckDB client. Use `just clean-outputs` to remove all eval artifacts.
+Use `just clean-ebs-outputs` (or `just clean-outputs` for all evals) to remove generated eval results.
 
 ## Eval Controls
 
@@ -196,7 +195,7 @@ The source TSV has 5,052 rows (318 unique with non-empty env_broad_scale after d
 
 Deduplication uses only the 9 INPUT_COLUMNS (the non-GOLD slots that appear in the prompt) plus `env_broad_scale` (the target). GOLD ecosystem columns are excluded from dedup because they are excluded from prompts.
 
-At the defaults (`--per-category 10 --min-pool 10`), the generator produces **100 cases across 10 strata** (10 each), evaluated across 2 models per provider = **200 scored rows per provider run**. The 12 excluded categories each have fewer than 10 unique rows — too few for meaningful per-stratum evaluation. The 10 included categories cover 283 of 318 unique rows (89% of the data).
+At the defaults (`--per-category 10 --min-pool 10`), the generator produces **100 cases across 10 strata** (10 each), evaluated across the 5 models in `datasets/models.yaml` = **500 scored rows per run**. The 12 excluded categories each have fewer than 10 unique rows — too few for meaningful per-stratum evaluation. The 10 included categories cover 283 of 318 unique rows (89% of the data).
 
 The `--min-pool` threshold exists because with fewer than ~10 observations per stratum, confidence intervals are too wide to distinguish signal from noise. For example, a model scoring 4/5 correct has a 95% CI of [28%, 99%] — that tells you nothing about per-category performance. With 10 samples, the intervals are still wide but directionally useful.
 
@@ -204,11 +203,7 @@ To include rare categories at the cost of statistical reliability, pass `--min-p
 
 ## Response Time & Cost Tracking
 
-Not yet implemented. llm-matrix does not expose per-request timing or token counts. The scored TSV includes stub columns (`response_time_s`, `prompt_tokens`, `completion_tokens`, `est_cost_usd`) so the output schema is stable for downstream consumers. Implementation options:
-
-1. **Wrapper timing**: time `run_suite.py` calls and join on case ID
-2. **Provider API logs**: extract from Anthropic/OpenAI usage dashboards
-3. **llm-matrix enhancement**: contribute timing to upstream
+The runner records generator and judge token counts, elapsed milliseconds, and estimated cost in `results.tsv`. Usage is read from each `llm.Response`; cost is estimated from `datasets/models.yaml` pricing data.
 
 ## Next Slots
 
