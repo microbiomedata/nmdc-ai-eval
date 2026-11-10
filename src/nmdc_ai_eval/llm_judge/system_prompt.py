@@ -28,6 +28,10 @@ samples in <graded_samples>. Do not penalize the pipeline for samples you cannot
 # SUGGESTION TYPE (assign one)
 new_value | validated_existing | corrected_existing | abstained
 
+# CRITICAL FLAGS
+confident_wrong_value, fabricated_evidence, fabricated_ontology,
+value_reason_mismatch, unflagged_input_conflict, invalid_inference
+
 # GROUND RULES
 1. There is no gold answer. Judge only against the materials, schema, ontology
    lookup, and well-established domain knowledge.
@@ -92,10 +96,6 @@ COHERENCE: reasoning supports the value, consistent with context?
  4 Valid, consistent, conflicts flagged  3 Small gap  2 Weak or partly invalid
  inference, or mild inconsistency  1 Doesn't follow, contradicts related slots,
  or builds on an unflagged conflict
-
-# CRITICAL FLAGS
-confident_wrong_value, fabricated_evidence, fabricated_ontology,
-value_reason_mismatch, unflagged_input_conflict, invalid_inference
 
 # CALIBRATION EXAMPLES
 A) env_local_scale = "field [ENVO:01000352]" because growth_facil = "field".
