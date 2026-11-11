@@ -1,0 +1,66 @@
+{
+  "metadata_fields": [
+    {
+      "id": "s1",
+      "field_name": "diss_oxygen",
+      "value": "2.0 mg per liter",
+      "reason": "Dissolved oxygen was 2.0 mg per liter in the aeration basin; AA-aer-2023-07-12."
+    },
+    {
+      "id": "s2",
+      "field_name": "diss_oxygen",
+      "value": "0.1 mg per liter",
+      "reason": "Dissolved oxygen was 0.1 mg per liter in the anoxic zone; AA-anox-2023-07-12."
+    },
+    {
+      "id": "s1",
+      "field_name": "oxy_stat_samp",
+      "value": "aerobic",
+      "reason": "Aeration basin, dissolved oxygen 2.0 mg per liter."
+    },
+    {
+      "id": "s2",
+      "field_name": "oxy_stat_samp",
+      "value": "anaerobic",
+      "reason": "The anoxic zone."
+    },
+    {
+      "id": null,
+      "field_name": "samp_collec_method",
+      "value": "grab sample",
+      "reason": "Mixed liquor was grab-sampled."
+    },
+    {
+      "id": null,
+      "field_name": "samp_mat_process",
+      "value": "centrifuged; pellet frozen",
+      "reason": "Samples were centrifuged and the pellets frozen."
+    },
+    {
+      "id": null,
+      "field_name": "samp_store_temp",
+      "value": -80,
+      "reason": "Pellets frozen at -80 degrees Celsius."
+    },
+    {
+      "id": "s1",
+      "field_name": "collection_date",
+      "value": "2023-07-12",
+      "reason": "AA-aer-2023-07-12."
+    },
+    {
+      "id": "s2",
+      "field_name": "collection_date",
+      "value": "2023-07-12",
+      "reason": "AA-anox-2023-07-12."
+    },
+    {
+      "id": null,
+      "field_name": "geo_loc_name",
+      "value": "USA: Michigan, Ann Arbor",
+      "reason": "A municipal wastewater treatment plant in Ann Arbor, Michigan, USA."
+    }
+  ],
+  "model": null,
+  "access_provider": null
+}

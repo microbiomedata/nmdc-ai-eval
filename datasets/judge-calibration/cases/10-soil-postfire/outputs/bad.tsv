@@ -1,0 +1,9 @@
+id	field_name	value	reason
+s2	fire	2021	The 2021 wildfire.
+s2	other_treatment	salvage logging after high-severity burn	Salvage logging units.
+s2	cur_vegetation	unburned reference stand	Unburned reference stands.
+s1	cur_vegetation	Douglas-fir	Douglas-fir forest.
+	depth	0 - 0.1	Mineral soil cores.
+	collection_date	2021-06	The 2021 wildfire.
+	soil_type	ash layer removed	After removing the ash layer.
+	geo_loc_name	USA: Oregon, Douglas County	Douglas County, Oregon, USA.

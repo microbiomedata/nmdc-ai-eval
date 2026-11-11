@@ -1,0 +1,42 @@
+{
+  "metadata_fields": [
+    {
+      "id": "s1",
+      "field_name": "ventilation_type",
+      "value": "mechanical ventilation",
+      "reason": "Stations use mechanical ventilation."
+    },
+    {
+      "id": "s2",
+      "field_name": "ventilation_type",
+      "value": "natural ventilation",
+      "reason": "Buses ran with windows open, so they are naturally ventilated like most transit buses."
+    },
+    {
+      "id": "s1",
+      "field_name": "humidity",
+      "value": "48 percent",
+      "reason": "The mean across stations was 48 percent."
+    },
+    {
+      "id": "s1",
+      "field_name": "temp",
+      "value": 19,
+      "reason": "The mean across stations was 19 degrees Celsius."
+    },
+    {
+      "id": null,
+      "field_name": "collection_date",
+      "value": "2022-10",
+      "reason": "October 2022."
+    },
+    {
+      "id": null,
+      "field_name": "geo_loc_name",
+      "value": "USA: Pennsylvania, Pittsburgh",
+      "reason": "Pittsburgh, Pennsylvania, USA."
+    }
+  ],
+  "model": null,
+  "access_provider": null
+}

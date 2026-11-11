@@ -1,0 +1,11 @@
+id	field_name	value	reason
+s1	depth	0.5	From the surface (0.5 m); LK-2021-08-0.5m.
+s2	depth	20	From 20 m; LK-2021-08-20m.
+s1	temp	24.1	In August the surface was 24.1 degrees Celsius.
+s2	temp	8.4	In August the 20 m sample was at 8.4 degrees Celsius.
+s2	diss_oxygen	0.1 mg per liter	The 20 m sample was anoxic (0.1 mg per liter dissolved oxygen).
+s2	oxy_stat_samp	anaerobic	The 20 m sample was anoxic.
+	size_frac	0.22 micrometer	Filtered through 0.22 micrometer polyethersulfone filters.
+	samp_collec_method	Van Dorn sampler	Using a Van Dorn sampler.
+	collection_date	2021-08	The sample names carry 2021-08 and the August values are given.
+	geo_loc_name	USA: Wisconsin, Dane County	A eutrophic lake in Dane County, Wisconsin, USA.

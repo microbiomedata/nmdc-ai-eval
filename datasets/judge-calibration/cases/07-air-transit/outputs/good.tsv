@@ -1,0 +1,6 @@
+id	field_name	value	reason
+s1	ventilation_type	mechanical ventilation	Stations use mechanical ventilation; PGH-station-03.
+s2	ventilation_type	windows open	Buses ran with windows open; PGH-bus-01.
+	samp_collec_method	liquid impinger at 12.5 liters per minute for 30 minutes	Using a liquid impinger at 12.5 liters per minute; sampled for 30 minutes.
+	collection_date	2022-10	October 2022.
+	geo_loc_name	USA: Pennsylvania, Pittsburgh	Pittsburgh, Pennsylvania, USA.

@@ -1,0 +1,5 @@
+kind	criterion	row	field_name	id	why
+fail	accuracy	3	gaseous_environment	s2	T0-aCO2-10-20 is an ambient-CO2 sample.
+fail	relevancy	6	temp		-80 is the storage temperature; temp records the sample's temperature at collection.
+fail	completeness				Frozen at -80 degrees Celsius is in the input and there is no samp_store_temp.
+open	accuracy	6	temp		-80 is the storage temperature, misfiled; rubric v1 does not say whether a misfiled value also fails accuracy.

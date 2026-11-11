@@ -1,0 +1,60 @@
+{
+  "metadata_fields": [
+    {
+      "id": "s1",
+      "field_name": "diss_oxygen",
+      "value": "2.0 mg per liter",
+      "reason": "2.0 mg per liter in the aeration basin."
+    },
+    {
+      "id": "s2",
+      "field_name": "diss_oxygen",
+      "value": "0.1 mg per liter",
+      "reason": "0.1 mg per liter in the anoxic zone."
+    },
+    {
+      "id": "s1",
+      "field_name": "oxy_stat_samp",
+      "value": "aerobic",
+      "reason": "Aeration basin."
+    },
+    {
+      "id": "s2",
+      "field_name": "oxy_stat_samp",
+      "value": "anaerobic",
+      "reason": "The anoxic zone, where denitrification removes the nitrate formed in the aeration basin."
+    },
+    {
+      "id": "s1",
+      "field_name": "ammonium",
+      "value": "35 mg N per liter",
+      "reason": "Influent ammonium averaged 35 mg N per liter over the year."
+    },
+    {
+      "id": null,
+      "field_name": "samp_collec_method",
+      "value": "grab sample",
+      "reason": "Grab-sampled."
+    },
+    {
+      "id": null,
+      "field_name": "samp_store_temp",
+      "value": -80,
+      "reason": "Frozen at -80 degrees Celsius."
+    },
+    {
+      "id": null,
+      "field_name": "collection_date",
+      "value": "2023-07-12",
+      "reason": "The sample names carry 2023-07-12."
+    },
+    {
+      "id": null,
+      "field_name": "geo_loc_name",
+      "value": "USA: Michigan, Ann Arbor",
+      "reason": "Ann Arbor, Michigan, USA."
+    }
+  ],
+  "model": null,
+  "access_provider": null
+}

@@ -1,0 +1,9 @@
+id	field_name	value	reason
+s1	air_temp_regm	+9 degrees Celsius above ambient	T9-eCO2-0-10 is the +9 treatment.
+s1	gaseous_environment	carbon dioxide; 900 ppm	Elevated atmospheric CO2 at 900 ppm; eCO2.
+s2	gaseous_environment	carbon dioxide; 900 ppm	Elevated atmospheric CO2 at 900 ppm.
+s1	depth	0 - 0.1	Sectioned at 0-10 cm.
+s2	depth	0.1 - 0.2	Sectioned at 10-20 cm.
+	temp	-80	Samples were frozen at -80 degrees Celsius.
+	collection_date	2022-08	Collected in August 2022.
+	geo_loc_name	USA: Minnesota, Grand Rapids	Near Grand Rapids, Minnesota, USA.

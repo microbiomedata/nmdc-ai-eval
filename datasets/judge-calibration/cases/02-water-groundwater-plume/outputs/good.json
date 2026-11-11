@@ -1,0 +1,60 @@
+{
+  "metadata_fields": [
+    {
+      "id": "s1",
+      "field_name": "ph",
+      "value": 3.6,
+      "reason": "pH 3.6 and nitrate 9,800 mg per liter at W106; W106-2024-03."
+    },
+    {
+      "id": "s2",
+      "field_name": "ph",
+      "value": 6.9,
+      "reason": "At W301 the pH was 6.9; W301-2024-03."
+    },
+    {
+      "id": "s1",
+      "field_name": "nitrate",
+      "value": "9800 mg per liter",
+      "reason": "Nitrate 9,800 mg per liter at W106."
+    },
+    {
+      "id": "s2",
+      "field_name": "nitrate",
+      "value": "0.4 mg per liter",
+      "reason": "At W301 the pH was 6.9 and nitrate 0.4 mg per liter; W301-2024-03."
+    },
+    {
+      "id": null,
+      "field_name": "samp_collec_method",
+      "value": "peristaltic pump after purging three well volumes",
+      "reason": "After purging three well volumes, using a peristaltic pump."
+    },
+    {
+      "id": null,
+      "field_name": "size_frac",
+      "value": "0.2 micrometer",
+      "reason": "Filtered on site through 0.2 micrometer filters."
+    },
+    {
+      "id": null,
+      "field_name": "depth",
+      "value": "7 - 12",
+      "reason": "Screened intervals were 7 to 12 m below ground surface."
+    },
+    {
+      "id": null,
+      "field_name": "collection_date",
+      "value": "2024-03",
+      "reason": "March 2024; the sample names carry 2024-03."
+    },
+    {
+      "id": null,
+      "field_name": "geo_loc_name",
+      "value": "USA: Tennessee, Oak Ridge",
+      "reason": "A valley near Oak Ridge, Tennessee, USA."
+    }
+  ],
+  "model": null,
+  "access_provider": null
+}

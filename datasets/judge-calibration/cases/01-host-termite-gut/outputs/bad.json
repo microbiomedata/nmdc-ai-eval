@@ -1,0 +1,48 @@
+{
+  "metadata_fields": [
+    {
+      "id": "s1",
+      "field_name": "host_common_name",
+      "value": "termite",
+      "reason": "Worker termites."
+    },
+    {
+      "id": "s1",
+      "field_name": "host_taxid",
+      "value": "NCBITaxon:10090",
+      "reason": "Host taxon."
+    },
+    {
+      "id": "s1",
+      "field_name": "host_body_site",
+      "value": "foregut [UBERON:0001041]",
+      "reason": "Gut communities."
+    },
+    {
+      "id": "s1",
+      "field_name": "host_diet",
+      "value": "oak wood",
+      "reason": "Collected from a decaying oak log."
+    },
+    {
+      "id": "s1",
+      "field_name": "host_life_stage",
+      "value": "larva",
+      "reason": "Immature insects."
+    },
+    {
+      "id": null,
+      "field_name": "samp_store_temp",
+      "value": 4,
+      "reason": "Stored in RNAlater."
+    },
+    {
+      "id": null,
+      "field_name": "samp_mat_process",
+      "value": "USA: Georgia, Athens",
+      "reason": "Athens, Georgia, USA."
+    }
+  ],
+  "model": null,
+  "access_provider": null
+}

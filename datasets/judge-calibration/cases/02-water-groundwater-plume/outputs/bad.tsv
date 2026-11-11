@@ -1,0 +1,9 @@
+id	field_name	value	reason
+s1	ph	3.6	pH 3.6 at W106.
+s1	ph	6.9	Groundwater pH.
+s2	ph	3.6	Acidic plume.
+s2	nitrate	9800 mg per liter	Nitrate at the site.
+	samp_collec_method	bailer	Wells were sampled after purging.
+	size_frac	0.22 micrometer	Filtered on site.
+	samp_size	7-12 m	Screened intervals were 7 to 12 m.
+	collection_date	2024-03	March 2024.

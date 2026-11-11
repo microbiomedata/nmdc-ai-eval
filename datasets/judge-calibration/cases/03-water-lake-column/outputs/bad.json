@@ -1,0 +1,42 @@
+{
+  "metadata_fields": [
+    {
+      "id": "s1",
+      "field_name": "oxy_stat_samp",
+      "value": "anaerobic",
+      "reason": "The lake was anoxic in August."
+    },
+    {
+      "id": "s2",
+      "field_name": "temp",
+      "value": 24.1,
+      "reason": "August temperature."
+    },
+    {
+      "id": "s1",
+      "field_name": "diss_oxygen",
+      "value": "0.1 mg per liter",
+      "reason": "Dissolved oxygen in August."
+    },
+    {
+      "id": null,
+      "field_name": "geo_loc_name",
+      "value": "USA: Michigan, Lansing",
+      "reason": "A eutrophic lake in the upper Midwest."
+    },
+    {
+      "id": "s1",
+      "field_name": "collection_date",
+      "value": "2021-08",
+      "reason": "LK-2021-08-0.5m."
+    },
+    {
+      "id": "s1",
+      "field_name": "collection_date",
+      "value": "2021-05",
+      "reason": "Sampling began in May 2021."
+    }
+  ],
+  "model": null,
+  "access_provider": null
+}

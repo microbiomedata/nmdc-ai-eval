@@ -1,0 +1,54 @@
+{
+  "metadata_fields": [
+    {
+      "id": "s2",
+      "field_name": "fire",
+      "value": "2021",
+      "reason": "The 2021 wildfire."
+    },
+    {
+      "id": "s2",
+      "field_name": "other_treatment",
+      "value": "salvage logging after high-severity burn",
+      "reason": "Salvage logging units."
+    },
+    {
+      "id": "s2",
+      "field_name": "cur_vegetation",
+      "value": "unburned reference stand",
+      "reason": "Unburned reference stands."
+    },
+    {
+      "id": "s1",
+      "field_name": "cur_vegetation",
+      "value": "Douglas-fir",
+      "reason": "Douglas-fir forest."
+    },
+    {
+      "id": null,
+      "field_name": "depth",
+      "value": "0 - 0.1",
+      "reason": "Mineral soil cores."
+    },
+    {
+      "id": null,
+      "field_name": "collection_date",
+      "value": "2021-06",
+      "reason": "The 2021 wildfire."
+    },
+    {
+      "id": null,
+      "field_name": "soil_type",
+      "value": "ash layer removed",
+      "reason": "After removing the ash layer."
+    },
+    {
+      "id": null,
+      "field_name": "geo_loc_name",
+      "value": "USA: Oregon, Douglas County",
+      "reason": "Douglas County, Oregon, USA."
+    }
+  ],
+  "model": null,
+  "access_provider": null
+}
