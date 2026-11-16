@@ -15,6 +15,7 @@ import requests
 from nmdc_ai_eval.llm_judge import (
     SubmissionApiClient,
     _submission_sample_records,
+    build_judge_json_schema,
     build_judge_system_prompt,
     evaluate_submission,
     load_rubric,
@@ -22,6 +23,7 @@ from nmdc_ai_eval.llm_judge import (
     parse_judge_response,
     resolve_suggestor_provider,
 )
+from nmdc_ai_eval.llm_judge.output_model import JudgeOutput
 
 
 def test_submission_sample_records_match_data_suffix_and_assign_row_ids() -> None:
@@ -48,27 +50,81 @@ def test_submission_sample_records_match_data_suffix_and_assign_row_ids() -> Non
 RUBRIC = {
     "metrics": [
         {
-            "name": "relevance",
-            "description": "How relevant the suggestions are.",
+            "name": "accuracy",
+            "description": "Whether the value is correct and supported.",
             "score_anchors": {
-                1: "Not relevant.",
-                2: "Partly relevant.",
-                3: "Mostly relevant.",
-                4: "Highly relevant.",
+                1: "Wrong.",
+                2: "Partly wrong.",
+                3: "Mostly correct.",
+                4: "Correct.",
             },
         },
         {
-            "name": "completeness",
-            "description": "How complete the suggestions are.",
-            "score_anchors": {
-                1: "Not complete.",
-                2: "Partly complete.",
-                3: "Mostly complete.",
-                4: "Complete.",
-            },
+            "name": "factuality",
+            "description": "Whether claims are factually supported.",
+            "score_anchors": {1: "Fabricated.", 2: "Unclear.", 3: "Mostly supported.", 4: "Supported."},
         },
-    ]
+        {
+            "name": "relevancy",
+            "description": "Whether the slot is relevant.",
+            "score_anchors": {1: "Irrelevant.", 2: "Weak.", 3: "Mostly relevant.", 4: "Relevant."},
+        },
+        {
+            "name": "completeness",
+            "description": "Whether supported information is captured.",
+            "null_when": "The suggestion is an abstention.",
+            "score_anchors": {1: "Incomplete.", 2: "Partly complete.", 3: "Mostly complete.", 4: "Complete."},
+        },
+        {
+            "name": "coherence",
+            "description": "Whether the reasoning supports the value.",
+            "score_anchors": {1: "Incoherent.", 2: "Weak.", 3: "Mostly coherent.", 4: "Coherent."},
+        },
+    ],
+    "critical_flags": [
+        "confident_wrong_value",
+        "fabricated_evidence",
+        "fabricated_ontology",
+        "value_reason_mismatch",
+        "unflagged_input_conflict",
+        "invalid_inference",
+    ],
 }
+
+
+def _judge_suggestion(
+    index: int = 0,
+    sample_id: str | None = None,
+    field_name: str = "env_medium",
+    suggestion_type: str = "new_value",
+    completeness: int | None = 3,
+) -> dict[str, Any]:
+    return {
+        "index": index,
+        "sample_id": sample_id,
+        "field_name": field_name,
+        "suggestion_type": suggestion_type,
+        "evidence_check": "verified",
+        "reasoning": "The value is supported by the provided sample record.",
+        "scores": {
+            "accuracy": 4,
+            "factuality": 4,
+            "relevancy": 4,
+            "completeness": completeness,
+            "coherence": 4,
+        },
+        "critical_flags": [],
+        "suggested_correction": None,
+    }
+
+
+def _judge_payload(*suggestions: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "suggestions": list(suggestions) if suggestions else [_judge_suggestion()],
+        "missed_supported_slots": [],
+        "input_data_issues": [],
+        "summary": "The suggestion is well supported. No major failure pattern was identified.",
+    }
 
 
 def _response(payload: object) -> MagicMock:
@@ -80,7 +136,7 @@ def _response(payload: object) -> MagicMock:
 
 def test_fetch_submission_exchanges_refresh_token_then_uses_access_token() -> None:
     with patch(
-        "nmdc_ai_eval.llm_judge.requests.request",
+        "nmdc_ai_eval.llm_judge.submission_api.requests.request",
         side_effect=[
             _response({"access_token": "access-token"}),
             _response({"id": "nmdc:sub-1", "metadata_submission": {}}),
@@ -112,7 +168,7 @@ def test_fetch_submission_normalizes_direct_api_shape_for_suggestor() -> None:
         ],
     }
     with patch(
-        "nmdc_ai_eval.llm_judge.requests.request",
+        "nmdc_ai_eval.llm_judge.submission_api.requests.request",
         side_effect=[
             _response({"access_token": "access-token"}),
             _response(direct_submission),
@@ -131,6 +187,36 @@ def test_fetch_submission_normalizes_direct_api_shape_for_suggestor() -> None:
     }
 
 
+def test_fetch_submission_collects_sample_set_data() -> None:
+    direct_submission = {
+        "study_form": {"studyName": "Test study"},
+        "sample_sets": [{"id": "set/1", "templates": ["soil"]}],
+    }
+    sample_set = {"sample_data": {"data": {"soil_data": [{"samp_name": "sample-a"}]}}}
+    with patch(
+        "nmdc_ai_eval.llm_judge.submission_api.requests.request",
+        side_effect=[
+            _response({"access_token": "access-token"}),
+            _response(direct_submission),
+            _response(sample_set),
+        ],
+    ) as mocked_request:
+        submission = SubmissionApiClient(
+            "https://data.example.org",
+            "refresh-token",
+        ).fetch_submission("submission-1")
+
+    assert submission["metadata_submission"]["sampleData"] == {
+        "soil_data": [{"samp_name": "sample-a"}],
+    }
+    sample_set_request = mocked_request.call_args_list[2]
+    assert sample_set_request.args == (
+        "GET",
+        "https://data.example.org/api/metadata_submission/sample_set/set%2F1",
+    )
+    assert sample_set_request.kwargs["headers"]["Authorization"].startswith("Bearer ")
+
+
 def test_api_client_rejects_empty_refresh_token() -> None:
     with pytest.raises(ValueError, match="refresh token is required"):
         SubmissionApiClient("https://data.example.org", " ")
@@ -146,7 +232,7 @@ def test_api_client_surfaces_http_error_body_and_redacts_refresh_token() -> None
     response = MagicMock(status_code=403, text='{"detail":"Invalid refresh-token"}')
     error = requests.HTTPError("Denied", response=response)
     with (
-        patch("nmdc_ai_eval.llm_judge.requests.request", side_effect=error),
+        patch("nmdc_ai_eval.llm_judge.submission_api.requests.request", side_effect=error),
         pytest.raises(RuntimeError, match=r'HTTP 403\. Response body: \{"detail":"Invalid \[REDACTED\]"\}'),
     ):
         api.fetch_submission("submission-1")
@@ -156,21 +242,21 @@ def test_api_client_truncates_long_http_error_body() -> None:
     response = MagicMock(status_code=403, text="x" * 2000)
     error = requests.HTTPError("Denied", response=response)
     with (
-        patch("nmdc_ai_eval.llm_judge.requests.request", side_effect=error),
+        patch("nmdc_ai_eval.llm_judge.submission_api.requests.request", side_effect=error),
         pytest.raises(RuntimeError, match=r"\.\.\. \[truncated\]"),
     ):
         SubmissionApiClient("https://data.example.org", "refresh-token").fetch_submission("id")
 
 
 def test_api_client_rejects_non_object_json_response() -> None:
-    with patch("nmdc_ai_eval.llm_judge.requests.request", return_value=_response([])):
+    with patch("nmdc_ai_eval.llm_judge.submission_api.requests.request", return_value=_response([])):
         api = SubmissionApiClient("https://data.example.org", "refresh-token")
         with pytest.raises(ValueError, match="not an object"):
             api.fetch_submission("submission-1")
 
 
 def test_api_client_rejects_refresh_response_without_access_token() -> None:
-    with patch("nmdc_ai_eval.llm_judge.requests.request", return_value=_response({})):
+    with patch("nmdc_ai_eval.llm_judge.submission_api.requests.request", return_value=_response({})):
         api = SubmissionApiClient("https://data.example.org", "refresh-token")
         with pytest.raises(ValueError, match="did not contain an access token"):
             api.fetch_submission("submission-1")
@@ -178,7 +264,7 @@ def test_api_client_rejects_refresh_response_without_access_token() -> None:
 
 def test_api_client_rejects_submission_without_metadata_document() -> None:
     with patch(
-        "nmdc_ai_eval.llm_judge.requests.request",
+        "nmdc_ai_eval.llm_judge.submission_api.requests.request",
         side_effect=[_response({"access_token": "access-token"}), _response({"id": "submission-1"})],
     ):
         api = SubmissionApiClient("https://data.example.org", "refresh-token")
@@ -188,7 +274,7 @@ def test_api_client_rejects_submission_without_metadata_document() -> None:
 
 def test_api_client_debug_logs_response_and_redacts_token_fields(capsys: pytest.CaptureFixture[str]) -> None:
     with patch(
-        "nmdc_ai_eval.llm_judge.requests.request",
+        "nmdc_ai_eval.llm_judge.submission_api.requests.request",
         return_value=_response({"access_token": "secret-access-token", "message": "ready"}),
     ):
         api = SubmissionApiClient("https://data.example.org", "secret-refresh-token", debug=True)
@@ -206,7 +292,7 @@ def test_api_client_debug_logs_response_shape_on_invalid_submission(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
     with patch(
-        "nmdc_ai_eval.llm_judge.requests.request",
+        "nmdc_ai_eval.llm_judge.submission_api.requests.request",
         side_effect=[
             _response({"access_token": "access-token"}),
             _response({"id": "submission-1", "error": "not found"}),
@@ -223,7 +309,7 @@ def test_api_client_debug_logs_response_shape_on_invalid_submission(
 
 def test_api_client_reuses_access_token_until_near_expiry() -> None:
     with patch(
-        "nmdc_ai_eval.llm_judge.requests.request",
+        "nmdc_ai_eval.llm_judge.submission_api.requests.request",
         side_effect=[
             _response({"access_token": "access-token"}),
             _response({"id": "first", "metadata_submission": {}}),
@@ -240,11 +326,11 @@ def test_api_client_reuses_access_token_until_near_expiry() -> None:
 
 
 def test_api_client_refreshes_access_token_before_expiry() -> None:
-    from nmdc_ai_eval import llm_judge
+    from nmdc_ai_eval.llm_judge import submission_api
 
     with (
         patch(
-            "nmdc_ai_eval.llm_judge.requests.request",
+            "nmdc_ai_eval.llm_judge.submission_api.requests.request",
             side_effect=[
                 _response({"access_token": "first-token"}),
                 _response({"id": "first", "metadata_submission": {}}),
@@ -253,7 +339,7 @@ def test_api_client_refreshes_access_token_before_expiry() -> None:
             ],
         ) as mocked_request,
         patch.object(
-            llm_judge.time,
+            submission_api.time,
             "monotonic",
             side_effect=[100.0, 100.0 + 24 * 60 * 60 - 5 * 60, 200.0],
         ),
@@ -364,219 +450,174 @@ def test_load_rubric_rejects_duplicate_metric_names(tmp_path) -> None:
         load_rubric(str(rubric_file))
 
 
-def test_parse_judge_response_validates_and_averages_all_metrics() -> None:
-    response = """```json
-{"scores":[
-  {"metric":"completeness","score":3,"rationale":"Most expected details are covered."},
-  {"metric":"relevance","score":4,"rationale":"The suggestions use the study context."}
-],
-"suggestion_scores":[{"suggestion_index":0,"reasoning":"The first suggestion is relevant.",
-  "scores":[{"metric":"completeness","score":3,"rationale":"Most details are covered."},
-    {"metric":"relevance","score":4,"rationale":"The suggestion is relevant."}]}]}
-```"""
+def test_load_rubric_rejects_metrics_not_supported_by_output_model(tmp_path) -> None:
+    rubric_file = tmp_path / "rubric.yaml"
+    rubric_file.write_text(
+        """metrics:
+  - name: quality
+    description: Overall quality.
+    score_anchors: {1: poor, 2: fair, 3: good, 4: great}
+""",
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ValueError, match="must match the fixed JudgeOutput model"):
+        load_rubric(str(rubric_file))
+
+
+def test_parse_judge_response_validates_pi_output_and_averages_suggestion_scores() -> None:
+    payload = _judge_payload(
+        _judge_suggestion(index=0, field_name="env_medium", completeness=3),
+        _judge_suggestion(index=1, field_name="env_local_scale", completeness=2),
+    )
+    response = json.dumps(payload)
+
     parsed = parse_judge_response(response, RUBRIC)
-    assert parsed == {
-        "scores": [
-            {"metric": "relevance", "score": 4, "rationale": "The suggestions use the study context."},
-            {"metric": "completeness", "score": 3, "rationale": "Most expected details are covered."},
-        ],
-        "mean_score": 3.5,
-        "suggestion_scores": [
-            {
-                "suggestion_index": 0,
-                "reasoning": "The first suggestion is relevant.",
-                "scores": [
-                    {"metric": "relevance", "score": 4, "rationale": "The suggestion is relevant."},
-                    {"metric": "completeness", "score": 3, "rationale": "Most details are covered."},
-                ],
-                "mean_score": 3.5,
-            }
-        ],
-    }
+
+    assert parsed["suggestions"] == payload["suggestions"]
+    assert parsed["summary"] == payload["summary"]
+    assert parsed["mean_score"] == 3.7
 
 
-def test_parse_judge_response_excludes_allowed_null_score_from_mean() -> None:
-    rubric = load_rubric(str(Path(__file__).parents[1] / "datasets" / "llm-judge" / "judge-rubric.yaml"))
-    response = """{"scores":[
-      {"metric":"accuracy","score":4,"rationale":"Abstention is correct."},
-      {"metric":"factuality","score":4,"rationale":"No unsupported claims."},
-      {"metric":"relevancy","score":4,"rationale":"Slot is not applicable."},
-      {"metric":"completeness","score":null,"rationale":"Not applicable for abstention."},
-      {"metric":"coherence","score":4,"rationale":"Reasoning is consistent."}
-    ],
-    "suggestion_scores":[]}"""
-    parsed = parse_judge_response(response, rubric)
-    assert parsed["scores"][3]["score"] is None
+def test_parse_judge_response_excludes_abstention_completeness_from_mean() -> None:
+    payload = _judge_payload(_judge_suggestion(suggestion_type="abstained", completeness=None))
+
+    parsed = parse_judge_response(json.dumps(payload), RUBRIC)
+
+    assert parsed["suggestions"][0]["scores"]["completeness"] is None
     assert parsed["mean_score"] == 4.0
 
 
-def test_parse_judge_response_rejects_null_for_metric_without_null_condition() -> None:
-    response = """{"scores":[
-      {"metric":"relevance","score":null,"rationale":"Not allowed."},
-      {"metric":"completeness","score":3,"rationale":"Mostly complete."}
-    ],
-    "suggestion_scores":[]}"""
-    with pytest.raises(ValueError, match="integer from 1 through 4"):
-        parse_judge_response(response, RUBRIC)
+def test_parse_judge_response_rejects_malformed_json() -> None:
+    payload = json.dumps(_judge_payload())
+    payload = payload[:-1] + ",}"
+
+    with pytest.raises(ValueError, match="not valid JSON"):
+        parse_judge_response(payload, RUBRIC)
 
 
-def test_parse_judge_response_accepts_json_label_on_separate_fence_line() -> None:
-    response = """```
-json
-{"scores":[
-  {"metric":"relevance","score":4,"rationale":"Relevant."},
-  {"metric":"completeness","score":3,"rationale":"Mostly complete."}
-],"suggestion_scores":[]}
-```"""
-    assert parse_judge_response(response, RUBRIC)["mean_score"] == 3.5
+def test_parse_judge_response_rejects_boolean_evidence_check() -> None:
+    suggestion = _judge_suggestion()
+    suggestion["evidence_check"] = True
+
+    with pytest.raises(ValueError, match="output model"):
+        parse_judge_response(json.dumps(_judge_payload(suggestion)), RUBRIC)
 
 
-def test_parse_judge_response_accepts_case_insensitive_json_fence() -> None:
-    response = """```JSON
-{"scores":[],"suggestion_scores":[]}
-```"""
+def test_parse_judge_response_rejects_object_input_data_issue() -> None:
+    payload = _judge_payload()
+    payload["input_data_issues"] = [{"field_name": "lat_lon", "issue": "Invalid coordinates"}]
 
-    with pytest.raises(ValueError, match=r"omitted required metrics"):
-        parse_judge_response(response, RUBRIC)
-
-
-def test_parse_judge_response_extracts_json_from_prose_and_trailing_comma() -> None:
-    response = """Here is the evaluation:
-```json
-{"scores":[
-  {"metric":"relevance","score":4,"rationale":"Relevant.",},
-  {"metric":"completeness","score":3,"rationale":"Complete.",}
-],"suggestion_scores":[]}
-```
-End of evaluation."""
-
-    assert parse_judge_response(response, RUBRIC)["mean_score"] == 3.5
+    with pytest.raises(ValueError, match="output model"):
+        parse_judge_response(json.dumps(payload), RUBRIC)
 
 
-def test_parse_judge_response_repairs_missing_object_separator() -> None:
-    response = """{"scores":[
-      {"metric":"relevance","score":4,"rationale":"Relevant."},
-      {"metric":"completeness","score":3,"rationale":"Complete."}
-    ] "suggestion_scores":[]}"""
+def test_parse_judge_response_rejects_incomplete_or_unexpected_suggestion_indexes() -> None:
+    payload = _judge_payload(_judge_suggestion(index=1))
+    expected = [{"field_name": "env_medium", "id": None}, {"field_name": "env_local_scale", "id": None}]
 
-    assert parse_judge_response(response, RUBRIC)["mean_score"] == 3.5
-
-
-def test_parse_judge_response_repairs_adjacent_objects() -> None:
-    response = """{"scores":[
-      {"metric":"relevance","score":4,"rationale":"Relevant."},
-      {"metric":"completeness","score":3,"rationale":"Complete."}
-    ],"suggestion_scores":[{"suggestion_index":0,"reasoning":"Relevant.","scores":[
-      {"metric":"relevance","score":4,"rationale":"Relevant."},{"metric":"completeness","score":3,"rationale":"Complete."}
-    ]}]}"""
-
-    assert len(parse_judge_response(response, RUBRIC)["suggestion_scores"]) == 1
+    with pytest.raises(ValueError, match="coverage mismatch"):
+        parse_judge_response(json.dumps(payload), RUBRIC, expected_suggestions=expected)
 
 
-def test_parse_judge_response_preserves_pi_judge_annotations() -> None:
-    rubric = load_rubric(str(Path(__file__).parents[1] / "datasets" / "llm-judge" / "judge-rubric.yaml"))
-    response = """{"reasoning":"The existing value is unsupported.","scores":[
-      {"metric":"accuracy","score":2,"rationale":"The value is plausible but weakly supported."},
-      {"metric":"factuality","score":3,"rationale":"The reason is mostly traceable."},
-      {"metric":"relevancy","score":4,"rationale":"The slot is appropriate."},
-      {"metric":"completeness","score":4,"rationale":"The supported detail is captured."},
-      {"metric":"coherence","score":2,"rationale":"The inference is weak."}
-    ],
-    "suggestion_types":[{"suggestion_index":0,"type":"corrected_existing"}],
-    "suggestion_scores":[],
-    "critical_flags":[{"suggestion_index":0,"flag":"invalid_inference",
-      "evidence":"Growth facility does not establish landscape feature."}],
-    "missed_slots":[{"slot":"geo_loc_name","evidence":"The record states North Carolina."}]
-    }"""
+def test_parse_judge_response_rejects_duplicate_suggestion_indexes() -> None:
+    payload = _judge_payload(_judge_suggestion(), _judge_suggestion())
 
-    parsed = parse_judge_response(response, rubric)
-    assert parsed["suggestion_types"] == [{"suggestion_index": 0, "type": "corrected_existing"}]
-    assert parsed["critical_flags"][0]["flag"] == "invalid_inference"
-    assert parsed["missed_slots"] == [{"slot": "geo_loc_name", "evidence": "The record states North Carolina."}]
+    with pytest.raises(ValueError, match="more than once"):
+        parse_judge_response(json.dumps(payload), RUBRIC)
 
 
-def test_parse_judge_response_validates_individual_suggestion_scores() -> None:
-    response = """{"scores":[
-      {"metric":"relevance","score":4,"rationale":"Overall response is relevant."},
-      {"metric":"completeness","score":3,"rationale":"Overall response is mostly complete."}
-    ],
-    "suggestion_scores":[
-      {"suggestion_index":1,"reasoning":"The second suggestion captures the slot.",
-       "scores":[
-         {"metric":"relevance","score":2,"rationale":"The slot is weakly applicable."},
-         {"metric":"completeness","score":4,"rationale":"All supported details are present."}
-       ]}
-    ]}"""
+def test_parse_judge_response_rejects_mismatched_suggestion_identity() -> None:
+    payload = _judge_payload(_judge_suggestion(field_name="wrong_field"))
 
-    parsed = parse_judge_response(response, RUBRIC)
+    with pytest.raises(ValueError, match="field_name does not match"):
+        parse_judge_response(
+            json.dumps(payload),
+            RUBRIC,
+            expected_suggestions=[{"field_name": "env_medium", "id": None}],
+        )
 
-    assert parsed["suggestion_scores"] == [
-        {
-            "suggestion_index": 1,
-            "reasoning": "The second suggestion captures the slot.",
-            "scores": [
-                {"metric": "relevance", "score": 2, "rationale": "The slot is weakly applicable."},
-                {"metric": "completeness", "score": 4, "rationale": "All supported details are present."},
-            ],
-            "mean_score": 3.0,
-        }
-    ]
+
+def test_parse_judge_response_rejects_mismatched_sample_id() -> None:
+    payload = _judge_payload(_judge_suggestion(sample_id="wrong-sample"))
+
+    with pytest.raises(ValueError, match="sample_id does not match"):
+        parse_judge_response(
+            json.dumps(payload),
+            RUBRIC,
+            expected_suggestions=[{"field_name": "env_medium", "id": "sample-1"}],
+        )
 
 
 @pytest.mark.parametrize(
-    ("judge_text", "message"),
-    [
-        ('{"scores":[]}', "omitted required metrics"),
-        (
-            '{"scores":[{"metric":"relevance","score":5,"rationale":"Invalid range."},'
-            '{"metric":"completeness","score":4,"rationale":"Complete."}]}',
-            "integer from 1 through 4",
-        ),
-        (
-            '{"scores":[{"metric":"relevance","score":true,"rationale":"Invalid type."},'
-            '{"metric":"completeness","score":4,"rationale":"Complete."}]}',
-            "integer from 1 through 4",
-        ),
-    ],
+    ("suggestion_type", "completeness"),
+    [("new_value", None), ("abstained", 3)],
 )
-def test_parse_judge_response_rejects_invalid_scores(judge_text: str, message: str) -> None:
-    with pytest.raises(ValueError, match=message):
-        parse_judge_response(judge_text, RUBRIC)
+def test_parse_judge_response_enforces_abstention_completeness(
+    suggestion_type: str,
+    completeness: int | None,
+) -> None:
+    payload = _judge_payload(_judge_suggestion(suggestion_type=suggestion_type, completeness=completeness))
+
+    with pytest.raises(ValueError, match="completeness"):
+        parse_judge_response(json.dumps(payload), RUBRIC)
+
+
+def test_parse_judge_response_rejects_unknown_critical_flags() -> None:
+    suggestion = _judge_suggestion()
+    suggestion["critical_flags"] = ["not_a_real_flag"]
+
+    with pytest.raises(ValueError, match="unsupported critical flags"):
+        parse_judge_response(json.dumps(_judge_payload(suggestion)), RUBRIC)
+
+
+def test_parse_judge_response_rejects_out_of_range_scores() -> None:
+    suggestion = _judge_suggestion()
+    suggestion["scores"]["accuracy"] = 5
+
+    with pytest.raises(ValueError, match="output model"):
+        parse_judge_response(json.dumps(_judge_payload(suggestion)), RUBRIC)
 
 
 @pytest.mark.parametrize(
-    ("judge_text", "message"),
+    "judge_text",
     [
-        ("not json", "not valid JSON"),
-        ("```json\n{}\n", "incomplete JSON code fence"),
-        ("{}", "must contain a 'scores' list"),
-        ('{"scores":[null]}', "not an object"),
-        (
-            '{"scores":[{"metric":"unknown","score":3,"rationale":"Unknown."}]}',
-            "unknown metric",
-        ),
-        (
-            '{"scores":[{"metric":"relevance","score":3,"rationale":"First."},'
-            '{"metric":"relevance","score":4,"rationale":"Duplicate."},'
-            '{"metric":"completeness","score":2,"rationale":"Second."}]}',
-            "more than once",
-        ),
-        (
-            '{"scores":[{"metric":"relevance","score":3,"rationale":"First."},'
-            '{"metric":"completeness","score":2,"rationale":"  "}]}',
-            "non-empty string",
-        ),
+        "not json",
+        "```json\n{}\n```",
+        "{}",
     ],
 )
-def test_parse_judge_response_rejects_malformed_responses(judge_text: str, message: str) -> None:
-    with pytest.raises(ValueError, match=message):
+def test_parse_judge_response_rejects_noncontract_responses(judge_text: str) -> None:
+    with pytest.raises(ValueError):
         parse_judge_response(judge_text, RUBRIC)
 
 
-def test_judge_prompt_contains_configured_rubric() -> None:
+def test_judge_prompt_uses_pi_output_contract_and_configured_rubric() -> None:
     prompt = build_judge_system_prompt(RUBRIC)
-    assert '"name": "relevance"' in prompt
-    assert "integers from 1 to 4" in prompt
+    assert '"name": "accuracy"' in prompt
+    assert "exactly one" in prompt
+    assert "missed_supported_slots" in prompt
+    assert "completeness" in prompt
+    assert "Include suggestion_scores as one entry per suggestion" not in prompt
+    assert build_judge_json_schema(RUBRIC) == JudgeOutput.model_json_schema()
+
+
+def test_judge_rejects_rubric_that_does_not_match_fixed_output_model() -> None:
+    rubric = {**RUBRIC, "metrics": [metric for metric in RUBRIC["metrics"] if metric["name"] != "accuracy"]}
+
+    with pytest.raises(ValueError, match="must match the fixed JudgeOutput model"):
+        build_judge_system_prompt(rubric)
+
+
+def test_checked_in_rubric_uses_pi_output_contract() -> None:
+    rubric = load_rubric(str(Path(__file__).parents[1] / "datasets" / "llm-judge" / "judge-rubric.yaml"))
+    output_format = rubric["judge_output"]["format"]
+
+    assert "exactly one" in output_format
+    assert "reasoning" in output_format
+    assert "scores object" in output_format
+    assert "suggestion_scores" in output_format
+    assert "Do not use the legacy" in output_format
 
 
 @pytest.mark.parametrize(
@@ -635,43 +676,22 @@ def test_cborg_client_uses_repository_api_key_name(
     assert "CBORG_KEY" not in os.environ
 
 
-def test_evaluate_submission_runs_production_pipeline_and_judge() -> None:
+@pytest.mark.parametrize("supports_schema", [False, True])
+def test_evaluate_submission_runs_production_pipeline_and_judge(supports_schema: bool) -> None:
     suggestion_data = {"metadata_fields": [{"field_name": "env_medium", "value": "soil"}]}
     pipeline_output = SimpleNamespace(model_dump=lambda mode: suggestion_data)
-    judge_response = SimpleNamespace(
-        text=lambda: (
-            '{"reasoning":"The suggestion is appropriate.",'
-            '"scores":[{"metric":"relevance","score":4,"rationale":"Relevant."},'
-            '{"metric":"completeness","score":3,"rationale":"Mostly complete."}],'
-            '"suggestion_scores":[{"suggestion_index":0,"reasoning":"Relevant and mostly complete.",'
-            '"scores":[{"metric":"relevance","score":4,"rationale":"Relevant."},'
-            '{"metric":"completeness","score":3,"rationale":"Mostly complete."}]}]}'
-        )
-    )
+    judge_response = SimpleNamespace(text=lambda: json.dumps(_judge_payload(_judge_suggestion(completeness=3))))
     judge_model = MagicMock()
-    judge_model.supports_schema = False
+    judge_model.supports_schema = supports_schema
     judge_model.prompt.return_value = judge_response
     suggestor_client = SimpleNamespace(access_provider="pnnl", model="test-model")
     client_type = MagicMock(return_value=suggestor_client)
     submission = {"metadata_submission": {"studyForm": {"studyName": "Test"}}}
-    parsed_submission = {"study_name": "Test"}
-
-    def run_pipeline_with_context(**kwargs: Any) -> Any:
-        from nmdc_metadata_suggestor_ai_tool.llm_client import ConversationManager
-
-        manager = ConversationManager(llm_client=kwargs["llm_client"], system_prompt="test")
-        manager.add_message("Submission description: Test")
-        manager.add_message("Retrieved publication context: Test abstract")
-        return pipeline_output
 
     with (
         patch(
-            "nmdc_ai_eval.llm_judge.get_submission_fields",
-            return_value=parsed_submission,
-        ),
-        patch(
             "nmdc_ai_eval.llm_judge.run_recommendation_pipeline",
-            side_effect=run_pipeline_with_context,
+            return_value=pipeline_output,
         ) as pipeline,
         patch("nmdc_ai_eval.llm_judge.LLMClient", client_type),
     ):
@@ -690,23 +710,28 @@ def test_evaluate_submission_runs_production_pipeline_and_judge() -> None:
     judge_model.prompt.assert_called_once()
     judge_input = json.loads(judge_model.prompt.call_args_list[0].args[0])
     assert judge_input == {
-        "submission": parsed_submission,
-        "suggestor_context_messages": [
-            "Submission description: Test",
-            "Retrieved publication context: Test abstract",
-        ],
+        "submission": submission,
         "suggestor_response": suggestion_data,
         "judge_task": {
             "suggestion_count": 1,
             "required_suggestion_indexes": [0],
+            "suggestions_to_grade": [
+                {"index": 0, "field_name": "env_medium", "sample_id": None},
+            ],
         },
     }
     assert result["submission_id"] == "submission-1"
-    assert result["mean_score"] == 3.5
+    assert result["mean_score"] == 3.8
+    assert result["suggestions"][0]["field_name"] == "env_medium"
+    assert result["summary"] == "The suggestion is well supported. No major failure pattern was identified."
     assert result["suggestor_provider"] == "pnnl"
     assert result["suggestor_model"] == "test-model"
     judge_model.prompt.assert_called_once()
     assert judge_model.prompt.call_args.kwargs["max_tokens"] == 100_000
+    if supports_schema:
+        assert judge_model.prompt.call_args.kwargs["schema"] is JudgeOutput
+    else:
+        assert "schema" not in judge_model.prompt.call_args.kwargs
 
 
 def test_runner_creates_a_distinct_judge_model_for_each_submission(tmp_path, monkeypatch: pytest.MonkeyPatch) -> None:

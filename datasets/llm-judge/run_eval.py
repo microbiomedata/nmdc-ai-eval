@@ -7,7 +7,6 @@ import os
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Any
 
 import llm
 from dotenv import load_dotenv
@@ -46,7 +45,7 @@ def main() -> None:
     parser.add_argument(
         "--judge-model",
         default="gpt-5.2",
-        help="Judge model with sufficient output capacity for the complete individual score set.",
+        help="Judge model with support for structured output recommended.",
     )
     args = parser.parse_args()
 
@@ -81,7 +80,7 @@ def main() -> None:
         submission = api.fetch_submission(submission_id)
         # Keep judge instances isolated: each submission gets a new model object
         # and a prompt containing only that submission's context.
-        judge_model: Any = llm.get_model(args.judge_model)
+        judge_model = llm.get_model(args.judge_model)
         result = evaluate_submission(
             submission_id=submission_id,
             submission=submission,

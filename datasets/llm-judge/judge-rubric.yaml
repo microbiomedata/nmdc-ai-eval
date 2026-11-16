@@ -149,8 +149,23 @@ metrics:
 
 judge_output:
   format: >
-    Return only valid JSON. Preserve the required score shape and add assigned
-    suggestion type, critical flags, and clearly missed slots when supported by
-    the available inputs. Include suggestion_scores as one entry per suggestion,
-    keyed by suggestion_index, with independent reasoning and a complete metrics
-    score list. Keep the top-level scores as the overall response score.
+    Return only valid JSON matching the PI-defined JudgeOutput model. The root
+    object contains suggestions, missed_supported_slots, input_data_issues, and
+    summary. Include exactly one suggestions entry for every requested
+    suggestion, using its zero-based index, field_name, and sample_id (null for
+    study-level suggestions). Each suggestion entry contains suggestion_type,
+    evidence_check, reasoning, scores, and critical_flags. evidence_check must
+    be a string with exactly one of these values: "verified", "not found", or
+    "unverifiable"; do not use a boolean. suggested_correction may be null when
+    no concrete correction is warranted. The scores object contains accuracy,
+    factuality, relevancy, completeness, and coherence. Scores are integers
+    from 1 through 4, except completeness is null for an abstention. Include all
+    required fields even when their value is null or an empty list.
+    missed_supported_slots entries contain field_name, sample_id
+    (null when not sample-specific), and evidence. input_data_issues must be a
+    list of plain-text strings, one per issue; do not return objects. Use empty
+    lists for missed_supported_slots and input_data_issues when none apply. The
+    summary is 2-4 sentences. Do not use the legacy scores, suggestion_scores,
+    suggestion_index, concise_reasoning, or rationale-array output format.
+    The pipeline computes the overall mean score from non-null suggestion
+    scores; do not add a separate aggregate score.
