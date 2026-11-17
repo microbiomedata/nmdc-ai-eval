@@ -25,6 +25,7 @@ suggestion_types:
   - abstained
 
 ground_rules:
+  - "Evaluate using only the supplied submission materials, suggestor output, and this rubric."
   - "There is no gold answer. Judge only against submission materials, the schema, ontology lookup, and well-established domain knowledge."
   - "Plausible-but-unsupported values are the most harmful failure. Do not reward confident guessing. Correct abstention is good behavior."
   - "Ontology lookup is authoritative for CURIE existence, official label, and obsolescence. A nonexistent CURIE, mismatched label that is not an allowed synonym, or obsolete term is fabricated_ontology. A CURIE with no lookup result is unverifiable and caps Factuality at 2, not fabricated."

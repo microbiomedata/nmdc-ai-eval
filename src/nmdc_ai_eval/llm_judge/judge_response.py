@@ -59,18 +59,9 @@ def _validate_rubric_metrics(rubric: dict[str, Any]) -> None:
 
 
 def build_judge_system_prompt(rubric: dict[str, Any]) -> str:
-    """Build judge instructions from the configured rubric."""
+    """Serialize the configured rubric as the judge's system prompt."""
     _validate_rubric_metrics(rubric)
-    rubric_json = json.dumps(rubric, ensure_ascii=False, indent=2)
-    return f"""You are an expert NMDC metadata curator. Evaluate every requested suggestion using
-    only the submission materials, suggestion values, and rubric below.
-Unsupported plausible values are harmful; do not reward confident guessing, and treat a
-well-supported abstention as valid. Return exactly one result for each requested suggestion.
-Include missed_supported_slots and input_data_issues as required by the output schema. Follow
-the rubric's scoring instructions, and return only valid JSON matching the structured-output schema.
-
-Rubric:
-{rubric_json}"""
+    return json.dumps(rubric, ensure_ascii=False, indent=2)
 
 
 def build_judge_json_schema(rubric: dict[str, Any]) -> dict[str, Any]:

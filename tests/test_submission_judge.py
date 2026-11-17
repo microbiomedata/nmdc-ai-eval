@@ -368,6 +368,7 @@ def test_load_submission_ids_strips_surrounding_whitespace(tmp_path) -> None:
 def test_checked_in_expert_rubric_is_valid() -> None:
     rubric_path = Path(__file__).parents[1] / "datasets" / "llm-judge" / "judge-rubric.yaml"
     rubric = load_rubric(str(rubric_path))
+    prompt = build_judge_system_prompt(rubric)
     assert [metric["name"] for metric in rubric["metrics"]] == [
         "accuracy",
         "factuality",
@@ -377,6 +378,9 @@ def test_checked_in_expert_rubric_is_valid() -> None:
     ]
     assert set(rubric["grading_scale"]) == {1, 2, 3, 4}
     assert rubric["metrics"][3]["null_when"] == "The suggestion is an abstention."
+    assert "supplied submission materials, suggestor output, and this rubric" in rubric["ground_rules"][0]
+    assert "You are an expert NMDC metadata curator" in prompt
+    assert "supplied submission materials, suggestor output, and this rubric" in prompt
 
 
 def test_load_rubric_rejects_missing_score_anchor(tmp_path) -> None:
@@ -588,8 +592,6 @@ def test_parse_judge_response_rejects_noncontract_responses(judge_text: str) -> 
 def test_judge_prompt_uses_pi_output_contract_and_configured_rubric() -> None:
     prompt = build_judge_system_prompt(RUBRIC)
     assert '"name": "accuracy"' in prompt
-    assert "exactly one" in prompt
-    assert "missed_supported_slots" in prompt
     assert "completeness" in prompt
     assert "Include suggestion_scores as one entry per suggestion" not in prompt
     assert build_judge_json_schema(RUBRIC) == JudgeOutput.model_json_schema()
@@ -605,12 +607,15 @@ def test_judge_rejects_rubric_that_does_not_match_fixed_output_model() -> None:
 def test_checked_in_rubric_uses_pi_output_contract() -> None:
     rubric = load_rubric(str(Path(__file__).parents[1] / "datasets" / "llm-judge" / "judge-rubric.yaml"))
     output_format = rubric["judge_output"]["format"]
+    prompt = build_judge_system_prompt(rubric)
 
     assert "exactly one" in output_format
     assert "reasoning" in output_format
     assert "scores object" in output_format
     assert "suggestion_scores" in output_format
     assert "Do not use the legacy" in output_format
+    assert "exactly one" in prompt
+    assert "missed_supported_slots" in prompt
 
 
 @pytest.mark.parametrize(
