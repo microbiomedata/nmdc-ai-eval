@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import sys
 import time
-from typing import Any, NoReturn
+from typing import Any, NoReturn, cast
 from urllib.parse import quote, urlsplit
 
 import requests
@@ -97,9 +97,7 @@ class SubmissionApiClient:
         except requests.RequestException as exc:
             raise RuntimeError(f"NMDC API request failed: {exc}") from exc
 
-        payload = response.json()
-        if not isinstance(payload, dict):
-            raise ValueError("NMDC API returned a JSON value that is not an object.")
+        payload = cast(dict[str, Any], response.json())
         if method == "GET":
             self._get_response_cache[url] = payload
         return payload

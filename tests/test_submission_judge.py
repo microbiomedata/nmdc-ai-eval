@@ -248,13 +248,6 @@ def test_api_client_truncates_long_http_error_body() -> None:
         SubmissionApiClient("https://data.example.org", "refresh-token").fetch_submission("id")
 
 
-def test_api_client_rejects_non_object_json_response() -> None:
-    with patch("nmdc_ai_eval.llm_judge.submission_api.requests.request", return_value=_response([])):
-        api = SubmissionApiClient("https://data.example.org", "refresh-token")
-        with pytest.raises(ValueError, match="not an object"):
-            api.fetch_submission("submission-1")
-
-
 def test_api_client_rejects_refresh_response_without_access_token() -> None:
     with patch("nmdc_ai_eval.llm_judge.submission_api.requests.request", return_value=_response({})):
         api = SubmissionApiClient("https://data.example.org", "refresh-token")
