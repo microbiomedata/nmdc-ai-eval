@@ -124,21 +124,12 @@ def parse_judge_response(
 ) -> dict[str, Any]:
     """Validate judge output and derive its mean score."""
     try:
-        output = JudgeOutput.model_validate(_parse_json(response_text))
+        output = JudgeOutput.model_validate(
+            _parse_json(response_text),
+            context={"allowed_flags": set(rubric.get("critical_flags", []))},
+        )
     except ValidationError as exc:
         raise ValueError(f"Judge response does not match the output model: {exc}") from exc
-
-    allowed_flags = set(rubric.get("critical_flags", []))
-    seen_indexes: set[int] = set()
-    for item in output.suggestions:
-        if item.index in seen_indexes:
-            raise ValueError(f"Judge response contains suggestion index {item.index} more than once.")
-        seen_indexes.add(item.index)
-        unexpected = sorted(set(item.critical_flags) - allowed_flags)
-        if unexpected:
-            raise ValueError(f"Judge response contains unsupported critical flags: {unexpected}.")
-        if (item.scores.completeness is None) != (item.suggestion_type == "abstained"):
-            raise ValueError("Judge completeness must be null only for an abstained suggestion.")
 
     if expected_suggestions is not None:
         _validate_judged_suggestion_identity(output, expected_suggestions)

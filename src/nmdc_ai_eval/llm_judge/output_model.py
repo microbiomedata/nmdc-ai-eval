@@ -2,7 +2,7 @@
 
 from typing import Literal, Optional
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, ValidationInfo, model_validator
 
 
 class Scores(BaseModel):
@@ -31,6 +31,12 @@ class Suggestion(BaseModel):
     critical_flags: list[str] = Field(default_factory=list)
     suggested_correction: Optional[str] = Field(None, description="Better value, 'abstain', or null")
 
+    @model_validator(mode="after")
+    def validate_completeness(self) -> "Suggestion":
+        if (self.scores.completeness is None) != (self.suggestion_type == "abstained"):
+            raise ValueError("Judge completeness must be null only for an abstained suggestion.")
+        return self
+
 
 class MissedSupportedSlot(BaseModel):
     model_config = ConfigDict(extra="forbid")
@@ -50,3 +56,20 @@ class JudgeOutput(BaseModel):
         description="Plain-text issue descriptions; do not return objects.",
     )
     summary: str = Field(..., description="2-4 sentences on quality and main failure patterns")
+
+    @model_validator(mode="after")
+    def validate_suggestions(self, info: ValidationInfo) -> "JudgeOutput":
+        seen_indexes: set[int] = set()
+        for suggestion in self.suggestions:
+            if suggestion.index in seen_indexes:
+                raise ValueError(f"Judge response contains suggestion index {suggestion.index} more than once.")
+            seen_indexes.add(suggestion.index)
+
+        context = info.context
+        allowed_flags = context.get("allowed_flags") if isinstance(context, dict) else None
+        if allowed_flags is not None:
+            for suggestion in self.suggestions:
+                unexpected = sorted(set(suggestion.critical_flags) - allowed_flags)
+                if unexpected:
+                    raise ValueError(f"Judge response contains unsupported critical flags: {unexpected}.")
+        return self
