@@ -227,13 +227,13 @@ def test_api_client_rejects_non_https_base_urls() -> None:
         SubmissionApiClient("file:///tmp/submissions", "refresh-token")
 
 
-def test_api_client_surfaces_http_error_body_and_redacts_refresh_token() -> None:
+def test_api_client_surfaces_http_error_body_without_scrubbing() -> None:
     api = SubmissionApiClient("https://data.example.org", "refresh-token")
     response = MagicMock(status_code=403, text='{"detail":"Invalid refresh-token"}')
     error = requests.HTTPError("Denied", response=response)
     with (
         patch("nmdc_ai_eval.llm_judge.submission_api.requests.request", side_effect=error),
-        pytest.raises(RuntimeError, match=r'HTTP 403\. Response body: \{"detail":"Invalid \[REDACTED\]"\}'),
+        pytest.raises(RuntimeError, match=r'HTTP 403\. Response body: \{"detail":"Invalid refresh-token"\}'),
     ):
         api.fetch_submission("submission-1")
 
@@ -265,20 +265,29 @@ def test_api_client_rejects_submission_without_metadata_document() -> None:
             api.fetch_submission("submission-1")
 
 
-def test_api_client_debug_logs_response_and_redacts_token_fields(capsys: pytest.CaptureFixture[str]) -> None:
+def test_api_client_debug_logs_response_and_redacts_known_credentials(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
     with patch(
         "nmdc_ai_eval.llm_judge.submission_api.requests.request",
-        return_value=_response({"access_token": "secret-access-token", "message": "ready"}),
+        return_value=_response(
+            {
+                "access_token": "secret-access-token",
+                "refresh_token": "another-token",
+                "message": "secret-refresh-token",
+            }
+        ),
     ):
         api = SubmissionApiClient("https://data.example.org", "secret-refresh-token", debug=True)
-        api.refresh_access_token()
+        api.access_token = "secret" + "-access-token"
+        api._request_json("GET", "https://data.example.org/api/test")
 
     output = capsys.readouterr().err
-    assert "POST /auth/refresh returned HTTP 200" in output
+    assert "GET /api/test returned HTTP 200" in output
     assert '"access_token": "[REDACTED]"' in output
     assert "secret-access-token" not in output
     assert "secret-refresh-token" not in output
-    assert '"message": "ready"' in output
+    assert '"refresh_token": "another-token"' in output
 
 
 def test_api_client_debug_logs_response_shape_on_invalid_submission(

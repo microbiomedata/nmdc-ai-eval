@@ -48,7 +48,7 @@ class SubmissionApiClient:
 
         try:
             payload: Any = response.json()
-            body = json.dumps(self._redact_payload(payload), ensure_ascii=False, indent=2)
+            body = json.dumps(payload, ensure_ascii=False, indent=2)
         except requests.JSONDecodeError:
             body = response.text
 
@@ -63,20 +63,6 @@ class SubmissionApiClient:
             f"[debug] API {method} {endpoint} returned HTTP {response.status_code}:\n{body}",
             file=sys.stderr,
         )
-
-    @classmethod
-    def _redact_payload(cls, payload: Any) -> Any:
-        """Recursively redact token-like fields in a decoded API response."""
-        if isinstance(payload, dict):
-            return {
-                key: "[REDACTED]"
-                if any(secret_name in key.lower() for secret_name in ("token", "authorization"))
-                else cls._redact_payload(value)
-                for key, value in payload.items()
-            }
-        if isinstance(payload, list):
-            return [cls._redact_payload(value) for value in payload]
-        return payload
 
     def _request_json(self, method: str, url: str, **kwargs: Any) -> dict[str, Any]:
         """Send an API request and return an object response, caching GET results."""
@@ -103,12 +89,9 @@ class SubmissionApiClient:
         return payload
 
     def _http_error(self, error: requests.HTTPError) -> RuntimeError:
-        """Format an HTTP failure with a bounded, credential-redacted response body."""
+        """Format an HTTP failure with a bounded response body."""
         response = error.response
         body = response.text if response is not None else ""
-        for secret in (self.refresh_token, self.access_token):
-            if secret:
-                body = body.replace(secret, "[REDACTED]")
         body = body.strip()
         if len(body) > HTTP_ERROR_BODY_LIMIT:
             body = body[:HTTP_ERROR_BODY_LIMIT] + "... [truncated]"
