@@ -22,13 +22,14 @@ Choose the suggestor and judge models or use a different input file:
 ```bash
 just eval-llm-judge --suggestor-provider pnnl --suggestor-model gpt-4o --judge-model gpt-4o-mini
 just eval-llm-judge --ids-file /path/to/ids.txt --rubric-file /path/to/rubric.yaml
+just eval-llm-judge --version 1
 ```
 
 The suggestor provider can be `gcp`, `pnnl`, or `cborg`. If omitted, the runner detects a provider when exactly one provider's credentials are configured. The suggestor model defaults to the provider's default; the judge model defaults to `gpt-5.2`.
 
 ## Output
 
-Timestamped JSON files are written to `pipeline-results/`. Each file contains run metadata and a `results` array with one entry per submission. An entry includes the suggestor response, per-suggestion judge scores and findings, and a derived `mean_score`:
+Timestamped JSON files are written to `pipeline-results/00/` by default. Choose a different pipeline version with `--version`; for example, `--version 1` writes to `pipeline-results/01/`. Each file contains run metadata and a `results` array with one entry per submission. An entry includes the suggestor response, per-suggestion judge scores and findings, and a derived `mean_score`:
 
 ```json
 {

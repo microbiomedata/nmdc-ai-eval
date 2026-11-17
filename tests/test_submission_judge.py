@@ -732,7 +732,19 @@ def test_evaluate_submission_runs_production_pipeline_and_judge(supports_schema:
         assert "schema" not in judge_model.prompt.call_args.kwargs
 
 
-def test_runner_creates_a_distinct_judge_model_for_each_submission(tmp_path, monkeypatch: pytest.MonkeyPatch) -> None:
+@pytest.mark.parametrize(
+    ("version_args", "expected_version"),
+    [
+        ([], "00"),
+        (["--version", "3"], "03"),
+    ],
+)
+def test_runner_creates_a_distinct_judge_model_for_each_submission(
+    tmp_path,
+    monkeypatch: pytest.MonkeyPatch,
+    version_args: list[str],
+    expected_version: str,
+) -> None:
     runner_path = Path(__file__).parents[1] / "datasets" / "llm-judge" / "run_eval.py"
     spec = importlib.util.spec_from_file_location("llm-judge_runner", runner_path)
     assert spec is not None and spec.loader is not None
@@ -769,6 +781,7 @@ def test_runner_creates_a_distinct_judge_model_for_each_submission(tmp_path, mon
             "pnnl",
             "--output-dir",
             str(tmp_path),
+            *version_args,
         ],
     )
 
@@ -782,3 +795,5 @@ def test_runner_creates_a_distinct_judge_model_for_each_submission(tmp_path, mon
     assert evaluate.call_args_list[1].kwargs["judge_model"] is second_judge
     assert evaluate.call_args_list[0].kwargs["suggestor_provider"] == "pnnl"
     assert evaluate.call_args_list[0].kwargs["suggestor_model"] is None
+    result_files = list((tmp_path / expected_version).glob("results-*.json"))
+    assert len(result_files) == 1

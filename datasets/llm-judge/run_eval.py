@@ -28,6 +28,12 @@ def main() -> None:
     parser.add_argument("--rubric-file", type=Path, default=HERE / "judge-rubric.yaml")
     parser.add_argument("--output-dir", type=Path, default=HERE / "pipeline-results")
     parser.add_argument(
+        "--version",
+        type=int,
+        default=0,
+        help="Output version folder (default: 00).",
+    )
+    parser.add_argument(
         "--debug",
         action="store_true",
         help="Print bounded API response diagnostics to stderr; submission contents may be sensitive.",
@@ -48,6 +54,8 @@ def main() -> None:
         help="Judge model with support for structured output recommended.",
     )
     args = parser.parse_args()
+    if args.version < 0:
+        parser.error("--version must be a non-negative integer.")
 
     load_dotenv()
     try:
@@ -93,9 +101,10 @@ def main() -> None:
         results.append(result)
         print(f"  {submission_id}: mean judge score {result['mean_score']}/4")
 
-    args.output_dir.mkdir(parents=True, exist_ok=True)
+    version_dir = args.output_dir / f"{args.version:02d}"
+    version_dir.mkdir(parents=True, exist_ok=True)
     timestamp = datetime.now().strftime("%Y%m%d-%H%M%S-%f")
-    output_path = args.output_dir / f"results-{timestamp}.json"
+    output_path = version_dir / f"results-{timestamp}.json"
     output_path.write_text(
         json.dumps(
             {
