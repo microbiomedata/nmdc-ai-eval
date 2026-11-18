@@ -1,0 +1,9 @@
+id	field_name	value	reason
+s1	diss_oxygen	0.1 mg per liter	Low oxygen.
+s2	diss_oxygen	2.0 mg per liter	Aerated.
+s1	oxy_stat_samp	anaerobic	Activated sludge.
+s1	samp_collec_method	aeration basin	Sampled from the aeration basin.
+	samp_store_temp	-20	Pellets frozen.
+s1	collection_date	2023-07-12	AA-aer-2023-07-12.
+s1	collection_date	2023-01-10	Sampling began in January 2023.
+	geo_loc_name	USA: Michigan, Detroit	A Michigan treatment plant.

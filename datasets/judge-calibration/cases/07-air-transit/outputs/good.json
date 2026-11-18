@@ -1,0 +1,36 @@
+{
+  "metadata_fields": [
+    {
+      "id": "s1",
+      "field_name": "ventilation_type",
+      "value": "mechanical ventilation",
+      "reason": "Stations use mechanical ventilation; PGH-station-03."
+    },
+    {
+      "id": "s2",
+      "field_name": "ventilation_type",
+      "value": "windows open",
+      "reason": "Buses ran with windows open; PGH-bus-01."
+    },
+    {
+      "id": null,
+      "field_name": "samp_collec_method",
+      "value": "liquid impinger at 12.5 liters per minute for 30 minutes",
+      "reason": "Using a liquid impinger at 12.5 liters per minute; sampled for 30 minutes."
+    },
+    {
+      "id": null,
+      "field_name": "collection_date",
+      "value": "2022-10",
+      "reason": "October 2022."
+    },
+    {
+      "id": null,
+      "field_name": "geo_loc_name",
+      "value": "USA: Pennsylvania, Pittsburgh",
+      "reason": "Pittsburgh, Pennsylvania, USA."
+    }
+  ],
+  "model": null,
+  "access_provider": null
+}

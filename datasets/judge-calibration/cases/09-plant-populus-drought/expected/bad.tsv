@@ -1,0 +1,14 @@
+kind	criterion	row	field_name	id	why
+fail	accuracy	1	host_genotype	s1	s1 is BESC-97.
+fail	factuality	1	host_genotype	s1	The reason calls s1 the drought-susceptible genotype; the input says BESC-97, in s1's name, is drought tolerant.
+fail	accuracy	2	host_genotype	s2	s2 is GW-9947.
+fail	factuality	2	host_genotype	s2	The reason calls s2 the drought-tolerant genotype; the input says GW-9947, in s2's name, is drought susceptible.
+fail	accuracy	3	watering_regm	s2	s2 is a control.
+fail	factuality	3	watering_regm	s2	The reason calls the control plant a drought treatment.
+fail	accuracy	5	other_treatment	s1	s1 is a drought plant, not a well-watered control.
+fail	factuality	5	other_treatment	s1	The reason calls the drought plant a control plant.
+fail	relevancy	5	other_treatment	s1	other_treatment is for treatments no provided field captures; watering is captured by watering_regm, which is in scope.
+fail	accuracy	6	growth_facil		The plants were in a greenhouse.
+fail	factuality	7	geo_loc_name		The reason names a laboratory and a facility the input does not mention.
+fail	coherence				s1 cannot be both a drought plant and a well-watered control.
+fail	completeness				September 2023 is in the input and there is no collection_date.

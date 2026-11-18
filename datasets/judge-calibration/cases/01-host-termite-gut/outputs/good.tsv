@@ -1,0 +1,8 @@
+id	field_name	value	reason
+s1	host_common_name	termite	Worker termites of Reticulitermes flavipes.
+s1	host_body_site	hindgut [UBERON:0001046]	Whole hindguts were pooled.
+s1	host_diet	pine wood shavings	Kept on a diet of pine wood shavings for 14 days before dissection.
+s1	host_life_stage	worker	Worker termites.
+	samp_store_temp	-80	Stored in RNAlater at -80 degrees Celsius.
+	collection_date	2022-05	Collected in May 2022.
+	geo_loc_name	USA: Georgia, Athens	A hardwood forest in Athens, Georgia, USA.

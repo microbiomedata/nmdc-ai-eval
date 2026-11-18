@@ -1,0 +1,14 @@
+kind	criterion	row	field_name	id	why
+fail	accuracy	1	ventilation_type	s1	Stations use mechanical ventilation.
+fail	factuality	1	ventilation_type	s1	The reason says open windows for a station; the input says stations use mechanical ventilation.
+fail	accuracy	2	ventilation_type	s2	Buses ran with windows open.
+fail	factuality	2	ventilation_type	s2	The reason says mechanical ventilation for a bus; the input says buses ran with windows open.
+fail	accuracy	3	temp	s2	No bus temperature is given.
+fail	accuracy	4	samp_collec_method		The input says liquid impinger.
+fail	accuracy	5	collection_date		The input gives only the month.
+fail	relevancy	6	elev		1.5 m above the floor is a sampling height, not elevation above sea level.
+fail	accuracy	7	geo_loc_name		The input says Pittsburgh, Pennsylvania.
+fail	accuracy	8	lat_lon		No coordinates are in the input.
+fail	factuality	8	lat_lon		The reason calls these the site's coordinates; the input gives no coordinates.
+fail	coherence				USA: Ohio, Cleveland and 40.44 -79.99 (Pittsburgh) cannot both hold.
+open	accuracy	6	elev		1.5 m is the sampling height, misfiled; rubric v1 does not say whether a misfiled value also fails accuracy.

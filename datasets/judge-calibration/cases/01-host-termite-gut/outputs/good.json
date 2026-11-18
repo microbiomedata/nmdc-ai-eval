@@ -1,0 +1,48 @@
+{
+  "metadata_fields": [
+    {
+      "id": "s1",
+      "field_name": "host_common_name",
+      "value": "termite",
+      "reason": "Worker termites of Reticulitermes flavipes."
+    },
+    {
+      "id": "s1",
+      "field_name": "host_body_site",
+      "value": "hindgut [UBERON:0001046]",
+      "reason": "Whole hindguts were pooled."
+    },
+    {
+      "id": "s1",
+      "field_name": "host_diet",
+      "value": "pine wood shavings",
+      "reason": "Kept on a diet of pine wood shavings for 14 days before dissection."
+    },
+    {
+      "id": "s1",
+      "field_name": "host_life_stage",
+      "value": "worker",
+      "reason": "Worker termites."
+    },
+    {
+      "id": null,
+      "field_name": "samp_store_temp",
+      "value": -80,
+      "reason": "Stored in RNAlater at -80 degrees Celsius."
+    },
+    {
+      "id": null,
+      "field_name": "collection_date",
+      "value": "2022-05",
+      "reason": "Collected in May 2022."
+    },
+    {
+      "id": null,
+      "field_name": "geo_loc_name",
+      "value": "USA: Georgia, Athens",
+      "reason": "A hardwood forest in Athens, Georgia, USA."
+    }
+  ],
+  "model": null,
+  "access_provider": null
+}

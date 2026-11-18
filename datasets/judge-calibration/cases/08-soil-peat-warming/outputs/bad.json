@@ -1,0 +1,42 @@
+{
+  "metadata_fields": [
+    {
+      "id": "s2",
+      "field_name": "air_temp_regm",
+      "value": "+9 degrees Celsius above ambient",
+      "reason": "Warming treatment."
+    },
+    {
+      "id": "s1",
+      "field_name": "depth",
+      "value": "0.1 - 0.2",
+      "reason": "Sectioned at 10-20 cm."
+    },
+    {
+      "id": "s2",
+      "field_name": "depth",
+      "value": "0 - 0.1",
+      "reason": "Sectioned at 0-10 cm."
+    },
+    {
+      "id": null,
+      "field_name": "geo_loc_name",
+      "value": "Canada: Ontario, Kenora",
+      "reason": "Northern bogs of this kind are in Ontario."
+    },
+    {
+      "id": null,
+      "field_name": "lat_lon",
+      "value": "47.50 -93.45",
+      "reason": "Site coordinates."
+    },
+    {
+      "id": null,
+      "field_name": "samp_store_temp",
+      "value": -20,
+      "reason": "Frozen within two hours."
+    }
+  ],
+  "model": null,
+  "access_provider": null
+}

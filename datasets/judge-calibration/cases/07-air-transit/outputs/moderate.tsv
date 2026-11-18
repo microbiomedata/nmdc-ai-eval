@@ -1,0 +1,7 @@
+id	field_name	value	reason
+s1	ventilation_type	mechanical ventilation	Stations use mechanical ventilation.
+s2	ventilation_type	natural ventilation	Buses ran with windows open, so they are naturally ventilated like most transit buses.
+s1	humidity	48 percent	The mean across stations was 48 percent.
+s1	temp	19	The mean across stations was 19 degrees Celsius.
+	collection_date	2022-10	October 2022.
+	geo_loc_name	USA: Pennsylvania, Pittsburgh	Pittsburgh, Pennsylvania, USA.

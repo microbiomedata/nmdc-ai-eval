@@ -1,0 +1,54 @@
+{
+  "metadata_fields": [
+    {
+      "id": "s1",
+      "field_name": "ventilation_type",
+      "value": "windows open",
+      "reason": "Open windows."
+    },
+    {
+      "id": "s2",
+      "field_name": "ventilation_type",
+      "value": "mechanical ventilation",
+      "reason": "Mechanical ventilation."
+    },
+    {
+      "id": "s2",
+      "field_name": "temp",
+      "value": 19,
+      "reason": "19 degrees Celsius."
+    },
+    {
+      "id": null,
+      "field_name": "samp_collec_method",
+      "value": "filter cassette",
+      "reason": "Air was sampled for 30 minutes."
+    },
+    {
+      "id": null,
+      "field_name": "collection_date",
+      "value": "2022-10-15",
+      "reason": "October 2022."
+    },
+    {
+      "id": null,
+      "field_name": "elev",
+      "value": 1.5,
+      "reason": "1.5 m above the floor."
+    },
+    {
+      "id": null,
+      "field_name": "geo_loc_name",
+      "value": "USA: Ohio, Cleveland",
+      "reason": "A mid-sized city."
+    },
+    {
+      "id": null,
+      "field_name": "lat_lon",
+      "value": "40.44 -79.99",
+      "reason": "City coordinates."
+    }
+  ],
+  "model": null,
+  "access_provider": null
+}

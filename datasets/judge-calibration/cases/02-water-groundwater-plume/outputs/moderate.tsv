@@ -1,0 +1,9 @@
+id	field_name	value	reason
+s1	ph	3.6	pH 3.6 at W106.
+s2	ph	6.9	At W301 the pH was 6.9; W301-2024-03.
+s1	nitrate	9800 mg per liter	Nitrate 9,800 mg per liter at W106, from the former disposal ponds upgradient.
+s2	nitrate	0.4 mg per liter	At W301 the pH was 6.9 and nitrate 0.4 mg per liter; W301-2024-03.
+	samp_collec_method	peristaltic pump after purging three well volumes	Purging three well volumes, using a peristaltic pump.
+	size_frac	0.2 micrometer	0.2 micrometer filters.
+	collection_date	2024-03	March 2024.
+	geo_loc_name	USA: Tennessee, Oak Ridge	Near Oak Ridge, Tennessee, USA.

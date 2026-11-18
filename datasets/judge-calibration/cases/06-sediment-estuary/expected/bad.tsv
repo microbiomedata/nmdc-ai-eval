@@ -1,0 +1,12 @@
+kind	criterion	row	field_name	id	why
+fail	accuracy	1	oxy_stat_samp	s1	Surface slices were oxic.
+fail	accuracy	2	oxy_stat_samp	s2	Deeper slices were anoxic.
+fail	factuality	2	oxy_stat_samp	s2	The reason calls the deep slice oxic; the input says the deeper slices were anoxic.
+fail	accuracy	3	sediment_type		Nothing in the input says what the sediment is made of.
+fail	accuracy	4	geo_loc_name		The input says Maryland.
+fail	accuracy	5	lat_lon		No coordinates are in the input.
+fail	factuality	5	lat_lon		The reason calls these the site's coordinates; the input gives no coordinates.
+fail	coherence				USA: Virginia and 38.98 -76.48 (Maryland) cannot both hold.
+fail	completeness				Depths, porewater salinity and push coring are in the input and there is no depth, salinity or samp_collec_method.
+open	factuality	1	oxy_stat_samp	s1	The reason makes a general claim about estuarine sediments, not about this study. Whether general claims count is a rubric decision.
+open	factuality	3	sediment_type		The reason makes a general claim about sulfidic sediments. Same question.

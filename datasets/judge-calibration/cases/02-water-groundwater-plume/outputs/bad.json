@@ -1,0 +1,54 @@
+{
+  "metadata_fields": [
+    {
+      "id": "s1",
+      "field_name": "ph",
+      "value": 3.6,
+      "reason": "pH 3.6 at W106."
+    },
+    {
+      "id": "s1",
+      "field_name": "ph",
+      "value": 6.9,
+      "reason": "Groundwater pH."
+    },
+    {
+      "id": "s2",
+      "field_name": "ph",
+      "value": 3.6,
+      "reason": "Acidic plume."
+    },
+    {
+      "id": "s2",
+      "field_name": "nitrate",
+      "value": "9800 mg per liter",
+      "reason": "Nitrate at the site."
+    },
+    {
+      "id": null,
+      "field_name": "samp_collec_method",
+      "value": "bailer",
+      "reason": "Wells were sampled after purging."
+    },
+    {
+      "id": null,
+      "field_name": "size_frac",
+      "value": "0.22 micrometer",
+      "reason": "Filtered on site."
+    },
+    {
+      "id": null,
+      "field_name": "samp_size",
+      "value": "7-12 m",
+      "reason": "Screened intervals were 7 to 12 m."
+    },
+    {
+      "id": null,
+      "field_name": "collection_date",
+      "value": "2024-03",
+      "reason": "March 2024."
+    }
+  ],
+  "model": null,
+  "access_provider": null
+}

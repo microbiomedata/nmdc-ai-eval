@@ -1,0 +1,3 @@
+kind	criterion	row	field_name	id	why
+fail	factuality	3	salinity	s1	The reason adds a river and a mechanism the input does not mention.
+fail	accuracy	7	tot_org_carb	s1	The slot takes mg per liter, numeric only, and the input gives percent dry weight with no way to convert; 1.2 is also the low end of a range across all slices, not s1's value.
