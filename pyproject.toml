@@ -84,14 +84,6 @@ constraint-dependencies = [
   # allows rdflib<8 (https://github.com/microbiomedata/submission-schema/issues/489), so remove
   # this floor once the next submission-schema release is out.
   "nmdc-submission-schema>=11.24.0",
-  # setuptools>=83.0.0 (PYSEC-2026-3447) was constrained here until 2026-09-22. It pinned
-  # oaklib to 0.6.23, which hardcodes the retired raw bucket
-  # https://s3.amazonaws.com/bbop-sqlite/{prefix}.db.gz (403 since the migration in
-  # INCATools/semantic-sql#115). oaklib 0.7.4 reads SEMSQL_SQLITE_URL_BASE instead, but
-  # every oaklib release through 0.7.4 pins setuptools<82, so the two cannot both hold.
-  # The advisory is a MANIFEST.in exclusion bypass during setuptools sdist builds on macOS.
-  # This repo builds with hatchling, has no MANIFEST.in and publishes no sdist, so it is not
-  # exposed. Ignored in `just audit` until oaklib lifts its pin.
 ]
 
 [tool.pytest.ini_options]
