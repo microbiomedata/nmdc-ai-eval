@@ -17,6 +17,7 @@ datasets/env-triad-prediction/env-triad-suite.yaml
 
 # Pipeline eval results — committed for reproducibility.
 # Individual result YAMLs are timestamped and never overwritten.
+datasets/llm-judge/pipeline-results/
 
 # === Standard Python (GitHub template) ===
 

@@ -10,10 +10,10 @@ All **read** from `main` at 9c77e3c (after https://github.com/microbiomedata/nmd
 
 - Four names, all in `src/nmdc_ai_eval/run_suite.py`: `LLMRunner` (imported at line 28, used at 393), `load_suite` (29, 328), `results_to_dataframe` (29, 474), and `LLMRunnerConfig` (363, 381). Four test files also import it.
 - The committed suites use one prompt template and one of llm-matrix's scoring methods (`simple_question`), over a matrix of models × `temperature: [0.0]`.
-- The parts with real logic: the suite YAML schema, a DuckDB result cache (the dataset READMEs already warn that it can serve stale results), and the judge call.
+- The parts with real logic: the suite YAML schema and the judge call.
 - When the judge's reply can't be parsed, llm-matrix raises and the row is lost (`run_suite.py:405-416`, which counts and logs it).
 - For env-triad suites the judge is still called, then its score is replaced by the direct per-field comparison (`run_suite.py:422-426`), so that call is spent without being used.
-- In `uv.lock`, `diskcache` 5.6.3, `duckdb` 1.5.5 and `typer` 0.12.5 are required only by llm-matrix. `diskcache` is the subject of https://github.com/microbiomedata/nmdc-ai-eval/issues/27.
+- In `uv.lock`, `diskcache` 5.6.3 and `typer` 0.12.5 are required only by llm-matrix. `diskcache` is the subject of https://github.com/microbiomedata/nmdc-ai-eval/issues/27.
 
 ## Experiments
 
@@ -42,7 +42,6 @@ The throwaway code is not in this repo. Ask @turbomam for it.
 
 - Keep the suite YAML format and call models through `llm` with this repo's Vertex and PNNL plugins.
 - Own the narrow suite schema and model/settings/case loop in this repository; support the currently used `simple_question` metric only.
-- Do not retain the DuckDB result cache.
 - Read token usage from each response, record elapsed time, and retain rows whose judge replies cannot be parsed.
 - Keep env-triad's existing direct score behavior in this migration; move its scorer into a separate module in a later scoring contribution.
 - Remove `llm-matrix` and unused direct `ipython`; `llm` becomes an explicit dependency.

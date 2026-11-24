@@ -124,6 +124,10 @@ compare-pipeline-results *args="":
 eval-supplement-triad *args="":
     uv run python datasets/supplement-triad/run_supplement_eval.py {{ args }}
 
+# Fetch submissions and evaluate suggestor responses with the configured LLM judge.
+eval-llm-judge *args="":
+    uv run python datasets/llm-judge/run_eval.py {{ args }}
+
 # End-to-end value prediction evals (no DOI/PDF)
 eval-sampledata: clean-sampledata-outputs generate-sampledata run-sampledata
 eval-ebs: clean-ebs-outputs generate-ebs run-ebs score-ebs
